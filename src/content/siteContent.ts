@@ -1,7 +1,7 @@
 export type Language = 'zh' | 'en'
 
 export type SiteCopy = {
-  nav: { story: string; signal: string; presale: string; roadmap: string; languageLabel: string; languageSwitchLabel: string; homeLabel: string; logoLabel: string; navigationLabel: string }
+  nav: { story: string; signal: string; presale: string; roadmap: string; languageLabel: string; languageSwitchLabel: string; menuOpenLabel: string; menuCloseLabel: string; homeLabel: string; logoLabel: string; navigationLabel: string }
   community: { regionLabel: string; xLabel: string; telegramLabel: string; comingSoon: string; xPendingLabel: string; telegramPendingLabel: string }
   ticker: { sectionLabel: string; symbolLabel: string; chainLabel: string; priceLabel: string; capacityLabel: string; statusLabel: string }
   hero: { eyebrow: string; tagline: string; description: string; explore: string; enterPresale: string; presalePendingLabel: string; visualLabel: string; brandSignalLabel: string; brandSignalValue: string; safetyLabel: string }
@@ -17,7 +17,7 @@ export type SiteCopy = {
 
 export const siteContent: Record<Language, SiteCopy> = {
   zh: {
-    nav: { story: '故事', signal: '信号', presale: '预售', roadmap: '路线图', languageLabel: 'EN', languageSwitchLabel: '切换到英文', homeLabel: 'FLAP STOCK 首页', logoLabel: '蝴蝶股票 FLAP STOCK 标志', navigationLabel: '主导航' },
+    nav: { story: '故事', signal: '信号', presale: '预售', roadmap: '路线图', languageLabel: 'EN', languageSwitchLabel: '切换到英文', menuOpenLabel: '打开菜单', menuCloseLabel: '关闭菜单', homeLabel: 'FLAP STOCK 首页', logoLabel: '蝴蝶股票 FLAP STOCK 标志', navigationLabel: '主导航' },
     community: { regionLabel: '社区入口', xLabel: 'X', telegramLabel: 'Telegram', comingSoon: 'COMING SOON · 尚未开放', xPendingLabel: 'X：尚未开放', telegramPendingLabel: 'Telegram：尚未开放' },
     ticker: { sectionLabel: 'FLAP STOCK 项目详情', symbolLabel: '代币符号', chainLabel: '网络', priceLabel: '价格', capacityLabel: '席位', statusLabel: '状态' },
     hero: {
@@ -103,7 +103,7 @@ export const siteContent: Record<Language, SiteCopy> = {
     footer: { disclaimer: 'FLAP 是社区 Meme 代币，不是真实股票、证券或投资产品。', rights: '© 2026 FLAP STOCK. ALL RIGHTS RESERVED.' },
   },
   en: {
-    nav: { story: 'STORY', signal: 'SIGNAL', presale: 'PRESALE', roadmap: 'ROADMAP', languageLabel: '中文', languageSwitchLabel: 'Switch to Chinese', homeLabel: 'FLAP STOCK home', logoLabel: 'FLAP STOCK logo', navigationLabel: 'Primary navigation' },
+    nav: { story: 'STORY', signal: 'SIGNAL', presale: 'PRESALE', roadmap: 'ROADMAP', languageLabel: '中文', languageSwitchLabel: 'Switch to Chinese', menuOpenLabel: 'Open menu', menuCloseLabel: 'Close menu', homeLabel: 'FLAP STOCK home', logoLabel: 'FLAP STOCK logo', navigationLabel: 'Primary navigation' },
     community: { regionLabel: 'Community channels', xLabel: 'X', telegramLabel: 'Telegram', comingSoon: 'COMING SOON', xPendingLabel: 'X: COMING SOON', telegramPendingLabel: 'Telegram: COMING SOON' },
     ticker: { sectionLabel: 'FLAP STOCK project details', symbolLabel: 'SYMBOL', chainLabel: 'CHAIN', priceLabel: 'PRICE', capacityLabel: 'CAPACITY', statusLabel: 'STATUS' },
     hero: {

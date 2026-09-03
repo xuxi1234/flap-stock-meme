@@ -260,6 +260,42 @@ nav a:hover::after {
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
+.header-controls {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.menu-toggle {
+  align-items: center;
+  background: rgba(243, 186, 47, 0.08);
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px;
+}
+
+.menu-toggle span {
+  background: currentColor;
+  height: 1px;
+  transition: transform 180ms ease;
+  width: 19px;
+}
+
+.menu-toggle[aria-expanded="true"] span:first-child {
+  transform: translateY(4px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded="true"] span:last-child {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
 .language-toggle:hover {
   background: var(--gold);
   color: var(--void);
@@ -1233,9 +1269,15 @@ h1 em {
   }
 
   .site-header {
+    background: rgba(5, 5, 5, 0.92);
+    border: 1px solid rgba(243, 186, 47, 0.16);
     flex-wrap: wrap;
-    gap: 4px 20px;
-    padding-block: 15px;
+    gap: 0;
+    min-height: 68px;
+    padding: 10px 12px;
+    position: sticky;
+    top: 8px;
+    z-index: 20;
   }
 
   .brand-lockup {
@@ -1246,41 +1288,54 @@ h1 em {
 
   nav {
     flex-basis: 100%;
-    gap: 24px;
-    margin: 4px 0 0;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    max-height: 0;
     order: 3;
-    overflow-x: auto;
-    padding-bottom: 2px;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0;
+    pointer-events: none;
+    transition: max-height 220ms ease, opacity 160ms ease, padding-top 220ms ease;
+  }
+
+  nav[data-open="true"] {
+    max-height: 58px;
+    opacity: 1;
+    padding-top: 10px;
+    pointer-events: auto;
   }
 
   nav a {
     align-items: center;
+    background: rgba(243, 186, 47, 0.045);
+    border: 1px solid rgba(243, 186, 47, 0.16);
     display: inline-flex;
-    flex: 0 0 auto;
+    justify-content: center;
     min-height: 44px;
     min-width: 44px;
+    padding: 6px;
   }
 
   .language-toggle {
     min-height: 44px;
   }
 
-  .header-community {
-    flex-basis: 100%;
-    order: 4;
+  .menu-toggle {
+    display: flex;
   }
 
-  .header-community .community-link {
-    flex: 1 1 0;
-    min-height: 44px;
-    min-width: 0;
+  .header-community {
+    display: none;
   }
 
   .hero {
-    gap: 64px;
+    gap: 34px;
     grid-template-columns: 1fr;
     min-height: auto;
-    padding-block: 78px 84px;
+    padding-block: 52px 64px;
   }
 
   .hero-copy::before {
@@ -1292,9 +1347,9 @@ h1 em {
   }
 
   .hero-visual {
-    aspect-ratio: 1.08;
+    aspect-ratio: 1.16;
     justify-self: center;
-    max-width: 460px;
+    max-width: 390px;
     width: 100%;
   }
 
@@ -1316,18 +1371,40 @@ h1 em {
   }
 
   .effect-grid,
-  .signal-grid,
-  .name-core-grid,
   .participation-grid {
     grid-template-columns: 1fr;
   }
 
+  .name-core-grid {
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .signal-grid {
+    background: transparent;
+    border: 0;
+    display: flex;
+    gap: 10px;
+    margin-inline: -20px;
+    overflow-x: auto;
+    padding: 0 20px 12px;
+    scroll-padding-inline: 20px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .signal-grid::-webkit-scrollbar {
+    display: none;
+  }
+
   .effect-grid > li {
-    min-height: 220px;
+    min-height: 0;
   }
 
   #signal article {
-    min-height: 300px;
+    flex: 0 0 min(78vw, 300px);
+    min-height: 260px;
+    scroll-snap-align: start;
   }
 
   #presale {
@@ -1335,7 +1412,7 @@ h1 em {
   }
 
   #presale > ul {
-    margin-top: 52px;
+    margin-top: 34px;
   }
 
   #presale > p[role="note"] {
@@ -1351,8 +1428,8 @@ h1 em {
     border-bottom: 1px solid var(--line);
     border-left: 0;
     border-right: 0;
-    min-height: 220px;
-    padding-inline: 0;
+    min-height: 0;
+    padding: 28px 0 34px;
   }
 
   .participation-grid > li:last-child {
@@ -1376,13 +1453,9 @@ h1 em {
     font-size: 0.62rem;
   }
 
-  .hero {
-    padding-block: 60px 68px;
-  }
-
   h1 {
-    font-size: clamp(4rem, 22vw, 6rem);
-    margin-bottom: 32px;
+    font-size: clamp(3.7rem, 20vw, 5.6rem);
+    margin-bottom: 26px;
   }
 
   h1 em {
@@ -1391,7 +1464,12 @@ h1 em {
   }
 
   .hero-tagline {
-    font-size: 1.22rem;
+    font-size: 1.15rem;
+  }
+
+  .hero-description {
+    font-size: 0.96rem;
+    line-height: 1.7;
   }
 
   .hero-signal {
@@ -1423,17 +1501,22 @@ h1 em {
   }
 
   .terminal-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .terminal-strip p,
   .terminal-strip p:nth-child(2n) {
     border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    padding-block: 16px;
+  }
+
+  .terminal-strip p:nth-child(2n) {
     border-right: 0;
   }
 
   .terminal-strip p:last-child {
-    grid-column: auto;
+    grid-column: 1 / -1;
   }
 
   #presale > ul li,
@@ -1442,7 +1525,7 @@ h1 em {
   }
 
   .statement {
-    padding-block: 94px;
+    padding-block: 68px;
   }
 
   .statement::before {
@@ -1450,7 +1533,8 @@ h1 em {
   }
 
   .statement > h2 {
-    font-size: clamp(2.75rem, 14vw, 4.7rem);
+    font-size: clamp(2.35rem, 11vw, 4rem);
+    margin-bottom: 22px;
   }
 
   .effect-grid,
@@ -1458,7 +1542,7 @@ h1 em {
   .name-core-grid,
   .participation-grid,
   #roadmap > ol {
-    margin-top: 50px;
+    margin-top: 36px;
   }
 
   #signal,
@@ -1468,15 +1552,27 @@ h1 em {
   }
 
   .name-core-section article {
-    min-height: 300px;
+    min-height: 228px;
+    padding: 18px 16px;
   }
 
   #signal article {
-    min-height: 360px;
+    min-height: 260px;
   }
 
   .name-core-section article > strong {
-    margin-bottom: 52px;
+    font-size: clamp(3.8rem, 18vw, 5.2rem);
+    margin-bottom: 34px;
+  }
+
+  .name-core-section article h3 {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .name-core-section article p {
+    font-size: 0.9rem;
+    line-height: 1.55;
   }
 
   #roadmap > ol::before {
@@ -1511,7 +1607,7 @@ h1 em {
   }
 
   .manifesto-section {
-    min-height: 560px;
+    min-height: 460px;
   }
 
   .manifesto-section > h2 {
@@ -1534,6 +1630,24 @@ h1 em {
   .disclaimer {
     text-align: left;
   }
+
+  #signal article > small {
+    bottom: auto;
+    left: auto;
+    margin-top: 46px;
+    max-width: none;
+    position: static;
+  }
+
+  #presale > ul li {
+    min-height: 56px;
+    padding: 13px 15px;
+  }
+
+  .effect-section li > span,
+  .participation-section li > span {
+    margin-bottom: 24px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -1546,7 +1660,7 @@ h1 em {
   }
 
   .site-header {
-    gap: 4px 12px;
+    padding-inline: 10px;
   }
 
   .brand-lockup {
@@ -1559,7 +1673,7 @@ h1 em {
   }
 
   nav {
-    gap: 12px;
+    gap: 4px;
   }
 
   nav a {
@@ -1581,7 +1695,16 @@ h1 em {
   }
 
   h1 {
-    font-size: clamp(3.45rem, 21vw, 4.5rem);
+    font-size: clamp(3.25rem, 19vw, 4.15rem);
+  }
+
+  .name-core-grid {
+    gap: 6px;
+  }
+
+  .name-core-section article {
+    min-height: 214px;
+    padding-inline: 13px;
   }
 
   .terminal-strip p {

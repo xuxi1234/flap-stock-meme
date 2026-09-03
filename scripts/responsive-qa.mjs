@@ -45,9 +45,12 @@ try {
       }
       const sections = [...document.querySelectorAll('main > section')]
       const warning = document.querySelector('#presale [role="note"]')
-      const headerControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .site-header nav a, .header-community .community-link')]
+      const desktopHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .site-header nav a, .header-community .community-link')]
+      const mobileHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .menu-toggle')]
       const actionControls = [...document.querySelectorAll('.hero-actions .button, #presale > .button, .footer-community .community-link')]
-      const visibleControls = [...headerControls, ...actionControls].filter(visible)
+      const mobile = window.innerWidth <= 760
+      const requiredControls = [...(mobile ? mobileHeaderControls : desktopHeaderControls), ...actionControls]
+      const visibleControls = requiredControls.filter(visible)
       const rectanglesOverlap = (first, second) => first.left < second.right
         && first.right > second.left
         && first.top < second.bottom
@@ -59,8 +62,7 @@ try {
           return !rectanglesOverlap(first, second)
         })
       })
-      const mobile = window.innerWidth <= 760
-      const hasUsableMobileTargets = !mobile || [...headerControls, ...actionControls].every((control) => {
+      const hasUsableMobileTargets = !mobile || requiredControls.every((control) => {
         const rect = control.getBoundingClientRect()
         return visible(control) && rect.width >= 44 && rect.height >= 44
       })
@@ -70,7 +72,7 @@ try {
         sectionsVisible: sections.every(visible),
         warningVisible: Boolean(warning && visible(warning)),
         noHorizontalOverflow: document.documentElement.scrollWidth <= window.innerWidth,
-        controlsVisible: [...headerControls, ...actionControls].every(visible),
+        controlsVisible: requiredControls.every(visible),
         controlsDoNotOverlap,
         hasUsableMobileTargets,
       }
@@ -83,6 +85,13 @@ try {
     assert.equal(result.controlsVisible, true, `${viewport.width}px: controls must remain visible`)
     assert.equal(result.controlsDoNotOverlap, true, `${viewport.width}px: visible controls must not overlap`)
     assert.equal(result.hasUsableMobileTargets, true, `${viewport.width}px: mobile controls must be at least 44px`)
+
+    if (viewport.width <= 760) {
+      const menu = page.getByRole('button', { name: /打开菜单|Open menu/ })
+      await menu.click()
+      await page.getByRole('navigation').getByRole('link', { name: /故事|STORY/ }).waitFor({ state: 'visible' })
+      assert.equal(await menu.getAttribute('aria-expanded'), 'true', `${viewport.width}px: compact menu must open`)
+    }
     await page.close()
     console.log(`Responsive QA passed at ${viewport.width}px`)
   }

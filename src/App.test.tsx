@@ -116,6 +116,29 @@ describe('FLAP STOCK narrative page', () => {
     expect(document.documentElement.lang).toBe('en')
   })
 
+  it('lets mobile visitors open the compact navigation and closes it after selection', () => {
+    render(<App />)
+
+    const menuButton = document.querySelector('.menu-toggle') as HTMLButtonElement
+    const navigation = screen.getByRole('navigation', { name: '主导航' })
+
+    expect(menuButton).toHaveAttribute('aria-label', '打开菜单')
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+    expect(navigation).toHaveAttribute('data-open', 'false')
+
+    fireEvent.click(menuButton)
+
+    expect(menuButton).toHaveAttribute('aria-label', '关闭菜单')
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true')
+    expect(navigation).toHaveAttribute('data-open', 'true')
+
+    fireEvent.click(within(navigation).getByRole('link', { name: '故事' }))
+
+    expect(menuButton).toHaveAttribute('aria-label', '打开菜单')
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false')
+    expect(navigation).toHaveAttribute('data-open', 'false')
+  })
+
   it('renders the binding story, signals, character core, presale, roadmap, and manifesto copy', () => {
     const { container } = render(<App />)
     const effect = screen.getByRole('region', { name: '蝴蝶效应' })
@@ -159,11 +182,13 @@ describe('FLAP STOCK narrative page', () => {
     expect(css).toContain('@media (max-width: 760px)')
     expect(css).toContain('@media (max-width: 360px)')
     expect(css).toMatch(/@media \(max-width: 1024px\)[\s\S]*?\.effect-grid,[\s\S]*?\.signal-grid,[\s\S]*?\.name-core-grid,[\s\S]*?\.participation-grid\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
-    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.effect-grid,[\s\S]*?\.signal-grid,[\s\S]*?\.name-core-grid,[\s\S]*?\.participation-grid\s*\{\s*grid-template-columns: 1fr/)
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.name-core-grid\s*\{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.signal-grid\s*\{[\s\S]*?scroll-snap-type: x mandatory/)
     expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.hero-actions \.button\s*\{[\s\S]*?width: 100%/)
     expect(css.match(/@media \(max-width: 760px\)/g)).toHaveLength(1)
     expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.brand-lockup\s*\{[\s\S]*?min-height: 44px[\s\S]*?min-width: 44px/)
     expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?nav a\s*\{[\s\S]*?min-height: 44px[\s\S]*?min-width: 44px/)
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.menu-toggle\s*\{[\s\S]*?display: flex/)
   })
 
   it('provides a repeatable browser QA harness for every target viewport', () => {
