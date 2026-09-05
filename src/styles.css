@@ -1164,6 +1164,19 @@ h1 em {
   }
 }
 
+@keyframes mobileWingFlap {
+  0%, 100% {
+    filter: drop-shadow(0 0 22px rgba(243, 186, 47, 0.48));
+    opacity: 0.92;
+    transform: perspective(760px) rotateY(-4deg) scale(0.985) translateY(0);
+  }
+  50% {
+    filter: drop-shadow(0 0 36px rgba(255, 215, 90, 0.72));
+    opacity: 1;
+    transform: perspective(760px) rotateY(4deg) scale(1.035) translateY(-6px);
+  }
+}
+
 @keyframes tickerFlow {
   from { background-position: 0 0; }
   to { background-position: 192px 0; }
@@ -1332,10 +1345,10 @@ h1 em {
   }
 
   .hero {
-    gap: 34px;
+    gap: 24px;
     grid-template-columns: 1fr;
     min-height: auto;
-    padding-block: 52px 64px;
+    padding-block: 28px 64px;
   }
 
   .hero-copy::before {
@@ -1347,10 +1360,32 @@ h1 em {
   }
 
   .hero-visual {
-    aspect-ratio: 1.16;
+    aspect-ratio: 1.08;
     justify-self: center;
-    max-width: 390px;
+    max-width: 280px;
+    order: -1;
     width: 100%;
+  }
+
+  .hero-visual::before,
+  .hero-visual::after {
+    display: block;
+  }
+
+  .hero-visual::before {
+    height: 82%;
+    width: 82%;
+  }
+
+  .hero-visual::after {
+    animation-duration: 4.6s;
+  }
+
+  .hero-visual img {
+    animation: mobileWingFlap 2.8s ease-in-out infinite;
+    transform-origin: center;
+    width: 88%;
+    will-change: filter, transform;
   }
 
   .terminal-strip {

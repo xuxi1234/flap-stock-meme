@@ -198,6 +198,8 @@ describe('FLAP STOCK narrative page', () => {
     expect(responsiveQa).toContain('rect.left >= 0')
     expect(responsiveQa).toContain('rect.right <= window.innerWidth')
     expect(responsiveQa).toContain('controlsDoNotOverlap')
+    expect(responsiveQa).toContain('mobileButterflyVisible')
+    expect(responsiveQa).toContain('mobileButterflyAnimated')
     expect(responsiveQa).toMatch(/first\.left < second\.right[\s\S]*first\.right > second\.left[\s\S]*first\.top < second\.bottom[\s\S]*first\.bottom > second\.top/)
   })
 })

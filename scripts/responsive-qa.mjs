@@ -49,6 +49,8 @@ try {
       const mobileHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .menu-toggle')]
       const actionControls = [...document.querySelectorAll('.hero-actions .button, #presale > .button, .footer-community .community-link')]
       const mobile = window.innerWidth <= 760
+      const heroVisual = document.querySelector('.hero-visual')
+      const heroButterfly = document.querySelector('.hero-visual img')
       const requiredControls = [...(mobile ? mobileHeaderControls : desktopHeaderControls), ...actionControls]
       const visibleControls = requiredControls.filter(visible)
       const rectanglesOverlap = (first, second) => first.left < second.right
@@ -66,6 +68,8 @@ try {
         const rect = control.getBoundingClientRect()
         return visible(control) && rect.width >= 44 && rect.height >= 44
       })
+      const mobileButterflyVisible = !mobile || Boolean(heroVisual && heroButterfly && visible(heroVisual) && visible(heroButterfly))
+      const mobileButterflyAnimated = !mobile || Boolean(heroButterfly && window.getComputedStyle(heroButterfly).animationName === 'mobileWingFlap')
 
       return {
         sectionCount: sections.length,
@@ -75,6 +79,8 @@ try {
         controlsVisible: requiredControls.every(visible),
         controlsDoNotOverlap,
         hasUsableMobileTargets,
+        mobileButterflyVisible,
+        mobileButterflyAnimated,
       }
     })
 
@@ -85,6 +91,8 @@ try {
     assert.equal(result.controlsVisible, true, `${viewport.width}px: controls must remain visible`)
     assert.equal(result.controlsDoNotOverlap, true, `${viewport.width}px: visible controls must not overlap`)
     assert.equal(result.hasUsableMobileTargets, true, `${viewport.width}px: mobile controls must be at least 44px`)
+    assert.equal(result.mobileButterflyVisible, true, `${viewport.width}px: mobile hero butterfly must remain visible`)
+    assert.equal(result.mobileButterflyAnimated, true, `${viewport.width}px: mobile hero butterfly must keep flapping`)
 
     if (viewport.width <= 760) {
       const menu = page.getByRole('button', { name: /打开菜单|Open menu/ })
