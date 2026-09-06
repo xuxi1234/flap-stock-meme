@@ -16,8 +16,7 @@ import {
 interface Vm {
     function deal(address account, uint256 newBalance) external;
     function etch(address target, bytes calldata newRuntimeBytecode) external;
-    function expectEmit(bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData, address emitter)
-        external;
+    function expectEmit(bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData, address emitter) external;
     function expectRevert(bytes4 revertData) external;
     function expectRevert(bytes calldata revertData) external;
     function prank(address sender) external;
