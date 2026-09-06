@@ -47,7 +47,7 @@ try {
       const warning = document.querySelector('#presale [role="note"]')
       const desktopHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .site-header nav a, .header-community .community-link')]
       const mobileHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .menu-toggle')]
-      const actionControls = [...document.querySelectorAll('.hero-actions .button, #presale > .button, .footer-community .community-link')]
+      const actionControls = [...document.querySelectorAll('.hero-actions .button, .participate-button, .proof-actions > *, .share-panel .button, .share-panel .text-link, .footer-community .community-link')]
       const mobile = window.innerWidth <= 760
       const heroVisual = document.querySelector('.hero-visual')
       const heroButterfly = document.querySelector('.hero-visual img')
@@ -97,7 +97,7 @@ try {
     if (viewport.width <= 760) {
       const menu = page.getByRole('button', { name: /打开菜单|Open menu/ })
       await menu.click()
-      await page.getByRole('navigation').getByRole('link', { name: /蝴蝶效应|EFFECT/ }).waitFor({ state: 'visible' })
+      await page.getByRole('navigation').getByRole('link', { name: /参与规则|RULES/ }).waitFor({ state: 'visible' })
       assert.equal(await menu.getAttribute('aria-expanded'), 'true', `${viewport.width}px: compact menu must open`)
     }
     await page.close()

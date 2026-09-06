@@ -1,30 +1,37 @@
-# Design QA — 蝴蝶股票 Acid Neon
+# FLAP STOCK Participation Center V2 — Design QA
 
-## Source
+## Reference and target
 
-Supplied square avatar with acid-lime background, electric-purple butterfly, upward arrow and bold Chinese wordmark.
+- Reference: current production capture at desktop width, preserving the supplied acid-lime/purple avatar, heavy typography, outlined cards, and animated butterfly identity.
+- Target: the user-approved participation-center brief, which prioritizes rules, transaction completion, result lookup, public proof, and mobile use over additional decorative sections.
 
-## Comparison
+## Visual comparison
 
-- Palette: source lime and purple are now the primary interface colors; ink and paper are used only for contrast and legibility.
-- Shape language: the avatar's rounded butterfly geometry is reflected in the hero chamber, pill navigation and poster cards.
-- Typography: oversized, tightly spaced Chinese display text matches the source's high-impact wordmark character.
-- Hero asset: the supplied avatar is used directly, without redrawing or approximating it.
-- Motion: the source avatar uses the `mobileWingFlap` animation on desktop and mobile, with a reduced-motion fallback.
+- Brand fidelity: passed. The real `flap-stock-avatar.png`, acid lime, saturated purple, black outlines, rounded hard-shadow cards, and display typography remain consistent with the existing identity.
+- Information hierarchy: passed. Confirmed conditions and unknown terms precede the participation center; story content now follows the conversion and verification path.
+- Desktop composition: passed at the cloud-browser viewport. Hero, rules, participation dashboard, proof, updates, four-character core, and FAQ form one consistent page system.
+- Mobile composition: passed at 375px and 320px iframe viewports in the cloud browser. No horizontal overflow was observed; all visible actionable targets measured at least 44px.
+- Mobile butterfly: passed. The real brand avatar remains visible after the three key participation facts and uses the `mobileWingFlap` animation.
 
-## Browser checks
+## Interaction QA
 
-- Desktop: 1363px viewport, no horizontal overflow; animated avatar visible; bilingual switch works; presale CTA targets `#presale`.
-- Mobile: 375px viewport, no horizontal overflow; butterfly visible above the fold; menu and fixed presale dock visible.
-- Narrow mobile: 320px viewport, `scrollWidth === innerWidth`; no interactive control crosses the viewport; risk notes remain within bounds.
-- Presale: live console renders the verified contract warning and `CONNECT BSC WALLET` state without changing transaction behavior.
-- Console: no application errors observed; only the cloud-browser extension's unrelated metadata warning appeared.
+- Chinese/English toggle: passed in the cloud browser.
+- Wallet chooser: passed. With no injected provider, the modal opens and provides mobile wallet-browser guidance while clearly stating QR connection is not configured.
+- Project address copy: passed; control changed to the copied state.
+- BscScan target: passed; presale contract link resolved to `https://bscscan.com/address/0x409c9448172b0f244a6823e91ad669281294622b`.
+- Transaction state behavior: passed in automated tests for broadcast hash visibility, confirmation, wallet rejection, and receipt-query uncertainty.
+- Console: no application-origin errors observed. Cloud-browser extension metadata errors were excluded as unrelated to the site.
 
-## Findings
+## Automated checks
 
-- P0: none
-- P1: none
-- P2: none
-- P3: remote display fonts fall back to local system fonts if Google Fonts is unavailable; layout remains stable.
+- Vitest: 33 tests passed.
+- TypeScript and Vite production build: passed.
+- `git diff --check`: passed.
+- The standalone Playwright CLI responsive script could not launch because this workspace lacks a Playwright browser binary. Required visual and responsive checks were completed through the connected cloud browser instead.
+
+## Remaining P3 polish
+
+- Replace the square Open Graph avatar with a dedicated 1200 × 630 campaign card when an approved social-card asset is available.
+- Add WalletConnect QR only after a project-owned WalletConnect Project ID is configured.
 
 final result: passed

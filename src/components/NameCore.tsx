@@ -4,7 +4,7 @@ type Props = { copy: SiteCopy['nameCore'] }
 
 export function NameCore({ copy }: Props) {
   return (
-    <section className="statement name-core-section" aria-label={copy.regionLabel}>
+    <section className="statement name-core-section" id="story" aria-label={copy.regionLabel}>
       <p className="eyebrow">{copy.eyebrow}</p>
       <h2>{copy.title}</h2>
       <div className="name-core-grid">
