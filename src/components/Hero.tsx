@@ -25,7 +25,7 @@ export function Hero({ copy }: Props) {
         </aside>
         <div className="hero-actions">
           <PendingAction label={copy.enterPresale} href={presaleEnabled ? projectConfig.presale.purchaseUrl : null} className="button-primary" pendingLabel={copy.presalePendingLabel} />
-          <a className="button button-secondary" href="#story">{copy.explore}</a>
+          <a className="button button-secondary" href="#rules">{copy.explore}</a>
         </div>
       </div>
       <div className="hero-visual" role="img" aria-label={copy.visualLabel}>
