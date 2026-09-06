@@ -22,7 +22,7 @@ export function SiteHeader({ copy, communityCopy, language, onLanguageChange }: 
   return (
     <header className="site-header">
       <a className="brand-lockup" href="#top" aria-label={copy.homeLabel}>
-        <img src="/flap-stock-logo.png" alt={copy.logoLabel} />
+        <img src="/flap-stock-avatar.png" alt={copy.logoLabel} />
         <span><strong>{projectConfig.brand.englishName}</strong><small>{projectConfig.brand.symbol}</small></span>
       </a>
       <nav id="primary-navigation" aria-label={copy.navigationLabel} data-open={menuOpen}>
@@ -34,10 +34,7 @@ export function SiteHeader({ copy, communityCopy, language, onLanguageChange }: 
       <CommunityLinks className="header-community" copy={communityCopy} />
       <div className="header-controls">
         <button className="language-toggle" type="button" onClick={changeLanguage} aria-label={copy.languageSwitchLabel}>{copy.languageLabel}</button>
-        <button className="menu-toggle" type="button" aria-controls="primary-navigation" aria-expanded={menuOpen} aria-label={menuOpen ? copy.menuCloseLabel : copy.menuOpenLabel} onClick={() => setMenuOpen((open) => !open)}>
-          <span aria-hidden="true" />
-          <span aria-hidden="true" />
-        </button>
+        <button className="menu-toggle" type="button" aria-controls="primary-navigation" aria-expanded={menuOpen} aria-label={menuOpen ? copy.menuCloseLabel : copy.menuOpenLabel} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? copy.closeLabel : copy.menuLabel}</button>
       </div>
     </header>
   )

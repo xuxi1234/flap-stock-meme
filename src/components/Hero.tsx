@@ -29,10 +29,10 @@ export function Hero({ copy }: Props) {
         </div>
       </div>
       <div className="hero-visual" role="img" aria-label={copy.visualLabel}>
-        <div className="hero-orbit" aria-hidden="true"><span /><span /><span /></div>
         <span className="hero-visual-status" aria-hidden="true">LIVE · BSC / 56</span>
-        <p className="ticker" aria-hidden="true">$FLAP · $FLAP · $FLAP</p>
-        <img src="/flap-stock-logo.png" alt="" />
+        <p className="ticker" aria-hidden="true">{copy.visualTicker}</p>
+        <div className="butterfly-stage" aria-hidden="true"><img src="/flap-stock-avatar.png" alt="" /></div>
+        <p className="hero-poster-note" aria-hidden="true">{copy.posterLineOne}<br />{copy.posterLineTwo}</p>
       </div>
     </section>
   )

@@ -40,16 +40,16 @@ describe('site content', () => {
     expect(siteContent.en.signal.disclaimer).toMatch(/NOT FINANCIAL DATA/)
   })
 
-  it('uses the binding butterfly-effect sequence and thesis in both languages', () => {
-    expect(siteContent.zh.effect.title).toBe('没有基本面，只有蝴蝶面。')
-    expect(siteContent.en.effect.title).toBe('No fundamentals, only butterfly fundamentals.')
-    expect(siteContent.zh.effect.steps.map(({ title }) => title)).toEqual(['一次振翅', '一次传播', '一场风暴'])
-    expect(siteContent.en.effect.steps.map(({ title }) => title)).toEqual(['ONE FLAP', 'ONE SPREAD', 'ONE STORM'])
+  it('uses the acid-Meme butterfly-effect sequence in both languages', () => {
+    expect(siteContent.zh.effect.title).toBe('一点点动静，也能掀起大风暴。')
+    expect(siteContent.en.effect.title).toBe('A tiny move can start a giant storm.')
+    expect(siteContent.zh.effect.steps.map(({ title }) => title)).toEqual(['你先振翅', '社区接力', '万蝶成风'])
+    expect(siteContent.en.effect.steps.map(({ title }) => title)).toEqual(['YOU FLAP FIRST', 'THE SWARM CARRIES IT', 'WINGS BECOME WIND'])
   })
 
   it('defines exactly four qualitative entertainment signals', () => {
-    expect(siteContent.zh.signal.metrics.map(({ label }) => label)).toEqual(['翅膀频率', '社区信号', 'Meme 引力', '风暴等级'])
-    expect(siteContent.en.signal.metrics.map(({ label }) => label)).toEqual(['WING FREQUENCY', 'COMMUNITY SIGNAL', 'MEME GRAVITY', 'STORM LEVEL'])
+    expect(siteContent.zh.signal.metrics.map(({ label }) => label)).toEqual(['振翅频率', '传播风向', '蝴蝶密度', '风暴状态'])
+    expect(siteContent.en.signal.metrics.map(({ label }) => label)).toEqual(['FLAP FREQUENCY', 'WIND DIRECTION', 'BUTTERFLY DENSITY', 'STORM STATUS'])
 
     Object.values(siteContent).forEach(({ signal }) => {
       expect(signal.metrics).toHaveLength(4)
@@ -62,10 +62,10 @@ describe('site content', () => {
       expect(nameCore.cards.map(({ glyph }) => glyph)).toEqual(['蝴', '蝶', '股', '票'])
     })
 
-    expect(siteContent.zh.nameCore.cards.map(({ title }) => title)).toEqual(['微小起点', '不断进化', '共同持有的注意力', '风暴入场券'])
-    expect(siteContent.en.nameCore.cards.map(({ title }) => title)).toEqual(['SMALL BEGINNING', 'CONTINUOUS EVOLUTION', 'COMMUNITY-HELD ATTENTION', 'A TICKET INTO THE MEME STORM'])
-    expect(siteContent.zh.nameCore.disclaimer).toBe('“股”和“票”仅为品牌比喻，不代表真实股权、股票、证券或证券票据。')
-    expect(siteContent.en.nameCore.disclaimer).toBe('The characters 股 and 票 are brand metaphors only. They do not represent equity, real stock, securities, or securities tickets.')
+    expect(siteContent.zh.nameCore.cards.map(({ title }) => title)).toEqual(['一切的起点', '完成一次蜕变', '共同持有注意力', '风暴入场券'])
+    expect(siteContent.en.nameCore.cards.map(({ title }) => title)).toEqual(['THE FIRST MOVE', 'THE TRANSFORMATION', 'ATTENTION HELD TOGETHER', 'A STORM TICKET'])
+    expect(siteContent.zh.nameCore.disclaimer).toMatch(/不代表真实股权、股票、证券/)
+    expect(siteContent.en.nameCore.disclaimer).toMatch(/do not represent equity, real stock, securities/i)
   })
 
   it('discloses every binding presale term in both languages', () => {
@@ -103,21 +103,30 @@ describe('site content', () => {
     ;['BSC WALLET', 'BNB', 'OFFICIAL PRESALE CONTRACT', 'BSC MAINNET', 'FIXED AMOUNT', 'OFFICIAL CONTRACT ADDRESS', 'TRANSACTION RECORD', 'MANUAL FLAP DISTRIBUTION'].forEach((term) => expect(enFlow).toContain(term))
   })
 
-  it('uses FLAP, FLY, and STORM roadmap phases with the official-announcement caveat', () => {
-    expect(siteContent.zh.roadmap.phases.map(({ code }) => code)).toEqual(['FLAP', 'FLY', 'STORM'])
-    expect(siteContent.en.roadmap.phases.map(({ code }) => code)).toEqual(['FLAP', 'FLY', 'STORM'])
-    expect(siteContent.zh.roadmap.caveat).toMatch(/以后续官方公告为准/)
-    expect(siteContent.en.roadmap.caveat).toMatch(/subject to subsequent official announcements/i)
+  it('uses FLAP, SWARM, and STORM roadmap phases with an announcement caveat', () => {
+    expect(siteContent.zh.roadmap.phases.map(({ code }) => code)).toEqual(['FLAP', 'SWARM', 'STORM'])
+    expect(siteContent.en.roadmap.phases.map(({ code }) => code)).toEqual(['FLAP', 'SWARM', 'STORM'])
+    expect(siteContent.zh.roadmap.caveat).toMatch(/官方后续公告为准/)
+    expect(siteContent.en.roadmap.caveat).toMatch(/official announcements/i)
   })
 
   it('localizes the hero brand signal, community pending state, and closing manifesto', () => {
-    expect(siteContent.zh.hero.brandSignalLabel).toBe('品牌信号')
-    expect(siteContent.en.hero.safetyLabel).toBe('NOT FINANCIAL DATA')
-    expect(siteContent.zh.hero.presalePendingLabel).toBe('尚未开放')
-    expect(siteContent.en.hero.presalePendingLabel).toBe('COMING SOON')
-    expect(siteContent.zh.community.comingSoon).toContain('COMING SOON')
+    expect(siteContent.zh.hero.brandSignalLabel).toBe('今日 Meme 信号')
+    expect(siteContent.en.hero.safetyLabel).toContain('NOT FINANCIAL DATA')
+    expect(siteContent.zh.hero.presalePendingLabel).toBe('预售尚未开放')
+    expect(siteContent.en.hero.presalePendingLabel).toBe('PRESALE COMING SOON')
+    expect(siteContent.zh.community.comingSoon).toBe('即将开放')
     expect(siteContent.en.community.comingSoon).toBe('COMING SOON')
-    expect(siteContent.zh.manifesto.title).toBe('不要预测风口，成为扇动翅膀的人。')
-    expect(siteContent.en.manifesto.title).toBe('Do not predict the wind. Be the one who flaps.')
+    expect(siteContent.zh.manifesto.title).toBe('不预测风口，我们把风扇起来。')
+    expect(siteContent.en.manifesto.title).toBe('We do not predict the wind. We flap it into motion.')
+  })
+
+  it('localizes every visible hero poster line', () => {
+    expect(siteContent.zh.hero.visualTicker).toBe('$FLAP · 振翅向上 · $FLAP')
+    expect(siteContent.en.hero.visualTicker).toBe('$FLAP · WINGS UP · $FLAP')
+    expect(siteContent.zh.hero.posterLineOne).toBe('别等风来')
+    expect(siteContent.zh.hero.posterLineTwo).toBe('把风扇起来')
+    expect(siteContent.en.hero.posterLineOne).toBe("DON'T WATCH THE WIND")
+    expect(siteContent.en.hero.posterLineTwo).toBe('FLAP IT INTO MOTION')
   })
 })

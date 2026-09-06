@@ -1,59 +1,14 @@
 export type Language = 'zh' | 'en'
 
 export type SiteCopy = {
-  nav: { story: string; signal: string; presale: string; roadmap: string; languageLabel: string; languageSwitchLabel: string; menuOpenLabel: string; menuCloseLabel: string; homeLabel: string; logoLabel: string; navigationLabel: string }
+  nav: { story: string; signal: string; presale: string; roadmap: string; languageLabel: string; languageSwitchLabel: string; menuOpenLabel: string; menuCloseLabel: string; menuLabel: string; closeLabel: string; homeLabel: string; logoLabel: string; navigationLabel: string }
   community: { regionLabel: string; xLabel: string; telegramLabel: string; comingSoon: string; xPendingLabel: string; telegramPendingLabel: string }
   ticker: { sectionLabel: string; symbolLabel: string; chainLabel: string; priceLabel: string; capacityLabel: string; statusLabel: string }
-  hero: {
-    eyebrow: string
-    statusLabel: string
-    tagline: string
-    description: string
-    quickFacts: Array<{ label: string; value: string }>
-    explore: string
-    enterPresale: string
-    presalePendingLabel: string
-    mobilePresaleLabel: string
-    mobilePresaleMeta: string
-    visualLabel: string
-    brandSignalLabel: string
-    brandSignalValue: string
-    safetyLabel: string
-  }
+  hero: { eyebrow: string; statusLabel: string; tagline: string; description: string; quickFacts: Array<{ label: string; value: string }>; explore: string; enterPresale: string; presalePendingLabel: string; mobilePresaleLabel: string; mobilePresaleMeta: string; visualLabel: string; visualTicker: string; posterLineOne: string; posterLineTwo: string; brandSignalLabel: string; brandSignalValue: string; safetyLabel: string }
   effect: { regionLabel: string; eyebrow: string; title: string; body: string; steps: Array<{ index: string; title: string; body: string }> }
   signal: { regionLabel: string; eyebrow: string; title: string; disclaimer: string; metrics: Array<{ label: string; value: string; trend: string }> }
   nameCore: { regionLabel: string; eyebrow: string; title: string; cards: Array<{ glyph: string; title: string; body: string }>; disclaimer: string }
-  presale: {
-    regionLabel: string
-    eyebrow: string
-    title: string
-    body: string
-    facts: string[]
-    actionLabel: string
-    unavailable: string
-    pendingLabel: string
-    warning: string
-    interaction: {
-      loading: string
-      connectWallet: string
-      confirm: string
-      disclosure: string
-      participants: string
-      countdown: string
-      soldOut: string
-      soldOutAction: string
-      paused: string
-      ended: string
-      alreadyParticipated: string
-      alreadyParticipatedAction: string
-      unavailable: string
-      rpcError: string
-      transactionError: string
-      walletMissing: string
-      wrongNetwork: string
-      submitted: string
-    }
-  }
+  presale: { regionLabel: string; eyebrow: string; title: string; body: string; facts: string[]; actionLabel: string; unavailable: string; pendingLabel: string; warning: string; interaction: { loading: string; connectWallet: string; confirm: string; disclosure: string; participants: string; countdown: string; soldOut: string; soldOutAction: string; paused: string; ended: string; alreadyParticipated: string; alreadyParticipatedAction: string; unavailable: string; rpcError: string; transactionError: string; walletMissing: string; wrongNetwork: string; submitted: string } }
   howTo: { regionLabel: string; eyebrow: string; title: string; steps: Array<{ index: string; title: string; body: string }> }
   roadmap: { regionLabel: string; eyebrow: string; title: string; phases: Array<{ code: string; title: string; body: string; status: string }>; caveat: string }
   manifesto: { regionLabel: string; eyebrow: string; title: string; body: string }
@@ -62,231 +17,44 @@ export type SiteCopy = {
 
 export const siteContent: Record<Language, SiteCopy> = {
   zh: {
-    nav: { story: '故事', signal: '信号', presale: '预售', roadmap: '路线图', languageLabel: 'EN', languageSwitchLabel: '切换到英文', menuOpenLabel: '打开菜单', menuCloseLabel: '关闭菜单', homeLabel: 'FLAP STOCK 首页', logoLabel: '蝴蝶股票 FLAP STOCK 标志', navigationLabel: '主导航' },
-    community: { regionLabel: '社区入口', xLabel: 'X', telegramLabel: 'Telegram', comingSoon: 'COMING SOON · 尚未开放', xPendingLabel: 'X：尚未开放', telegramPendingLabel: 'Telegram：尚未开放' },
-    ticker: { sectionLabel: 'FLAP STOCK 项目详情', symbolLabel: '代币符号', chainLabel: '网络', priceLabel: '价格', capacityLabel: '席位', statusLabel: '状态' },
+    nav: { story: '蝴蝶效应', signal: 'Meme 信号', presale: '开放预售', roadmap: '飞行路线', languageLabel: 'EN', languageSwitchLabel: '切换到英文', menuOpenLabel: '打开菜单', menuCloseLabel: '关闭菜单', menuLabel: '菜单', closeLabel: '收起', homeLabel: 'FLAP STOCK 首页', logoLabel: '蝴蝶股票 FLAP STOCK 标志', navigationLabel: '主导航' },
+    community: { regionLabel: '社区入口', xLabel: 'X', telegramLabel: 'Telegram', comingSoon: '即将开放', xPendingLabel: 'X：即将开放', telegramPendingLabel: 'Telegram：即将开放' },
+    ticker: { sectionLabel: 'FLAP STOCK 项目详情', symbolLabel: '代币', chainLabel: '网络', priceLabel: '入场', capacityLabel: '席位', statusLabel: '信号' },
     hero: {
-      eyebrow: 'BNB SMART CHAIN · COMMUNITY MEME TOKEN',
-      statusLabel: '预售进行中',
-      tagline: '一只蝴蝶振翅，也能让 Meme 穿过风暴。',
-      description: '蝴蝶股票是一场写在 BNB Chain 上的社区 Meme 实验。没有基本面，只有蝴蝶面；不预测风口，我们亲手扇动风口。',
-      quickFacts: [
-        { label: '本轮额度', value: '固定 0.05 BNB' },
-        { label: '参与规则', value: '每个钱包仅一次' },
-        { label: '预售截止', value: '09.09 · 23:59' },
-      ],
-      explore: '读懂蝴蝶效应',
-      enterPresale: '立即参与 · 0.05 BNB',
-      presalePendingLabel: '尚未开放',
-      mobilePresaleLabel: '立即振翅，使用 0.05 BNB 参与预售',
-      mobilePresaleMeta: 'BSC 主网 · 每钱包一次',
-      visualLabel: 'FLAP STOCK 品牌标志',
-      brandSignalLabel: '品牌信号',
-      brandSignalValue: '蝴蝶效应',
-      safetyLabel: '非金融数据',
+      eyebrow: '酸性 Meme · BNB SMART CHAIN', statusLabel: '预售正在振翅', tagline: '一扇起飞，万蝶共振。',
+      description: '不预测风口，我们把风扇起来。蝴蝶股票把每一次参与、每一次转发、每一次 Meme 创作，汇成链上的蝴蝶效应。',
+      quickFacts: [{ label: '一张入场券', value: '固定 0.05 BNB' }, { label: '一只钱包', value: '只能振翅一次' }, { label: '风暴倒计时', value: '09.09 · 23:59' }],
+      explore: '看看风暴怎么形成', enterPresale: '立即振翅 · 0.05 BNB', presalePendingLabel: '预售尚未开放', mobilePresaleLabel: '使用 0.05 BNB 立即参与蝴蝶股票预售', mobilePresaleMeta: 'BSC 主网 · 一钱包一次', visualLabel: '正在煽动翅膀的蝴蝶股票品牌头像', visualTicker: '$FLAP · 振翅向上 · $FLAP', posterLineOne: '别等风来', posterLineTwo: '把风扇起来', brandSignalLabel: '今日 Meme 信号', brandSignalValue: '万蝶共振', safetyLabel: '仅供娱乐 · 非金融数据',
     },
-    effect: {
-      regionLabel: '蝴蝶效应',
-      eyebrow: 'THE BUTTERFLY EFFECT',
-      title: '没有基本面，只有蝴蝶面。',
-      body: '微小行动沿着 Meme 文化扩散：一次振翅带来一次传播，一次传播也可能汇成一场风暴。',
-      steps: [
-        { index: '01', title: '一次振翅', body: '一个玩笑、一个创意或一次参与，都是微小的起点。' },
-        { index: '02', title: '一次传播', body: '社区把一次行动接力成更远的 Meme 回响。' },
-        { index: '03', title: '一场风暴', body: '无数次传播汇在一起，形成属于社区的 Meme 风暴。' },
-      ],
-    },
-    signal: {
-      regionLabel: 'Meme 信号终端',
-      eyebrow: 'ENTERTAINMENT SIGNAL',
-      title: '把情绪当作游戏，而非预测。',
-      disclaimer: '仅供娱乐的社区信号，非金融数据，不构成任何投资建议。',
-      metrics: [
-        { label: '翅膀频率', value: '轻快', trend: '振翅同步中' },
-        { label: '社区信号', value: '共振', trend: '社区传播中' },
-        { label: 'Meme 引力', value: '聚合', trend: '创意持续汇入' },
-        { label: '风暴等级', value: '酝酿', trend: '娱乐氛围展示' },
-      ],
-    },
-    nameCore: {
-      regionLabel: '蝴蝶股票四字内核',
-      eyebrow: 'NAME CORE',
-      title: '四个字，一套社区叙事。',
-      cards: [
-        { glyph: '蝴', title: '微小起点', body: '每一次振翅，都从一个微小行动开始。' },
-        { glyph: '蝶', title: '不断进化', body: '蝴蝶在变化中生长，社区叙事也持续进化。' },
-        { glyph: '股', title: '共同持有的注意力', body: '“股”是社区共同持有的注意力符号。' },
-        { glyph: '票', title: '风暴入场券', body: '“票”是进入 Meme 风暴的入场券。' },
-      ],
-      disclaimer: '“股”和“票”仅为品牌比喻，不代表真实股权、股票、证券或证券票据。',
-    },
+    effect: { regionLabel: '蝴蝶效应', eyebrow: '01 / BUTTERFLY EFFECT', title: '一点点动静，也能掀起大风暴。', body: 'Meme 世界没有静止的旁观者。一个玩笑被看见，一次振翅被接力，微小动作最终成为全网都听得见的回响。', steps: [{ index: '01', title: '你先振翅', body: '一次参与、一个表情包、一句话，就是风暴最小的起点。' }, { index: '02', title: '社区接力', body: '当更多人把信号传下去，孤独的动作开始形成共振。' }, { index: '03', title: '万蝶成风', body: '没有谁能预测下一阵风，但所有人都能参与把它扇起来。' }] },
+    signal: { regionLabel: 'Meme 信号终端', eyebrow: '02 / MEME WEATHER', title: '别盯 K 线，看看翅膀。', disclaimer: 'Meme 气象，仅供娱乐，非金融数据，不构成投资建议。', metrics: [{ label: '振翅频率', value: 'HIGH', trend: '社区同步中' }, { label: '传播风向', value: 'UP', trend: '箭头已经抬头' }, { label: '蝴蝶密度', value: '∞', trend: '新翅膀正在加入' }, { label: '风暴状态', value: 'LOADING', trend: '共识仍在形成' }] },
+    nameCore: { regionLabel: '蝴蝶股票四字内核', eyebrow: '03 / FOUR CHARACTERS', title: '蝴蝶股票，四个字就够了。', cards: [{ glyph: '蝴', title: '一切的起点', body: '再小的动作，也有改变路径的可能。' }, { glyph: '蝶', title: '完成一次蜕变', body: '从路人到参与者，从围观到共同创造。' }, { glyph: '股', title: '共同持有注意力', body: '我们持有的不是公司，而是一段共同叙事。' }, { glyph: '票', title: '风暴入场券', body: '一张 Meme 世界的票，去往哪里由社区决定。' }], disclaimer: '“股”和“票”只属于 Meme 品牌叙事，不代表真实股权、股票、证券或任何收益权利。' },
     presale: {
-      regionLabel: '预售控制台',
-      eyebrow: 'PRESALE',
-      title: '预售现已开放，扇动第一阵风。',
-      body: '蝴蝶股票预售现已开放；连接 BSC 钱包后，按链上固定金额参与。',
-      facts: ['网络：BSC 主网', '固定金额：0.05 BNB', '每个地址限参与一次', '最多 10,000 个地址', '截止：北京时间 2026-09-09 23:59:59', 'FLAP 将在预售后人工发放', '不退款'],
-      actionLabel: '参与预售',
-      unavailable: '尚未开放',
-      pendingLabel: '预售尚未开放',
-      warning: '只通过本页连接钱包；操作前请核对官方预售合约：0x409c9448172b0f244a6823e91ad669281294622b。',
-      interaction: {
-        loading: '正在读取预售状态',
-        connectWallet: '连接 BSC 钱包',
-        confirm: '确认支付 0.05 BNB 参与',
-        disclosure: '我已了解：FLAP 将人工发放；不退款；一个地址限一次不代表一个人限一次。',
-        participants: '已参与地址',
-        countdown: '倒计时',
-        soldOut: '预售席位已满',
-        soldOutAction: '已售罄',
-        paused: '预售已暂停',
-        ended: '预售已结束',
-        alreadyParticipated: '此地址已经参与过',
-        alreadyParticipatedAction: '已经参与',
-        unavailable: '预售不可用',
-        rpcError: '预售数据不可用',
-        transactionError: '交易未发送',
-        walletMissing: '未检测到兼容的 BSC 钱包',
-        wrongNetwork: '需要切换至 BSC 主网（56）',
-        submitted: '交易已提交',
-      },
+      regionLabel: '预售控制台', eyebrow: '04 / PRESALE LIVE', title: '0.05 BNB，一张风暴入场券。', body: '预售现已开放。连接 BSC 钱包，核对链上规则，只在你真正理解后振翅。', facts: ['网络：BSC 主网', '固定金额：0.05 BNB', '每个地址限参与一次', '最多 10,000 个地址', '截止：北京时间 2026-09-09 23:59:59', 'FLAP 将在预售后人工发放', '不退款'], actionLabel: '连接钱包，立即振翅', unavailable: '尚未开放', pendingLabel: '预售尚未开放', warning: '只通过本页参与。签名前请核对官方预售合约：0x409c9448172b0f244a6823e91ad669281294622b。',
+      interaction: { loading: '正在读取链上风向', connectWallet: '连接 BSC 钱包', confirm: '确认支付 0.05 BNB', disclosure: '我已了解：FLAP 由项目方后续人工发放；不退款；一个地址限一次不代表一个人限一次。', participants: '已振翅地址', countdown: '风暴倒计时', soldOut: '10,000 张入场券已全部发出', soldOutAction: '入场券已售罄', paused: '预售暂时停翼', ended: '本轮预售已经结束', alreadyParticipated: '这个地址已经振翅过了', alreadyParticipatedAction: '已经参与', unavailable: '链上预售暂不可用', rpcError: '链上风向读取失败', transactionError: '交易没有发送', walletMissing: '没有检测到兼容的 BSC 钱包', wrongNetwork: '请切换到 BSC 主网（56）', submitted: '交易已提交' },
     },
-    howTo: {
-      regionLabel: '参与方式',
-      eyebrow: 'HOW TO PARTICIPATE',
-      title: '参与前，请保持清醒。',
-      steps: [
-        { index: '01', title: '准备 BSC 钱包和 BNB', body: '确认钱包支持 BSC 主网，并准备固定 0.05 BNB。' },
-        { index: '02', title: '核对官方预售合约', body: '在本页连接钱包，操作前核对 BSC 主网、固定金额与官方合约地址。' },
-        { index: '03', title: '保留交易记录', body: '成功参与后保留交易记录，并等待 FLAP 后续人工发放。' },
-      ],
-    },
-    roadmap: {
-      regionLabel: '路线图',
-      eyebrow: 'ROADMAP',
-      title: '路线由社区一起扇动。',
-      phases: [
-        { code: 'FLAP', title: '品牌与社区启动', body: '建立蝴蝶股票的品牌世界，并开启社区共振。', status: '当前阶段' },
-        { code: 'FLY', title: '预售与 Meme 扩散', body: '推进预售、Meme 扩散与社区共创。', status: '后续阶段' },
-        { code: 'STORM', title: '上线后的社区阶段', body: '代币上线后，由社区继续推动蝴蝶效应。', status: '未来阶段' },
-      ],
-      caveat: '未来阶段的具体安排以后续官方公告为准。',
-    },
-    manifesto: { regionLabel: '社区宣言', eyebrow: 'MANIFESTO', title: '不要预测风口，成为扇动翅膀的人。', body: '让每一次微小行动，汇成社区自己的 Meme 风暴。' },
-    footer: { disclaimer: 'FLAP 是社区 Meme 代币，不是真实股票、证券或投资产品。', rights: '© 2026 FLAP STOCK. ALL RIGHTS RESERVED.' },
+    howTo: { regionLabel: '参与方式', eyebrow: '05 / HOW TO FLAP', title: '三步入场，别把翅膀扇错链。', steps: [{ index: '01', title: '准备 BSC 钱包和 BNB', body: '使用 BSC 主网钱包，并准备固定金额 0.05 BNB 和少量网络费。' }, { index: '02', title: '核对官方预售合约', body: '只从本页连接钱包，确认 BSC 主网、固定金额与官方合约地址。' }, { index: '03', title: '保存交易记录', body: '交易成功后保存哈希，等待预售结束后的 FLAP 人工发放。' }] },
+    roadmap: { regionLabel: '路线图', eyebrow: '06 / FLIGHT PATH', title: '没有画饼路线，只有飞行轨迹。', phases: [{ code: 'FLAP', title: '第一只蝴蝶振翅', body: '建立全新的酸性 Meme 品牌世界，开启预售和第一轮社区信号。', status: '正在发生' }, { code: 'SWARM', title: '万蝶开始共振', body: '让表情包、二创和社区传播，把一只蝴蝶变成一整个蝶群。', status: '下一段飞行' }, { code: 'STORM', title: '风暴由社区续写', body: '代币上线后的故事不预设结局，社区决定蝴蝶效应飞向哪里。', status: '未来轨迹' }], caveat: '未来安排以官方后续公告为准；路线图不是价格或收益承诺。' },
+    manifesto: { regionLabel: '社区宣言', eyebrow: '07 / MANIFESTO', title: '不预测风口，我们把风扇起来。', body: '一只蝴蝶只是头像。十只蝴蝶是信号。一万只蝴蝶，就是风暴。' },
+    footer: { disclaimer: 'FLAP 是纯社区 Meme 代币，不是真实股票、证券、投资产品或收益承诺。', rights: '© 2026 蝴蝶股票 · FLAP STOCK' },
   },
   en: {
-    nav: { story: 'STORY', signal: 'SIGNAL', presale: 'PRESALE', roadmap: 'ROADMAP', languageLabel: '中文', languageSwitchLabel: 'Switch to Chinese', menuOpenLabel: 'Open menu', menuCloseLabel: 'Close menu', homeLabel: 'FLAP STOCK home', logoLabel: 'FLAP STOCK logo', navigationLabel: 'Primary navigation' },
+    nav: { story: 'EFFECT', signal: 'MEME SIGNAL', presale: 'PRESALE LIVE', roadmap: 'FLIGHT PATH', languageLabel: '中文', languageSwitchLabel: 'Switch to Chinese', menuOpenLabel: 'Open menu', menuCloseLabel: 'Close menu', menuLabel: 'MENU', closeLabel: 'CLOSE', homeLabel: 'FLAP STOCK home', logoLabel: 'FLAP STOCK logo', navigationLabel: 'Primary navigation' },
     community: { regionLabel: 'Community channels', xLabel: 'X', telegramLabel: 'Telegram', comingSoon: 'COMING SOON', xPendingLabel: 'X: COMING SOON', telegramPendingLabel: 'Telegram: COMING SOON' },
-    ticker: { sectionLabel: 'FLAP STOCK project details', symbolLabel: 'SYMBOL', chainLabel: 'CHAIN', priceLabel: 'PRICE', capacityLabel: 'CAPACITY', statusLabel: 'STATUS' },
+    ticker: { sectionLabel: 'FLAP STOCK project details', symbolLabel: 'TOKEN', chainLabel: 'CHAIN', priceLabel: 'ENTRY', capacityLabel: 'SEATS', statusLabel: 'SIGNAL' },
     hero: {
-      eyebrow: 'BNB SMART CHAIN · COMMUNITY MEME TOKEN',
-      statusLabel: 'PRESALE LIVE',
-      tagline: 'One flap can send a Meme through the storm.',
-      description: 'FLAP STOCK is a community Meme experiment written on BNB Chain. No fundamentals—only butterfly fundamentals. We do not predict the wind; we create it together.',
-      quickFacts: [
-        { label: 'ROUND SIZE', value: 'FIXED 0.05 BNB' },
-        { label: 'ACCESS RULE', value: 'ONE WALLET · ONCE' },
-        { label: 'DEADLINE', value: 'SEP 09 · 23:59' },
-      ],
-      explore: 'THE BUTTERFLY EFFECT',
-      enterPresale: 'FLAP NOW · 0.05 BNB',
-      presalePendingLabel: 'COMING SOON',
-      mobilePresaleLabel: 'FLAP NOW WITH 0.05 BNB',
-      mobilePresaleMeta: 'BSC MAINNET · ONE WALLET ONCE',
-      visualLabel: 'FLAP STOCK brand mark',
-      brandSignalLabel: 'BRAND SIGNAL',
-      brandSignalValue: 'BUTTERFLY EFFECT',
-      safetyLabel: 'NOT FINANCIAL DATA',
+      eyebrow: 'ACID MEME · BNB SMART CHAIN', statusLabel: 'PRESALE IS FLAPPING', tagline: 'ONE FLAP UP. TEN THOUSAND IN SYNC.', description: 'We do not predict the wind—we flap it into motion. Every entry, every share and every Meme adds another wing to the on-chain butterfly effect.', quickFacts: [{ label: 'ONE STORM TICKET', value: 'FIXED 0.05 BNB' }, { label: 'ONE WALLET', value: 'ONE FLAP ONLY' }, { label: 'STORM CLOCK', value: 'SEP 09 · 23:59' }], explore: 'SEE HOW THE STORM FORMS', enterPresale: 'FLAP NOW · 0.05 BNB', presalePendingLabel: 'PRESALE COMING SOON', mobilePresaleLabel: 'Join the FLAP STOCK presale with 0.05 BNB', mobilePresaleMeta: 'BSC MAINNET · ONE WALLET ONCE', visualLabel: 'Animated FLAP STOCK butterfly avatar', visualTicker: '$FLAP · WINGS UP · $FLAP', posterLineOne: "DON'T WATCH THE WIND", posterLineTwo: 'FLAP IT INTO MOTION', brandSignalLabel: 'TODAY’S MEME SIGNAL', brandSignalValue: 'SWARM IN SYNC', safetyLabel: 'FOR FUN · NOT FINANCIAL DATA',
     },
-    effect: {
-      regionLabel: 'The Butterfly Effect',
-      eyebrow: 'THE BUTTERFLY EFFECT',
-      title: 'No fundamentals, only butterfly fundamentals.',
-      body: 'Small actions travel through Meme culture: one flap becomes one spread, and one spread can gather into a storm.',
-      steps: [
-        { index: '01', title: 'ONE FLAP', body: 'A joke, an idea, or one act of participation is a small beginning.' },
-        { index: '02', title: 'ONE SPREAD', body: 'The community carries one action into a wider Meme echo.' },
-        { index: '03', title: 'ONE STORM', body: 'Countless shares gather into a Meme storm shaped by the community.' },
-      ],
-    },
-    signal: {
-      regionLabel: 'Meme Signal Terminal',
-      eyebrow: 'ENTERTAINMENT SIGNAL',
-      title: 'Treat sentiment as play, never prediction.',
-      disclaimer: 'ENTERTAINMENT SIGNAL ONLY — NOT FINANCIAL DATA AND NOT INVESTMENT ADVICE.',
-      metrics: [
-        { label: 'WING FREQUENCY', value: 'LIVELY', trend: 'FLAPS IN SYNC' },
-        { label: 'COMMUNITY SIGNAL', value: 'RESONANT', trend: 'TRAVELLING OUT' },
-        { label: 'MEME GRAVITY', value: 'MAGNETIC', trend: 'IDEAS GATHERING' },
-        { label: 'STORM LEVEL', value: 'BREWING', trend: 'ENTERTAINMENT DISPLAY' },
-      ],
-    },
-    nameCore: {
-      regionLabel: 'FLAP STOCK Character Core',
-      eyebrow: 'NAME CORE',
-      title: 'Four characters. One community story.',
-      cards: [
-        { glyph: '蝴', title: 'SMALL BEGINNING', body: 'Every flap begins with one small action.' },
-        { glyph: '蝶', title: 'CONTINUOUS EVOLUTION', body: 'A butterfly changes as it grows, and the community story keeps evolving.' },
-        { glyph: '股', title: 'COMMUNITY-HELD ATTENTION', body: '股 is a symbol of attention held together by the community.' },
-        { glyph: '票', title: 'A TICKET INTO THE MEME STORM', body: '票 is a ticket into the Meme storm.' },
-      ],
-      disclaimer: 'The characters 股 and 票 are brand metaphors only. They do not represent equity, real stock, securities, or securities tickets.',
-    },
+    effect: { regionLabel: 'The Butterfly Effect', eyebrow: '01 / BUTTERFLY EFFECT', title: 'A tiny move can start a giant storm.', body: 'There are no silent spectators in Meme culture. One joke gets seen, one flap gets repeated, and a tiny move becomes an echo the whole internet can hear.', steps: [{ index: '01', title: 'YOU FLAP FIRST', body: 'One entry, one image or one line is enough to start the smallest gust.' }, { index: '02', title: 'THE SWARM CARRIES IT', body: 'As more people pass the signal forward, a lone move turns into resonance.' }, { index: '03', title: 'WINGS BECOME WIND', body: 'Nobody can predict the next wind, but everybody can help flap it into motion.' }] },
+    signal: { regionLabel: 'Meme Signal Terminal', eyebrow: '02 / MEME WEATHER', title: 'Stop watching candles. Watch the wings.', disclaimer: 'MEME WEATHER FOR ENTERTAINMENT ONLY — NOT FINANCIAL DATA OR INVESTMENT ADVICE.', metrics: [{ label: 'FLAP FREQUENCY', value: 'HIGH', trend: 'COMMUNITY IN SYNC' }, { label: 'WIND DIRECTION', value: 'UP', trend: 'THE ARROW IS RISING' }, { label: 'BUTTERFLY DENSITY', value: '∞', trend: 'NEW WINGS ARRIVING' }, { label: 'STORM STATUS', value: 'LOADING', trend: 'CONSENSUS FORMING' }] },
+    nameCore: { regionLabel: 'FLAP STOCK Character Core', eyebrow: '03 / FOUR CHARACTERS', title: 'Four characters. One whole Meme world.', cards: [{ glyph: '蝴', title: 'THE FIRST MOVE', body: 'Even the smallest action can alter the path ahead.' }, { glyph: '蝶', title: 'THE TRANSFORMATION', body: 'From observer to participant, from watching to creating.' }, { glyph: '股', title: 'ATTENTION HELD TOGETHER', body: 'Not a company share—a community holding the same story.' }, { glyph: '票', title: 'A STORM TICKET', body: 'A ticket into Meme culture. The community chooses the destination.' }], disclaimer: '股 and 票 are Meme brand metaphors only. They do not represent equity, real stock, securities or rights to returns.' },
     presale: {
-      regionLabel: 'Presale Console',
-      eyebrow: 'PRESALE',
-      title: 'The presale is live. Start the first gust.',
-      body: 'The FLAP STOCK presale is now open; connect a BSC wallet and participate at the fixed on-chain amount.',
-      facts: ['NETWORK: BSC MAINNET', 'FIXED AMOUNT: 0.05 BNB', 'ONE PARTICIPATION PER ADDRESS', 'MAXIMUM: 10,000 ADDRESSES', 'DEADLINE: BEIJING TIME 2026-09-09 23:59:59', 'FLAP DISTRIBUTED MANUALLY AFTER PRESALE', 'NO REFUNDS'],
-      actionLabel: 'JOIN PRESALE',
-      unavailable: 'COMING SOON',
-      pendingLabel: 'PRESALE COMING SOON',
-      warning: 'Connect only through this page; verify the official presale contract before acting: 0x409c9448172b0f244a6823e91ad669281294622b.',
-      interaction: {
-        loading: 'LOADING PRESALE',
-        connectWallet: 'CONNECT BSC WALLET',
-        confirm: 'CONFIRM 0.05 BNB PARTICIPATION',
-        disclosure: 'I understand: FLAP requires manual FLAP distribution; there are no refunds; one-address-once does not mean one-person-once.',
-        participants: 'PARTICIPANTS',
-        countdown: 'COUNTDOWN',
-        soldOut: 'PRESALE SOLD OUT',
-        soldOutAction: 'SOLD OUT',
-        paused: 'PRESALE PAUSED',
-        ended: 'PRESALE ENDED',
-        alreadyParticipated: 'THIS ADDRESS ALREADY PARTICIPATED',
-        alreadyParticipatedAction: 'ALREADY PARTICIPATED',
-        unavailable: 'PRESALE UNAVAILABLE',
-        rpcError: 'PRESALE DATA UNAVAILABLE',
-        transactionError: 'TRANSACTION NOT SENT',
-        walletMissing: 'NO COMPATIBLE BSC WALLET DETECTED',
-        wrongNetwork: 'SWITCH REQUIRED: BSC MAINNET (56)',
-        submitted: 'TRANSACTION SUBMITTED',
-      },
+      regionLabel: 'Presale Console', eyebrow: '04 / PRESALE LIVE', title: '0.05 BNB. One ticket into the storm.', body: 'The presale is now open. Connect a BSC wallet, verify the on-chain rules, and flap only when you understand them.', facts: ['NETWORK: BSC MAINNET', 'FIXED AMOUNT: 0.05 BNB', 'ONE PARTICIPATION PER ADDRESS', 'MAXIMUM: 10,000 ADDRESSES', 'DEADLINE: BEIJING TIME 2026-09-09 23:59:59', 'FLAP DISTRIBUTED MANUALLY AFTER PRESALE', 'NO REFUNDS'], actionLabel: 'CONNECT WALLET AND FLAP', unavailable: 'COMING SOON', pendingLabel: 'PRESALE COMING SOON', warning: 'Participate only through this page. Before signing, verify the official presale contract: 0x409c9448172b0f244a6823e91ad669281294622b.',
+      interaction: { loading: 'LOADING PRESALE', connectWallet: 'CONNECT BSC WALLET', confirm: 'CONFIRM 0.05 BNB PARTICIPATION', disclosure: 'I understand: FLAP requires manual FLAP distribution; there are no refunds; one-address-once does not mean one-person-once.', participants: 'PARTICIPANTS', countdown: 'COUNTDOWN', soldOut: 'PRESALE SOLD OUT', soldOutAction: 'SOLD OUT', paused: 'PRESALE PAUSED', ended: 'PRESALE ENDED', alreadyParticipated: 'THIS ADDRESS ALREADY PARTICIPATED', alreadyParticipatedAction: 'ALREADY PARTICIPATED', unavailable: 'PRESALE UNAVAILABLE', rpcError: 'PRESALE DATA UNAVAILABLE', transactionError: 'TRANSACTION NOT SENT', walletMissing: 'NO COMPATIBLE BSC WALLET DETECTED', wrongNetwork: 'SWITCH REQUIRED: BSC MAINNET (56)', submitted: 'TRANSACTION SUBMITTED' },
     },
-    howTo: {
-      regionLabel: 'How to Join',
-      eyebrow: 'HOW TO PARTICIPATE',
-      title: 'Stay clear-eyed before you join.',
-      steps: [
-        { index: '01', title: 'PREPARE A BSC WALLET AND BNB', body: 'Use a wallet configured for BSC mainnet and prepare the fixed 0.05 BNB amount.' },
-        { index: '02', title: 'VERIFY THE OFFICIAL PRESALE CONTRACT', body: 'Connect on this page and verify BSC mainnet, the fixed amount, and the official contract address before interacting.' },
-        { index: '03', title: 'KEEP THE TRANSACTION RECORD', body: 'After successful participation, retain the transaction record and wait for later manual FLAP distribution.' },
-      ],
-    },
-    roadmap: {
-      regionLabel: 'Roadmap',
-      eyebrow: 'ROADMAP',
-      title: 'The route moves with the community’s wings.',
-      phases: [
-        { code: 'FLAP', title: 'BRAND AND COMMUNITY START', body: 'Establish the FLAP STOCK world and begin the community signal.', status: 'CURRENT PHASE' },
-        { code: 'FLY', title: 'PRESALE AND MEME SPREAD', body: 'Advance the presale, Meme spread, and community co-creation.', status: 'NEXT PHASE' },
-        { code: 'STORM', title: 'POST-LAUNCH COMMUNITY PHASE', body: 'After token launch, the community continues the butterfly effect.', status: 'FUTURE PHASE' },
-      ],
-      caveat: 'Specific future arrangements are subject to subsequent official announcements.',
-    },
-    manifesto: { regionLabel: 'Community Manifesto', eyebrow: 'MANIFESTO', title: 'Do not predict the wind. Be the one who flaps.', body: 'Let every small action gather into the community’s own Meme storm.' },
-    footer: { disclaimer: 'FLAP is a community Meme token, not a real stock, security, or investment product.', rights: '© 2026 FLAP STOCK. ALL RIGHTS RESERVED.' },
+    howTo: { regionLabel: 'How to Join', eyebrow: '05 / HOW TO FLAP', title: 'Three steps. Do not flap on the wrong chain.', steps: [{ index: '01', title: 'PREPARE A BSC WALLET AND BNB', body: 'Use a wallet on BSC mainnet and prepare the fixed amount of 0.05 BNB plus a small network fee.' }, { index: '02', title: 'VERIFY THE OFFICIAL PRESALE CONTRACT', body: 'Connect only on this page and verify BSC mainnet, the fixed amount and official contract address.' }, { index: '03', title: 'KEEP THE TRANSACTION RECORD', body: 'Save the successful transaction hash and wait for manual FLAP distribution after presale.' }] },
+    roadmap: { regionLabel: 'Roadmap', eyebrow: '06 / FLIGHT PATH', title: 'No fantasy roadmap. Just a flight path.', phases: [{ code: 'FLAP', title: 'THE FIRST BUTTERFLY MOVES', body: 'Launch a new acid-Meme brand world, open presale and send the first community signal.', status: 'HAPPENING NOW' }, { code: 'SWARM', title: 'THE SWARM SYNCS UP', body: 'Memes, remixes and community distribution turn one butterfly into a living swarm.', status: 'NEXT FLIGHT' }, { code: 'STORM', title: 'THE COMMUNITY WRITES THE STORM', body: 'After launch, there is no scripted ending. The community chooses where the effect flies.', status: 'FUTURE PATH' }], caveat: 'Future arrangements depend on later official announcements. This flight path is not a price or return promise.' },
+    manifesto: { regionLabel: 'Community Manifesto', eyebrow: '07 / MANIFESTO', title: 'We do not predict the wind. We flap it into motion.', body: 'One butterfly is an avatar. Ten are a signal. Ten thousand are a storm.' },
+    footer: { disclaimer: 'FLAP is a pure community Meme token—not real stock, a security, an investment product or a promise of returns.', rights: '© 2026 蝴蝶股票 · FLAP STOCK' },
   },
 }

@@ -97,7 +97,7 @@ try {
     if (viewport.width <= 760) {
       const menu = page.getByRole('button', { name: /打开菜单|Open menu/ })
       await menu.click()
-      await page.getByRole('navigation').getByRole('link', { name: /故事|STORY/ }).waitFor({ state: 'visible' })
+      await page.getByRole('navigation').getByRole('link', { name: /蝴蝶效应|EFFECT/ }).waitFor({ state: 'visible' })
       assert.equal(await menu.getAttribute('aria-expanded'), 'true', `${viewport.width}px: compact menu must open`)
     }
     await page.close()
