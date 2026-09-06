@@ -1,0 +1,30 @@
+{
+  "name": "flap-stock-meme",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest",
+    "test:responsive": "node scripts/responsive-qa.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "viem": "^2.56.3",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "jsdom": "latest",
+    "playwright": "^1.62.1",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
