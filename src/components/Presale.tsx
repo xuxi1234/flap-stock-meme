@@ -153,7 +153,7 @@ export function Presale({
     }
   }, [activeProvider, contractAddress, refresh])
 
-  if (!contractAddress) return <PresaleConsole copy={copy} />
+  if (!contractAddress) return <PresaleConsole copy={copy} presaleEnabled={false} />
 
   const connect = async () => {
     if (submittingRef.current) return

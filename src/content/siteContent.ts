@@ -100,13 +100,13 @@ export const siteContent: Record<Language, SiteCopy> = {
     presale: {
       regionLabel: '预售控制台',
       eyebrow: 'PRESALE',
-      title: '预售席位，等待下一次扇动。',
-      body: '预售参数已公开；购买入口将在正式可用时开放。',
+      title: '预售现已开放，扇动第一阵风。',
+      body: '蝴蝶股票预售现已开放；连接 BSC 钱包后，按链上固定金额参与。',
       facts: ['网络：BSC 主网', '固定金额：0.05 BNB', '每个地址限参与一次', '最多 10,000 个地址', '截止：北京时间 2026-09-09 23:59:59', 'FLAP 将在预售后人工发放', '不退款'],
       actionLabel: '参与预售',
       unavailable: '尚未开放',
       pendingLabel: '预售尚未开放',
-      warning: '请勿向任何未验证地址转账；当前没有可用购买链接或合约地址。',
+      warning: '只通过本页连接钱包；操作前请核对官方预售合约：0x409c9448172b0f244a6823e91ad669281294622b。',
       interaction: {
         loading: '正在读取预售状态',
         connectWallet: '连接 BSC 钱包',
@@ -134,7 +134,7 @@ export const siteContent: Record<Language, SiteCopy> = {
       title: '参与前，请保持清醒。',
       steps: [
         { index: '01', title: '准备 BSC 钱包和 BNB', body: '确认钱包支持 BSC 主网，并准备固定 0.05 BNB。' },
-        { index: '02', title: '等待官方预售合约', body: '合约上线后，操作前核对网络、金额与官方链接。' },
+        { index: '02', title: '核对官方预售合约', body: '在本页连接钱包，操作前核对 BSC 主网、固定金额与官方合约地址。' },
         { index: '03', title: '保留交易记录', body: '成功参与后保留交易记录，并等待 FLAP 后续人工发放。' },
       ],
     },
@@ -206,13 +206,13 @@ export const siteContent: Record<Language, SiteCopy> = {
     presale: {
       regionLabel: 'Presale Console',
       eyebrow: 'PRESALE',
-      title: 'Presale places await the next flap.',
-      body: 'The presale parameters are public; the purchase route opens when it is ready.',
+      title: 'The presale is live. Start the first gust.',
+      body: 'The FLAP STOCK presale is now open; connect a BSC wallet and participate at the fixed on-chain amount.',
       facts: ['NETWORK: BSC MAINNET', 'FIXED AMOUNT: 0.05 BNB', 'ONE PARTICIPATION PER ADDRESS', 'MAXIMUM: 10,000 ADDRESSES', 'DEADLINE: BEIJING TIME 2026-09-09 23:59:59', 'FLAP DISTRIBUTED MANUALLY AFTER PRESALE', 'NO REFUNDS'],
       actionLabel: 'JOIN PRESALE',
       unavailable: 'COMING SOON',
       pendingLabel: 'PRESALE COMING SOON',
-      warning: 'Do not send funds to unverified addresses; no purchase link or contract address is currently available.',
+      warning: 'Connect only through this page; verify the official presale contract before acting: 0x409c9448172b0f244a6823e91ad669281294622b.',
       interaction: {
         loading: 'LOADING PRESALE',
         connectWallet: 'CONNECT BSC WALLET',
@@ -240,7 +240,7 @@ export const siteContent: Record<Language, SiteCopy> = {
       title: 'Stay clear-eyed before you join.',
       steps: [
         { index: '01', title: 'PREPARE A BSC WALLET AND BNB', body: 'Use a wallet configured for BSC mainnet and prepare the fixed 0.05 BNB amount.' },
-        { index: '02', title: 'WAIT FOR THE OFFICIAL PRESALE CONTRACT', body: 'When it is live, verify the network, amount, and official link before interacting.' },
+        { index: '02', title: 'VERIFY THE OFFICIAL PRESALE CONTRACT', body: 'Connect on this page and verify BSC mainnet, the fixed amount, and the official contract address before interacting.' },
         { index: '03', title: 'KEEP THE TRANSACTION RECORD', body: 'After successful participation, retain the transaction record and wait for later manual FLAP distribution.' },
       ],
     },

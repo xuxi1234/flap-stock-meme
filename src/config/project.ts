@@ -21,8 +21,8 @@ export const projectConfig = Object.freeze({
     recipientAddress: '0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2',
     adminAddress: '0xbE37AB912De351B9312FA593C9f99e3279FDB0a2',
     oneParticipationPerAddress: true,
-    contractAddress: null as NullableAddress,
-    purchaseUrl: null as NullableLink,
+    contractAddress: '0x409c9448172b0f244a6823e91ad669281294622b' as NullableAddress,
+    purchaseUrl: '#presale' as NullableLink,
   }),
   community: Object.freeze({ x: null as NullableLink, telegram: null as NullableLink }),
 })

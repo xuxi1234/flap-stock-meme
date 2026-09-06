@@ -1,10 +1,27 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import css from './styles.css?raw'
 import responsiveQa from '../scripts/responsive-qa.mjs?raw'
 
-afterEach(cleanup)
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    const request = JSON.parse(String(init?.body)) as { id: number; params?: [{ data?: string }] }
+    const selector = request.params?.[0]?.data?.slice(0, 10)
+    const result = selector === '0x3197cbb6'
+      ? '0x000000000000000000000000000000000000000000000000000000006aa1827f'
+      : '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+    return new Response(JSON.stringify({ jsonrpc: '2.0', id: request.id, result }), {
+      headers: { 'content-type': 'application/json' },
+    })
+  }))
+})
+
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 const ruleFontSizeRem = (selector: string) => {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -44,7 +61,7 @@ describe('FLAP STOCK narrative page', () => {
     expect(ruleDeclarations('#signal article > strong')).toContain('overflow-wrap: anywhere')
   })
 
-  it('renders every Chinese narrative section and keeps presale unavailable', () => {
+  it('renders every Chinese narrative section and exposes the live presale entry', () => {
     render(<App />)
 
     expect(document.documentElement.lang).toBe('zh-CN')
@@ -68,7 +85,8 @@ describe('FLAP STOCK narrative page', () => {
     expect(screen.getByRole('region', { name: /路线图/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: /社区宣言/ })).toBeInTheDocument()
     expect(screen.getAllByText(/非金融数据/).length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: /预售尚未开放/ })).toBeDisabled()
+    expect(screen.getByRole('link', { name: '进入预售' })).toHaveAttribute('href', '#presale')
+    expect(screen.queryByRole('button', { name: /预售尚未开放/ })).not.toBeInTheDocument()
 
     const heroSignal = screen.getByRole('complementary', { name: '品牌信号' })
     expect(within(heroSignal).getByText('蝴蝶效应')).toBeInTheDocument()
@@ -111,7 +129,7 @@ describe('FLAP STOCK narrative page', () => {
     expect(screen.getByRole('heading', { name: 'Treat sentiment as play, never prediction.' })).toBeInTheDocument()
     expect(screen.getByText('FIXED AMOUNT: 0.05 BNB')).toBeInTheDocument()
     expect(screen.getByText('ONE PARTICIPATION PER ADDRESS')).toBeInTheDocument()
-    expect(screen.getByText(/Do not send funds to unverified addresses/)).toBeInTheDocument()
+    expect(screen.getByText(/Connect only through this page/)).toBeInTheDocument()
     expect(screen.getByText(/FLAP is a community Meme token, not a real stock/)).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('en')
   })
@@ -157,7 +175,7 @@ describe('FLAP STOCK narrative page', () => {
     expect(within(nameCore).getByText(/不代表真实股权、股票、证券或证券票据/)).toBeInTheDocument()
     ;['网络：BSC 主网', '固定金额：0.05 BNB', '每个地址限参与一次', '最多 10,000 个地址', '截止：北京时间 2026-09-09 23:59:59', 'FLAP 将在预售后人工发放', '不退款'].forEach((fact) => expect(within(presale).getByText(fact)).toBeInTheDocument())
     expect(within(presale).queryByRole('link')).not.toBeInTheDocument()
-    ;['BSC 钱包', '官方预售合约', '网络、金额与官方链接', '交易记录', '人工发放'].forEach((term) => expect(within(participation).getAllByText(new RegExp(term)).length).toBeGreaterThan(0))
+    ;['BSC 钱包', '官方预售合约', 'BSC 主网', '固定金额', '官方合约地址', '交易记录', '人工发放'].forEach((term) => expect(within(participation).getAllByText(new RegExp(term)).length).toBeGreaterThan(0))
     ;['FLAP', 'FLY', 'STORM'].forEach((code) => expect(within(roadmap).getByText(code)).toBeInTheDocument())
     expect(within(roadmap).getByText(/以后续官方公告为准/)).toBeInTheDocument()
     expect(within(manifesto).getByRole('heading', { name: '不要预测风口，成为扇动翅膀的人。' })).toBeInTheDocument()

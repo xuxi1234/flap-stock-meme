@@ -25,8 +25,8 @@ describe('site content', () => {
     expect(projectConfig.presale.deadlineZh).toBe('北京时间 2026-09-09 23:59:59')
     expect(projectConfig.presale.recipientAddress).toBe('0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2')
     expect(projectConfig.presale.adminAddress).toBe('0xbE37AB912De351B9312FA593C9f99e3279FDB0a2')
-    expect(projectConfig.presale.contractAddress).toBeNull()
-    expect(projectConfig.presale.purchaseUrl).toBeNull()
+    expect(projectConfig.presale.contractAddress).toBe('0x409c9448172b0f244a6823e91ad669281294622b')
+    expect(projectConfig.presale.purchaseUrl).toBe('#presale')
     expect(projectConfig.presale.oneParticipationPerAddress).toBe(true)
   })
 
@@ -89,14 +89,18 @@ describe('site content', () => {
     ])
     expect(siteContent.zh.presale.actionLabel).not.toBe(siteContent.zh.presale.unavailable)
     expect(siteContent.en.presale.actionLabel).not.toBe(siteContent.en.presale.unavailable)
+    expect(siteContent.zh.presale.body).toContain('现已开放')
+    expect(siteContent.en.presale.body).toContain('now open')
+    expect(siteContent.zh.presale.warning).toContain('0x409c9448172b0f244a6823e91ad669281294622b')
+    expect(siteContent.en.presale.warning).toContain('0x409c9448172b0f244a6823e91ad669281294622b')
   })
 
   it('covers the complete participation flow in both languages', () => {
     const zhFlow = siteContent.zh.howTo.steps.map(({ title, body }) => `${title} ${body}`).join(' ')
     const enFlow = siteContent.en.howTo.steps.map(({ title, body }) => `${title} ${body}`).join(' ').toUpperCase()
 
-    ;['BSC 钱包', 'BNB', '官方预售合约', '网络', '金额', '官方链接', '交易记录', '人工发放'].forEach((term) => expect(zhFlow).toContain(term))
-    ;['BSC WALLET', 'BNB', 'OFFICIAL PRESALE CONTRACT', 'NETWORK', 'AMOUNT', 'OFFICIAL LINK', 'TRANSACTION RECORD', 'MANUAL FLAP DISTRIBUTION'].forEach((term) => expect(enFlow).toContain(term))
+    ;['BSC 钱包', 'BNB', '官方预售合约', 'BSC 主网', '固定金额', '官方合约地址', '交易记录', '人工发放'].forEach((term) => expect(zhFlow).toContain(term))
+    ;['BSC WALLET', 'BNB', 'OFFICIAL PRESALE CONTRACT', 'BSC MAINNET', 'FIXED AMOUNT', 'OFFICIAL CONTRACT ADDRESS', 'TRANSACTION RECORD', 'MANUAL FLAP DISTRIBUTION'].forEach((term) => expect(enFlow).toContain(term))
   })
 
   it('uses FLAP, FLY, and STORM roadmap phases with the official-announcement caveat', () => {
