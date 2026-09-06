@@ -4,7 +4,7 @@ import { Hero } from './components/Hero'
 import { HowToJoin } from './components/HowToJoin'
 import { Manifesto } from './components/Manifesto'
 import { NameCore } from './components/NameCore'
-import { PresaleConsole } from './components/PresaleConsole'
+import { Presale } from './components/Presale'
 import { Roadmap } from './components/Roadmap'
 import { SignalTerminal } from './components/SignalTerminal'
 import { SiteFooter } from './components/SiteFooter'
@@ -30,7 +30,7 @@ export default function App() {
         <ButterflyEffect copy={copy.effect} />
         <SignalTerminal copy={copy.signal} />
         <NameCore copy={copy.nameCore} />
-        <PresaleConsole copy={copy.presale} />
+        <Presale copy={copy.presale} />
         <HowToJoin copy={copy.howTo} />
         <Roadmap copy={copy.roadmap} />
         <Manifesto copy={copy.manifesto} />

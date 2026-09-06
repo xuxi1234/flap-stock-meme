@@ -8,7 +8,37 @@ export type SiteCopy = {
   effect: { regionLabel: string; eyebrow: string; title: string; body: string; steps: Array<{ index: string; title: string; body: string }> }
   signal: { regionLabel: string; eyebrow: string; title: string; disclaimer: string; metrics: Array<{ label: string; value: string; trend: string }> }
   nameCore: { regionLabel: string; eyebrow: string; title: string; cards: Array<{ glyph: string; title: string; body: string }>; disclaimer: string }
-  presale: { regionLabel: string; eyebrow: string; title: string; body: string; facts: string[]; actionLabel: string; unavailable: string; pendingLabel: string; warning: string }
+  presale: {
+    regionLabel: string
+    eyebrow: string
+    title: string
+    body: string
+    facts: string[]
+    actionLabel: string
+    unavailable: string
+    pendingLabel: string
+    warning: string
+    interaction: {
+      loading: string
+      connectWallet: string
+      confirm: string
+      disclosure: string
+      participants: string
+      countdown: string
+      soldOut: string
+      soldOutAction: string
+      paused: string
+      ended: string
+      alreadyParticipated: string
+      alreadyParticipatedAction: string
+      unavailable: string
+      rpcError: string
+      transactionError: string
+      walletMissing: string
+      wrongNetwork: string
+      submitted: string
+    }
+  }
   howTo: { regionLabel: string; eyebrow: string; title: string; steps: Array<{ index: string; title: string; body: string }> }
   roadmap: { regionLabel: string; eyebrow: string; title: string; phases: Array<{ code: string; title: string; body: string; status: string }>; caveat: string }
   manifesto: { regionLabel: string; eyebrow: string; title: string; body: string }
@@ -77,6 +107,26 @@ export const siteContent: Record<Language, SiteCopy> = {
       unavailable: '尚未开放',
       pendingLabel: '预售尚未开放',
       warning: '请勿向任何未验证地址转账；当前没有可用购买链接或合约地址。',
+      interaction: {
+        loading: '正在读取预售状态',
+        connectWallet: '连接 BSC 钱包',
+        confirm: '确认支付 0.05 BNB 参与',
+        disclosure: '我已了解：FLAP 将人工发放；不退款；一个地址限一次不代表一个人限一次。',
+        participants: '已参与地址',
+        countdown: '倒计时',
+        soldOut: '预售席位已满',
+        soldOutAction: '已售罄',
+        paused: '预售已暂停',
+        ended: '预售已结束',
+        alreadyParticipated: '此地址已经参与过',
+        alreadyParticipatedAction: '已经参与',
+        unavailable: '预售不可用',
+        rpcError: '预售数据不可用',
+        transactionError: '交易未发送',
+        walletMissing: '未检测到兼容的 BSC 钱包',
+        wrongNetwork: '需要切换至 BSC 主网（56）',
+        submitted: '交易已提交',
+      },
     },
     howTo: {
       regionLabel: '参与方式',
@@ -163,6 +213,26 @@ export const siteContent: Record<Language, SiteCopy> = {
       unavailable: 'COMING SOON',
       pendingLabel: 'PRESALE COMING SOON',
       warning: 'Do not send funds to unverified addresses; no purchase link or contract address is currently available.',
+      interaction: {
+        loading: 'LOADING PRESALE',
+        connectWallet: 'CONNECT BSC WALLET',
+        confirm: 'CONFIRM 0.05 BNB PARTICIPATION',
+        disclosure: 'I understand: FLAP requires manual FLAP distribution; there are no refunds; one-address-once does not mean one-person-once.',
+        participants: 'PARTICIPANTS',
+        countdown: 'COUNTDOWN',
+        soldOut: 'PRESALE SOLD OUT',
+        soldOutAction: 'SOLD OUT',
+        paused: 'PRESALE PAUSED',
+        ended: 'PRESALE ENDED',
+        alreadyParticipated: 'THIS ADDRESS ALREADY PARTICIPATED',
+        alreadyParticipatedAction: 'ALREADY PARTICIPATED',
+        unavailable: 'PRESALE UNAVAILABLE',
+        rpcError: 'PRESALE DATA UNAVAILABLE',
+        transactionError: 'TRANSACTION NOT SENT',
+        walletMissing: 'NO COMPATIBLE BSC WALLET DETECTED',
+        wrongNetwork: 'SWITCH REQUIRED: BSC MAINNET (56)',
+        submitted: 'TRANSACTION SUBMITTED',
+      },
     },
     howTo: {
       regionLabel: 'How to Join',

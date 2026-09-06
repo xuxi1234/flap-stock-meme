@@ -1,0 +1,36 @@
+name: Contracts
+
+on:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  foundry-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Check formatting
+        run: forge fmt --check
+      - name: Compile and report contract sizes
+        run: forge build --sizes
+      - name: Run contract tests and gas report
+        run: forge test --gas-report -vvv
+
+# This workflow intentionally has no secrets, wallet, RPC, forge script, or broadcast step.

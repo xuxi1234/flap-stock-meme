@@ -984,6 +984,76 @@ h1 em {
   width: 100%;
 }
 
+#presale > .presale-interaction {
+  align-self: end;
+  grid-column: 2;
+  grid-row: 4;
+  margin-top: 42px;
+  width: 100%;
+}
+
+.presale-interaction {
+  display: grid;
+  gap: 14px;
+}
+
+.presale-live-state {
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 8px 20px;
+  justify-content: space-between;
+  letter-spacing: 0.05em;
+}
+
+.presale-state-message,
+.presale-network-message,
+.presale-error,
+.presale-success {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 750;
+  margin: 0;
+}
+
+.presale-state-message,
+.presale-network-message {
+  color: var(--gold-bright);
+}
+
+.presale-error {
+  color: #ff8e7d;
+}
+
+.presale-success {
+  color: var(--cyan);
+  overflow-wrap: anywhere;
+}
+
+.presale-disclosure {
+  align-items: flex-start;
+  color: var(--text);
+  display: flex;
+  font-size: 0.86rem;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.presale-disclosure input {
+  accent-color: var(--gold);
+  flex: 0 0 auto;
+  height: 18px;
+  margin: 2px 0 0;
+  width: 18px;
+}
+
+.presale-interaction > .button {
+  width: 100%;
+}
+
 .participation-grid {
   display: grid;
   gap: 0;
@@ -1455,6 +1525,10 @@ h1 em {
   }
 
   #presale > .button {
+    margin-top: 24px;
+  }
+
+  #presale > .presale-interaction {
     margin-top: 24px;
   }
 

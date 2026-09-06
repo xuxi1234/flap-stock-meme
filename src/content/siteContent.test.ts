@@ -20,6 +20,7 @@ describe('site content', () => {
   it('keeps all confirmed presale facts in configuration', () => {
     expect(projectConfig.presale.priceBnb).toBe('0.05')
     expect(projectConfig.presale.maxParticipants).toBe(10_000)
+    expect(projectConfig.presale.initialDeadline).toBe(1_788_969_599)
     expect(projectConfig.presale.deadlineUtc).toBe('2026-09-09T15:59:59Z')
     expect(projectConfig.presale.deadlineZh).toBe('北京时间 2026-09-09 23:59:59')
     expect(projectConfig.presale.recipientAddress).toBe('0x59389BDb944a4d8D4747b373b665a781d8DCD420')

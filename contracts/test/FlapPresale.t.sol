@@ -16,6 +16,8 @@ import {
 interface Vm {
     function deal(address account, uint256 newBalance) external;
     function etch(address target, bytes calldata newRuntimeBytecode) external;
+    function expectEmit(bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData, address emitter)
+        external;
     function expectRevert(bytes4 revertData) external;
     function expectRevert(bytes calldata revertData) external;
     function prank(address sender) external;
@@ -74,6 +76,8 @@ contract FlapPresaleTest is Test {
     address internal constant PARTICIPANT = address(0xA11CE);
     uint256 internal constant PAYMENT = 0.05 ether;
 
+    event Participated(address indexed participant, uint256 amount, uint64 timestamp, uint256 participantNumber);
+
     function setUp() public {
         presale = new FlapPresale();
     }
@@ -114,6 +118,28 @@ contract FlapPresaleTest is Test {
         assertEq(TREASURY.balance, treasuryBalanceBefore + PAYMENT);
         assertEq(presale.hasParticipated(PARTICIPANT), true);
         assertEq(presale.participantCount(), 1);
+    }
+
+    function testParticipatedEventContainsCompleteManualDistributionRecord() public {
+        uint64 participationTime = 1_700_000_000;
+        vm.warp(participationTime);
+        vm.deal(PARTICIPANT, PAYMENT);
+
+        vm.expectEmit(true, false, false, true, address(presale));
+        emit Participated(PARTICIPANT, PAYMENT, participationTime, 1);
+        vm.prank(PARTICIPANT);
+        presale.participate{value: PAYMENT}();
+    }
+
+    function testDirectNativeTransferIsRejected() public {
+        vm.deal(PARTICIPANT, PAYMENT);
+
+        vm.prank(PARTICIPANT);
+        (bool success,) = address(presale).call{value: PAYMENT}("");
+
+        assertEq(success, false);
+        assertEq(address(presale).balance, 0);
+        assertEq(presale.participantCount(), 0);
     }
 
     function testParticipateRejectsDuplicateAddress() public {
@@ -191,6 +217,29 @@ contract FlapPresaleTest is Test {
         vm.prank(ADMIN);
         presale.setEndTime(1_800_000_000);
         assertEq(presale.endTime(), 1_800_000_000);
+    }
+
+    function testUpdatedEndTimeControlsParticipation() public {
+        uint64 initialEndTime = presale.INITIAL_END_TIME();
+        uint64 extendedEndTime = initialEndTime + 100;
+
+        vm.prank(ADMIN);
+        presale.setEndTime(extendedEndTime);
+        vm.warp(initialEndTime);
+        vm.deal(PARTICIPANT, PAYMENT);
+        vm.prank(PARTICIPANT);
+        presale.participate{value: PAYMENT}();
+        assertEq(presale.hasParticipated(PARTICIPANT), true);
+
+        address laterParticipant = address(0xB0B);
+        uint64 shortenedEndTime = initialEndTime + 1;
+        vm.prank(ADMIN);
+        presale.setEndTime(shortenedEndTime);
+        vm.warp(shortenedEndTime);
+        vm.deal(laterParticipant, PAYMENT);
+        vm.prank(laterParticipant);
+        vm.expectRevert(abi.encodeWithSelector(PresaleEnded.selector, shortenedEndTime));
+        presale.participate{value: PAYMENT}();
     }
 
     function testParticipationRevertsWhenTreasuryCannotReceivePayment() public {
