@@ -3,6 +3,7 @@ import { ButterflyEffect } from './components/ButterflyEffect'
 import { Hero } from './components/Hero'
 import { HowToJoin } from './components/HowToJoin'
 import { Manifesto } from './components/Manifesto'
+import { MobilePresaleDock } from './components/MobilePresaleDock'
 import { NameCore } from './components/NameCore'
 import { Presale } from './components/Presale'
 import { Roadmap } from './components/Roadmap'
@@ -36,6 +37,7 @@ export default function App() {
         <Manifesto copy={copy.manifesto} />
       </main>
       <SiteFooter copy={copy.footer} communityCopy={copy.community} />
+      <MobilePresaleDock copy={copy.hero} />
     </div>
   )
 }

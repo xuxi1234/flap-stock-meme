@@ -4,7 +4,22 @@ export type SiteCopy = {
   nav: { story: string; signal: string; presale: string; roadmap: string; languageLabel: string; languageSwitchLabel: string; menuOpenLabel: string; menuCloseLabel: string; homeLabel: string; logoLabel: string; navigationLabel: string }
   community: { regionLabel: string; xLabel: string; telegramLabel: string; comingSoon: string; xPendingLabel: string; telegramPendingLabel: string }
   ticker: { sectionLabel: string; symbolLabel: string; chainLabel: string; priceLabel: string; capacityLabel: string; statusLabel: string }
-  hero: { eyebrow: string; tagline: string; description: string; explore: string; enterPresale: string; presalePendingLabel: string; visualLabel: string; brandSignalLabel: string; brandSignalValue: string; safetyLabel: string }
+  hero: {
+    eyebrow: string
+    statusLabel: string
+    tagline: string
+    description: string
+    quickFacts: Array<{ label: string; value: string }>
+    explore: string
+    enterPresale: string
+    presalePendingLabel: string
+    mobilePresaleLabel: string
+    mobilePresaleMeta: string
+    visualLabel: string
+    brandSignalLabel: string
+    brandSignalValue: string
+    safetyLabel: string
+  }
   effect: { regionLabel: string; eyebrow: string; title: string; body: string; steps: Array<{ index: string; title: string; body: string }> }
   signal: { regionLabel: string; eyebrow: string; title: string; disclaimer: string; metrics: Array<{ label: string; value: string; trend: string }> }
   nameCore: { regionLabel: string; eyebrow: string; title: string; cards: Array<{ glyph: string; title: string; body: string }>; disclaimer: string }
@@ -52,11 +67,19 @@ export const siteContent: Record<Language, SiteCopy> = {
     ticker: { sectionLabel: 'FLAP STOCK 项目详情', symbolLabel: '代币符号', chainLabel: '网络', priceLabel: '价格', capacityLabel: '席位', statusLabel: '状态' },
     hero: {
       eyebrow: 'BNB SMART CHAIN · COMMUNITY MEME TOKEN',
-      tagline: '不要预测风口，成为扇动翅膀的人。',
-      description: 'FLAP 是由社区驱动的 Meme 代币。它不是股票、证券或投资产品。',
-      explore: '探索故事',
-      enterPresale: '进入预售',
+      statusLabel: '预售进行中',
+      tagline: '一只蝴蝶振翅，也能让 Meme 穿过风暴。',
+      description: '蝴蝶股票是一场写在 BNB Chain 上的社区 Meme 实验。没有基本面，只有蝴蝶面；不预测风口，我们亲手扇动风口。',
+      quickFacts: [
+        { label: '本轮额度', value: '固定 0.05 BNB' },
+        { label: '参与规则', value: '每个钱包仅一次' },
+        { label: '预售截止', value: '09.09 · 23:59' },
+      ],
+      explore: '读懂蝴蝶效应',
+      enterPresale: '立即参与 · 0.05 BNB',
       presalePendingLabel: '尚未开放',
+      mobilePresaleLabel: '立即振翅，使用 0.05 BNB 参与预售',
+      mobilePresaleMeta: 'BSC 主网 · 每钱包一次',
       visualLabel: 'FLAP STOCK 品牌标志',
       brandSignalLabel: '品牌信号',
       brandSignalValue: '蝴蝶效应',
@@ -158,11 +181,19 @@ export const siteContent: Record<Language, SiteCopy> = {
     ticker: { sectionLabel: 'FLAP STOCK project details', symbolLabel: 'SYMBOL', chainLabel: 'CHAIN', priceLabel: 'PRICE', capacityLabel: 'CAPACITY', statusLabel: 'STATUS' },
     hero: {
       eyebrow: 'BNB SMART CHAIN · COMMUNITY MEME TOKEN',
-      tagline: 'Do not predict the wind. Be the one who flaps.',
-      description: 'FLAP is a community-driven Meme token. It is not a stock, security, or investment product.',
-      explore: 'EXPLORE THE STORY',
-      enterPresale: 'ENTER PRESALE',
+      statusLabel: 'PRESALE LIVE',
+      tagline: 'One flap can send a Meme through the storm.',
+      description: 'FLAP STOCK is a community Meme experiment written on BNB Chain. No fundamentals—only butterfly fundamentals. We do not predict the wind; we create it together.',
+      quickFacts: [
+        { label: 'ROUND SIZE', value: 'FIXED 0.05 BNB' },
+        { label: 'ACCESS RULE', value: 'ONE WALLET · ONCE' },
+        { label: 'DEADLINE', value: 'SEP 09 · 23:59' },
+      ],
+      explore: 'THE BUTTERFLY EFFECT',
+      enterPresale: 'FLAP NOW · 0.05 BNB',
       presalePendingLabel: 'COMING SOON',
+      mobilePresaleLabel: 'FLAP NOW WITH 0.05 BNB',
+      mobilePresaleMeta: 'BSC MAINNET · ONE WALLET ONCE',
       visualLabel: 'FLAP STOCK brand mark',
       brandSignalLabel: 'BRAND SIGNAL',
       brandSignalValue: 'BUTTERFLY EFFECT',

@@ -85,8 +85,13 @@ describe('FLAP STOCK narrative page', () => {
     expect(screen.getByRole('region', { name: /路线图/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: /社区宣言/ })).toBeInTheDocument()
     expect(screen.getAllByText(/非金融数据/).length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: '进入预售' })).toHaveAttribute('href', '#presale')
+    expect(screen.getByRole('link', { name: '立即参与 · 0.05 BNB' })).toHaveAttribute('href', '#presale')
     expect(screen.queryByRole('button', { name: /预售尚未开放/ })).not.toBeInTheDocument()
+    expect(screen.getByText('预售进行中')).toBeInTheDocument()
+    expect(screen.getByText('固定 0.05 BNB')).toBeInTheDocument()
+    expect(screen.getByText('每个钱包仅一次')).toBeInTheDocument()
+    expect(document.querySelector('.mobile-presale-dock a')).toHaveAttribute('aria-label', '立即振翅，使用 0.05 BNB 参与预售')
+    expect(document.querySelector('.mobile-presale-dock a')).toHaveAttribute('href', '#presale')
 
     const heroSignal = screen.getByRole('complementary', { name: '品牌信号' })
     expect(within(heroSignal).getByText('蝴蝶效应')).toBeInTheDocument()
@@ -102,7 +107,7 @@ describe('FLAP STOCK narrative page', () => {
   })
 
   it('switches narrative content, presale rules, and disclaimers to English', () => {
-    render(<App />)
+    const { container } = render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: '切换到英文' }))
 
@@ -131,6 +136,10 @@ describe('FLAP STOCK narrative page', () => {
     expect(screen.getByText('ONE PARTICIPATION PER ADDRESS')).toBeInTheDocument()
     expect(screen.getByText(/Connect only through this page/)).toBeInTheDocument()
     expect(screen.getByText(/FLAP is a community Meme token, not a real stock/)).toBeInTheDocument()
+    expect(screen.getByText('PRESALE LIVE')).toBeInTheDocument()
+    expect(screen.getByText('FIXED 0.05 BNB')).toBeInTheDocument()
+    expect(container.querySelector('.mobile-presale-dock a')).toHaveAttribute('aria-label', 'FLAP NOW WITH 0.05 BNB')
+    expect(container.querySelector('.mobile-presale-dock a')).toHaveAttribute('href', '#presale')
     expect(document.documentElement.lang).toBe('en')
   })
 
@@ -207,6 +216,19 @@ describe('FLAP STOCK narrative page', () => {
     expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.brand-lockup\s*\{[\s\S]*?min-height: 44px[\s\S]*?min-width: 44px/)
     expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?nav a\s*\{[\s\S]*?min-height: 44px[\s\S]*?min-width: 44px/)
     expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.menu-toggle\s*\{[\s\S]*?display: flex/)
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.mobile-presale-dock\s*\{[\s\S]*?display: grid/)
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.hero-visual\s*\{[\s\S]*?min-height: 290px/)
+    expect(css).toContain('#presale > ul {\n    display: grid;\n    grid-template-columns: repeat(2, minmax(0, 1fr));')
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.mobile-presale-dock > a\s*\{[\s\S]*?min-height: 54px/)
+    expect(css).toContain('padding-bottom: calc(96px + env(safe-area-inset-bottom))')
+  })
+
+  it('keeps the mobile conversion dock and hero atmosphere decorative but accessible', () => {
+    const { container } = render(<App />)
+
+    expect(container.querySelector('.mobile-presale-dock')).toBeInTheDocument()
+    expect(container.querySelector('.hero-orbit')).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelectorAll('.hero-quick-facts li')).toHaveLength(3)
   })
 
   it('provides a repeatable browser QA harness for every target viewport', () => {
