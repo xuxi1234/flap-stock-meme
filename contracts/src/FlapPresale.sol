@@ -77,7 +77,7 @@ contract FlapPresale is Ownable, Pausable, ReentrancyGuard {
     uint256 public constant MAX_PARTICIPANTS = 10_000;
     uint64 public constant INITIAL_END_TIME = 1_788_969_599;
     address public constant ADMIN = 0xbE37AB912De351B9312FA593C9f99e3279FDB0a2;
-    address public constant TREASURY = 0x59389BDb944a4d8D4747b373b665a781d8DCD420;
+    address public constant TREASURY = 0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2;
 
     mapping(address participant => bool participated) public hasParticipated;
     uint256 public participantCount;

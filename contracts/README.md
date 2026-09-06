@@ -11,7 +11,7 @@ This directory contains the self-contained, non-upgradeable `FlapPresale` and it
 | Capacity | `10,000` |
 | Initial deadline | `1788969599` |
 | Admin / owner | `0xbE37AB912De351B9312FA593C9f99e3279FDB0a2` |
-| Treasury | `0x59389BDb944a4d8D4747b373b665a781d8DCD420` |
+| Treasury | `0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2` |
 
 `DeployFlapPresale.s.sol` rejects every chain ID other than `56`. Immediately after creation it checks that runtime code exists, all values above match, `endTime` equals `1788969599`, owner equals the admin, and `participantCount` is zero. It also checks that the deployment is unpaused.
 
@@ -115,7 +115,7 @@ cast call --rpc-url bsc "$PRESALE_ADDRESS" "participantCount()(uint256)"
 cast call --rpc-url bsc "$PRESALE_ADDRESS" "paused()(bool)"
 ```
 
-The results must be, in order: `50000000000000000`, `10000`, `1788969599`, `1788969599`, `0xbE37AB912De351B9312FA593C9f99e3279FDB0a2`, that same admin/owner address, `0x59389BDb944a4d8D4747b373b665a781d8DCD420`, `0`, and `false`.
+The results must be, in order: `50000000000000000`, `10000`, `1788969599`, `1788969599`, `0xbE37AB912De351B9312FA593C9f99e3279FDB0a2`, that same admin/owner address, `0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2`, `0`, and `false`.
 
 Verify the exact committed source after deployment. Foundry reads `ETHERSCAN_API_KEY` from the local environment:
 

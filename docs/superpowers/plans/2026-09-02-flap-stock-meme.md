@@ -16,7 +16,7 @@
 - BSC mainnet chainId is `56`; presale payment is exactly `0.05 BNB` once per address.
 - Maximum participation is `10,000` addresses; initial end timestamp is `1788969599`.
 - Admin is `0xbE37AB912De351B9312FA593C9f99e3279FDB0a2`.
-- Treasury is immutable at `0x59389BDb944a4d8D4747b373b665a781d8DCD420`.
+- Treasury is immutable at `0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2`.
 - Admin may pause, resume, and change the end timestamp, but may not change price, capacity, or treasury.
 - No automatic FLAP distribution, no refunds, no fabricated market data, and no return promises.
 - GitHub and Vercel projects must both be named `flap-stock-meme` and isolated from BNBX and 70X.

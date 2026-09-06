@@ -71,7 +71,7 @@ contract FlapPresaleTest is Test {
     FlapPresale internal presale;
 
     address internal constant ADMIN = 0xbE37AB912De351B9312FA593C9f99e3279FDB0a2;
-    address internal constant TREASURY = 0x59389BDb944a4d8D4747b373b665a781d8DCD420;
+    address internal constant TREASURY = 0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2;
     address internal constant PARTICIPANT = address(0xA11CE);
     uint256 internal constant PAYMENT = 0.05 ether;
 

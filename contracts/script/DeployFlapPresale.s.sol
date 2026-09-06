@@ -15,7 +15,7 @@ interface ScriptVm {
 contract DeployFlapPresale {
     uint256 public constant BSC_MAINNET_CHAIN_ID = 56;
     address public constant EXPECTED_ADMIN = 0xbE37AB912De351B9312FA593C9f99e3279FDB0a2;
-    address public constant EXPECTED_TREASURY = 0x59389BDb944a4d8D4747b373b665a781d8DCD420;
+    address public constant EXPECTED_TREASURY = 0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2;
 
     ScriptVm internal constant vm = ScriptVm(address(uint160(uint256(keccak256("hevm cheat code")))));
 

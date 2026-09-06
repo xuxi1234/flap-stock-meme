@@ -23,7 +23,7 @@ describe('site content', () => {
     expect(projectConfig.presale.initialDeadline).toBe(1_788_969_599)
     expect(projectConfig.presale.deadlineUtc).toBe('2026-09-09T15:59:59Z')
     expect(projectConfig.presale.deadlineZh).toBe('北京时间 2026-09-09 23:59:59')
-    expect(projectConfig.presale.recipientAddress).toBe('0x59389BDb944a4d8D4747b373b665a781d8DCD420')
+    expect(projectConfig.presale.recipientAddress).toBe('0xc46fC8D76Ad6Db1a0f88d97EbF5Aa3c405d177C2')
     expect(projectConfig.presale.adminAddress).toBe('0xbE37AB912De351B9312FA593C9f99e3279FDB0a2')
     expect(projectConfig.presale.contractAddress).toBeNull()
     expect(projectConfig.presale.purchaseUrl).toBeNull()
