@@ -1,8 +1,12 @@
 # 蝴蝶股票宣发图片
 
-本次归档保存本会话全部 **72 个 PNG 原图文件**：69 张当前版本，以及 3 张已被修正版替换的旧图。图片按原始字节保存，没有压缩或重绘。
+本次归档保存本会话全部 **80 个 PNG 原图文件**：75 张当前版本，以及 5 张已被修正版替换的旧图。图片按原始字节保存，没有压缩或重绘。
 
-## 最新新增：币圈梗图第三组
+## 最新新增：币圈梗图第四组
+
+[打开第四组图片与中文索引](crypto-memes-04/README.md)：巨鲸翻身、钱包连接、钻石手与截图手、链上周末、DYOR 标签页、GM 时差。
+
+## 币圈梗图第三组
 
 [打开第三组图片与中文索引](crypto-memes-03/README.md)：反向指标、最后一笔、收藏 Alpha、群聊与钱包、牛熊生活、链上侦探。
 
@@ -103,6 +107,17 @@
 |70|牛市环游世界，熊市小区散步|[查看 / 下载](crypto-memes-03/070-bull-plan-bear-life.png)|
 |71|链上侦探：查到自己的钱包|[查看 / 下载](crypto-memes-03/071-onchain-detective.png)|
 
+## 币圈梗图第四组
+
+|编号|主题|PNG 原图|
+|---|---|---|
+|73|巨鲸动一下，散户忙一夜|[查看 / 下载](crypto-memes-04/073-whale-overtime.png)|
+|74|钱包连接：比相亲还紧张|[查看 / 下载](crypto-memes-04/074-wallet-connection.png)|
+|75|钻石手，截图手|[查看 / 下载](crypto-memes-04/075-screenshot-hands.png)|
+|76|人类过周末，链上不打烊|[查看 / 下载](crypto-memes-04/076-weekend-chain.png)|
+|77|DYOR：打开研究，迷失标签页|[查看 / 下载](crypto-memes-04/077-dyor-tabs.png)|
+|78|GM：早安发出，天已黑|[查看 / 下载](crypto-memes-04/078-gm-night.png)|
+
 ## 旧版与修正版
 
 |旧版|修正版|
@@ -110,3 +125,5 @@
 |[给自己打个气旧版多触角](archive-superseded/058-3a7c9bcc.png)|[使用修正版](community-and-brand/036-1c3018fd.png)|
 |[Gas饭钱旧版多手](archive-superseded/059-806e261d.png)|[使用修正版](crypto-memes/055-f7a66943.png)|
 |[收藏Alpha旧版触角异常](archive-superseded/072-saved-alpha-original.png)|[使用修正版](crypto-memes-03/068-saved-alpha.png)|
+|[巨鲸动一下，散户忙一夜（触角修正前）](archive-superseded/079-whale-overtime-original.png)|[使用修正版](crypto-memes-04/073-whale-overtime.png)|
+|[钻石手，截图手（触角修正前）](archive-superseded/080-screenshot-hands-original.png)|[使用修正版](crypto-memes-04/075-screenshot-hands.png)|

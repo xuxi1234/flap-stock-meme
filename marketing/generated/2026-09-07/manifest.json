@@ -1,6 +1,6 @@
 {
   "archive_date": "2026-09-07",
-  "count": 72,
+  "count": 80,
   "images": [
     {
       "bytes": 2110679,
@@ -655,75 +655,157 @@
       "title": "牛熊两副面孔：叙事专家与养生专家"
     },
     {
-      "id": 66,
-      "title": "反向指标：一买就跌，一卖就涨",
-      "path": "crypto-memes-03/066-reverse-indicator.png",
-      "status": "current",
-      "source_filename": "exec-eb8f8eb8-3e5d-408f-ab9d-ceebab6b4964.png",
       "bytes": 1907575,
+      "git_blob_sha": "8f1b9c2577703e70ad696f1a6a387437e7befb13",
+      "id": 66,
+      "path": "crypto-memes-03/066-reverse-indicator.png",
       "sha256": "3b42baae77ef15b8d103749e967a87a3688d3dddec7b96a4c4de79fb8f393783",
-      "git_blob_sha": "8f1b9c2577703e70ad696f1a6a387437e7befb13"
+      "source_filename": "exec-eb8f8eb8-3e5d-408f-ab9d-ceebab6b4964.png",
+      "status": "current",
+      "title": "反向指标：一买就跌，一卖就涨"
     },
     {
-      "id": 67,
-      "title": "最后一笔：和下一笔之间差一个刷新",
-      "path": "crypto-memes-03/067-last-trade.png",
-      "status": "current",
-      "source_filename": "exec-964a166c-8386-4aa1-92cc-54029eea84d9.png",
       "bytes": 2028380,
+      "git_blob_sha": "920c96d25200f529486574db804bdfd38e08f789",
+      "id": 67,
+      "path": "crypto-memes-03/067-last-trade.png",
       "sha256": "6956dd144de649e652c3b7ee96b1a103f18d5dac76fb329a442b14f74d709876",
-      "git_blob_sha": "920c96d25200f529486574db804bdfd38e08f789"
+      "source_filename": "exec-964a166c-8386-4aa1-92cc-54029eea84d9.png",
+      "status": "current",
+      "title": "最后一笔：和下一笔之间差一个刷新"
     },
     {
-      "id": 68,
-      "title": "收藏一堆Alpha，执行全靠随缘",
-      "path": "crypto-memes-03/068-saved-alpha.png",
-      "status": "current",
-      "source_filename": "exec-38e7d189-c467-42a0-a9da-684c476f3d2c.png",
       "bytes": 2111941,
+      "git_blob_sha": "5125d5e88599400a4845cca0e7a7dedb44c36ec2",
+      "id": 68,
+      "path": "crypto-memes-03/068-saved-alpha.png",
       "sha256": "31fd63c0dbde0eb4435a6525fdf7951ad99fd6fdd1a178678f8cb1dec1e772d6",
-      "git_blob_sha": "5125d5e88599400a4845cca0e7a7dedb44c36ec2"
+      "source_filename": "exec-38e7d189-c467-42a0-a9da-684c476f3d2c.png",
+      "status": "current",
+      "title": "收藏一堆Alpha，执行全靠随缘"
     },
     {
-      "id": 69,
-      "title": "群聊很热闹，钱包很安静",
-      "path": "crypto-memes-03/069-quiet-wallet.png",
-      "status": "current",
-      "source_filename": "exec-d07324b9-8082-48d2-87a0-acaa2900e1d5.png",
       "bytes": 2140392,
+      "git_blob_sha": "a782eef18a008e5b2ba4d7752a64caf2ad2c4be9",
+      "id": 69,
+      "path": "crypto-memes-03/069-quiet-wallet.png",
       "sha256": "40eba5a89ec95a7463e25e9e6c8931a3031dc5c6a24f9c47d3f70e81c5914fe5",
-      "git_blob_sha": "a782eef18a008e5b2ba4d7752a64caf2ad2c4be9"
+      "source_filename": "exec-d07324b9-8082-48d2-87a0-acaa2900e1d5.png",
+      "status": "current",
+      "title": "群聊很热闹，钱包很安静"
     },
     {
-      "id": 70,
-      "title": "牛市环游世界，熊市小区散步",
-      "path": "crypto-memes-03/070-bull-plan-bear-life.png",
-      "status": "current",
-      "source_filename": "exec-e467bc73-d8e1-4455-b58f-778a43478207.png",
       "bytes": 2481613,
+      "git_blob_sha": "0fde4455896d2d0d05f37af2249cc083daf3614a",
+      "id": 70,
+      "path": "crypto-memes-03/070-bull-plan-bear-life.png",
       "sha256": "cdf22b89ca1bfdf94c2c0a8ccbea8e4a7036925f50c593493c0e0c6a8e16df20",
-      "git_blob_sha": "0fde4455896d2d0d05f37af2249cc083daf3614a"
-    },
-    {
-      "id": 71,
-      "title": "链上侦探：查到自己的钱包",
-      "path": "crypto-memes-03/071-onchain-detective.png",
+      "source_filename": "exec-e467bc73-d8e1-4455-b58f-778a43478207.png",
       "status": "current",
-      "source_filename": "exec-3955a5d1-0066-4af4-9b65-c673f9a89717.png",
-      "bytes": 2311275,
-      "sha256": "0ed4209ce26da4b889605cfafc49cdd4a0660594baa22696a4dc3d48673d0317",
-      "git_blob_sha": "684cc45c175917ebbff90cbf4f8a411884b2708f"
+      "title": "牛市环游世界，熊市小区散步"
     },
     {
-      "id": 72,
-      "title": "收藏Alpha旧版触角异常",
-      "path": "archive-superseded/072-saved-alpha-original.png",
-      "status": "superseded",
-      "replaced_by": "crypto-memes-03/068-saved-alpha.png",
-      "source_filename": "exec-c3440f03-c490-4853-8305-4474d2c94081.png",
+      "bytes": 2311275,
+      "git_blob_sha": "684cc45c175917ebbff90cbf4f8a411884b2708f",
+      "id": 71,
+      "path": "crypto-memes-03/071-onchain-detective.png",
+      "sha256": "0ed4209ce26da4b889605cfafc49cdd4a0660594baa22696a4dc3d48673d0317",
+      "source_filename": "exec-3955a5d1-0066-4af4-9b65-c673f9a89717.png",
+      "status": "current",
+      "title": "链上侦探：查到自己的钱包"
+    },
+    {
       "bytes": 2125593,
+      "git_blob_sha": "b0a78029a2280cc8cf9e154b7ea267d1c29ee642",
+      "id": 72,
+      "path": "archive-superseded/072-saved-alpha-original.png",
+      "replaced_by": "crypto-memes-03/068-saved-alpha.png",
       "sha256": "415f59611d3bd81392ea61054d2cec3dde4f791713769076ffdd43ba3a501829",
-      "git_blob_sha": "b0a78029a2280cc8cf9e154b7ea267d1c29ee642"
+      "source_filename": "exec-c3440f03-c490-4853-8305-4474d2c94081.png",
+      "status": "superseded",
+      "title": "收藏Alpha旧版触角异常"
+    },
+    {
+      "id": 73,
+      "title": "巨鲸动一下，散户忙一夜",
+      "path": "crypto-memes-04/073-whale-overtime.png",
+      "status": "current",
+      "source_filename": "exec-5fb611f1-0293-4c39-88bb-a375bd9c439d.png",
+      "bytes": 2204057,
+      "sha256": "28bc2092132588f7bafd9bc4bbd7ab3e737bfcf9219c9184309837e694996187",
+      "git_blob_sha": "50d867f3fd13a48dcfd07ef138c76b7caeafd063"
+    },
+    {
+      "id": 74,
+      "title": "钱包连接：比相亲还紧张",
+      "path": "crypto-memes-04/074-wallet-connection.png",
+      "status": "current",
+      "source_filename": "exec-036dbe07-fbd2-4f45-b1f5-defa93770c55.png",
+      "bytes": 2070682,
+      "sha256": "6b1eadd059c7ef5758868741376059e468bf9ce739e4794a29dc13ea73985c44",
+      "git_blob_sha": "75fdfa575dbaf78d44918a3ff3e5aafac49dc6a0"
+    },
+    {
+      "id": 75,
+      "title": "钻石手，截图手",
+      "path": "crypto-memes-04/075-screenshot-hands.png",
+      "status": "current",
+      "source_filename": "exec-f13c5ec8-6d08-4bce-9e06-dd2ec0bb2941.png",
+      "bytes": 2083377,
+      "sha256": "1194ef20957c6475962eb505b2bf13d771e77710ae67f5b05d6666c3f3b6e5ef",
+      "git_blob_sha": "507272822d6bec0715bae454aff496afb624eb93"
+    },
+    {
+      "id": 76,
+      "title": "人类过周末，链上不打烊",
+      "path": "crypto-memes-04/076-weekend-chain.png",
+      "status": "current",
+      "source_filename": "exec-23846cee-1a6e-4674-9be1-d0f20e73cacb.png",
+      "bytes": 2421700,
+      "sha256": "4f9d55c9baaa45dc43f9f423172270e8e1fc82f45aa8a1acaf53e1752fcafb13",
+      "git_blob_sha": "da372869a140a927b7e68d756175a29780c66de9"
+    },
+    {
+      "id": 77,
+      "title": "DYOR：打开研究，迷失标签页",
+      "path": "crypto-memes-04/077-dyor-tabs.png",
+      "status": "current",
+      "source_filename": "exec-300fd897-5b6c-467b-95bd-48323798e4dd.png",
+      "bytes": 2071769,
+      "sha256": "f36bdec50a2c6079fa131d7298473e272cc8ebeada419d56ccda19cb9b95064b",
+      "git_blob_sha": "50de8a3e2e9cf65bbbe00be38e9a2f7400f5c161"
+    },
+    {
+      "id": 78,
+      "title": "GM：早安发出，天已黑",
+      "path": "crypto-memes-04/078-gm-night.png",
+      "status": "current",
+      "source_filename": "exec-1075163f-a30d-48a4-92fa-124511c24cfa.png",
+      "bytes": 2006432,
+      "sha256": "18a2ceff40302a0e75fc744480803f06267e94068c83c1727006e5df86f94767",
+      "git_blob_sha": "d1bf56ff50e93b4a5f10f40780e762bb8d408e27"
+    },
+    {
+      "id": 79,
+      "title": "巨鲸动一下，散户忙一夜（触角修正前）",
+      "path": "archive-superseded/079-whale-overtime-original.png",
+      "status": "superseded",
+      "source_filename": "exec-6c3b62b5-6775-406b-8dfe-4c4310602c0c.png",
+      "bytes": 2222011,
+      "sha256": "536945af622240fb5d53a0d60b2b444c23ec462fe4bac5747f835a983b3c7fc6",
+      "git_blob_sha": "7064fae7c2611362f8bf9646cfabe198d766913e",
+      "replaced_by": "crypto-memes-04/073-whale-overtime.png"
+    },
+    {
+      "id": 80,
+      "title": "钻石手，截图手（触角修正前）",
+      "path": "archive-superseded/080-screenshot-hands-original.png",
+      "status": "superseded",
+      "source_filename": "exec-efab9104-bef5-4240-b030-0f22611dedfd.png",
+      "bytes": 2098217,
+      "sha256": "ee2ccd39e9044faadb3499d1fe5176f6ccbf00a0fe40c91ee8625a91a0d67ac6",
+      "git_blob_sha": "261fc0ff554103d1ae249bcbe656b78fca25ead0",
+      "replaced_by": "crypto-memes-04/075-screenshot-hands.png"
     }
   ],
   "scope": "本会话工作区全部生成图片，上传参考图不包含在内"
