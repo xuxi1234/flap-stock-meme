@@ -10,7 +10,6 @@ export function NameCore({ copy }: Props) {
       <div className="name-core-grid">
         {copy.cards.map((card) => <article key={card.glyph}><strong className="name-core-glyph">{card.glyph}</strong><h3>{card.title}</h3><p>{card.body}</p></article>)}
       </div>
-      <p className="name-core-disclaimer" role="note">{copy.disclaimer}</p>
     </section>
   )
 }
