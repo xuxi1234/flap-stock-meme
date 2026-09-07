@@ -93,3 +93,11 @@
   .presale-countdown strong { grid-column: auto; grid-row: auto; font-size: clamp(25px, 7vw, 38px); }
   .participation-console .wallet-state { padding: 16px; gap: 16px; }
 }
+
+.presale-section > ul { gap: 10px; margin: 20px 0 24px; }
+.presale-section > ul li { font-size: 13px; font-weight: 700; border-width: 1px; padding: 10px 15px; }
+@media (max-width: 760px) {
+  .presale-section > ul { display: flex; gap: 8px; margin: 18px 0; }
+  .presale-section > ul li { border-radius: 10px; padding: 9px 12px; font-size: 12px; }
+  .presale-section > ul li:last-child { flex-basis: 100%; }
+}
