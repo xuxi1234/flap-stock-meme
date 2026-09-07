@@ -26,7 +26,6 @@ export function Hero({ copy }: Props) {
         <span className="hero-visual-status" aria-hidden="true">LIVE · BSC / 56</span>
         <p className="ticker" aria-hidden="true">{copy.visualTicker}</p>
         <div className="butterfly-stage" aria-hidden="true"><img src="/flap-stock-avatar.png" alt="" /></div>
-        <p className="hero-poster-note" aria-hidden="true">{copy.posterLineOne}<br />{copy.posterLineTwo}</p>
       </div>
     </section>
   )
