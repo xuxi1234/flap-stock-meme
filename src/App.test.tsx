@@ -12,6 +12,9 @@ describe('simplified bilingual brand page', () => {
       expect(container.querySelector('#proof')).toBeNull()
       expect(container.querySelector('.mobile-presale-dock')).toBeNull()
       expect(container.textContent).not.toMatch(/PARTICIPATION CENTER|PUBLIC PROOF|KEEP THE SIGNAL/)
+      expect(container.textContent).not.toMatch(/0\.05 BNB|10,000 SEATS|预售正在进行|PRESALE IS LIVE/)
+      expect(container.querySelector('a[href="#community"]')).not.toBeNull()
+      expect(container.querySelector('#treasury')).not.toBeNull()
       for (const link of container.querySelectorAll('a[href^="#"]')) {
         expect(document.getElementById(link.getAttribute('href')!.slice(1))).not.toBeNull()
       }
