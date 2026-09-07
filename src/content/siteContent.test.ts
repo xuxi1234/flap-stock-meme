@@ -12,15 +12,20 @@ describe('participation-center content', () => {
   })
 
   it('does not invent token allocation, distribution schedule, or fund-use numbers', () => {
-    const zhRules = siteContent.zh.participationRules.cards.map(({ label, value, detail }) => `${label} ${value} ${detail}`).join(' ')
-    const enRules = siteContent.en.participationRules.cards.map(({ label, value, detail }) => `${label} ${value} ${detail}`).join(' ')
-    ;['获得 FLAP 数量', '总量与分配', '募集资金用途', '官方未公布'].forEach((term) => expect(zhRules).toContain(term))
-    ;['FLAP RECEIVED', 'SUPPLY & ALLOCATION', 'USE OF BNB', 'NOT ANNOUNCED'].forEach((term) => expect(enRules).toContain(term))
+    expect(siteContent.zh.presale.interaction.disclosure).toContain('数量及发放时间尚未公布')
+    expect(siteContent.en.presale.interaction.disclosure).toContain('amount and distribution schedule are not announced')
   })
 
-  it('states that the 0.2 BNB path is not open in both languages', () => {
-    expect(siteContent.zh.participationRules.leaderNote).toContain('0.2 BNB 档位目前未开放')
-    expect(siteContent.en.participationRules.leaderNote).toContain('0.2 BNB team-leader tier is not open')
+  it('removes obsolete section content and corresponding references in both languages', () => {
+    for (const copy of Object.values(siteContent)) {
+      expect(copy).not.toHaveProperty('participationRules')
+      expect(copy).not.toHaveProperty('howTo')
+      expect(copy).not.toHaveProperty('faq')
+      expect(copy.footer).not.toHaveProperty('disclaimer')
+      expect(copy.nameCore).not.toHaveProperty('disclaimer')
+      expect(copy.hero.tagline).not.toMatch(/规则|RULES/)
+      expect(copy.updates.shareText).not.toMatch(/完整规则|complete rules/)
+    }
   })
 
   it('keeps transaction phases distinct in both languages', () => {
