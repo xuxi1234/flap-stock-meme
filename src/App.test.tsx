@@ -18,22 +18,24 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 describe('FLAP STOCK participation center', () => {
-  it('puts rules and participation before the brand story', () => {
+  it('puts participation before the brand story without the removed rules section', () => {
     render(<App />)
     const regions = [...document.querySelectorAll('main > section')].map((node) => node.getAttribute('aria-label'))
-    expect(regions.indexOf('参与规则')).toBeLessThan(regions.indexOf('参与中心'))
+    expect(regions).not.toContain('参与规则')
     expect(regions.indexOf('参与中心')).toBeLessThan(regions.indexOf('蝴蝶股票四字内核'))
-    expect(screen.getByRole('heading', { name: '付款之前，这些必须看懂。' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '付款之前，这些必须看懂。' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '连接、参与、查询，都在这里。' })).toBeInTheDocument()
   })
 
-  it('makes every unknown business term explicit next to participation rules', () => {
+  it('removes marked sections and footer text without leaving broken anchors', () => {
     render(<App />)
-    const rules = screen.getByRole('region', { name: '参与规则' })
-    expect(within(rules).getByText('获得 FLAP 数量')).toBeInTheDocument()
-    expect(within(rules).getAllByText('官方未公布').length).toBeGreaterThanOrEqual(3)
-    expect(within(rules).getByText(/团队长 0.2 BNB 档位目前未开放/)).toBeInTheDocument()
-    expect(within(rules).getByText(/不代表公司股票、股权、证券/)).toBeInTheDocument()
+    expect(document.querySelector('#rules')).toBeNull()
+    expect(document.querySelector('.site-footer .disclaimer')).toBeNull()
+    expect(screen.queryByRole('heading', { name: '三步参与，状态一路可查。' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '参与前，再确认一遍。' })).not.toBeInTheDocument()
+    for (const link of document.querySelectorAll('a[href^="#"]')) {
+      expect(document.getElementById(link.getAttribute('href')!.slice(1))).not.toBeNull()
+    }
   })
 
   it('exposes verifiable project information and marks the token contract separately as pending', () => {
@@ -49,11 +51,11 @@ describe('FLAP STOCK participation center', () => {
   it('switches the complete product path to English', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: '切换到英文' }))
-    expect(screen.getByRole('region', { name: 'Participation Rules' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Participation Rules' })).not.toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Participation Center' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Public Project Information' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Understand this before you pay.' })).toBeInTheDocument()
-    expect(screen.getByText('The 0.2 BNB team-leader tier is not open. The current contract only accepts a fixed 0.05 BNB, so this site will not show an unsupported payment button.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Understand this before you pay.' })).not.toBeInTheDocument()
+    expect(document.querySelector('.site-footer .disclaimer')).toBeNull()
     expect(document.documentElement.lang).toBe('en')
   })
 
