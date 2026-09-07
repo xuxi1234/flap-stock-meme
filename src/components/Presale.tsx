@@ -17,7 +17,7 @@ type ReadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type TransactionPhase = 'idle' | 'awaitingSignature' | 'broadcast' | 'confirming' | 'confirmed' | 'rejected' | 'failed' | 'uncertain'
 export type PresaleDisplayStatus = 'live' | 'paused' | 'ended' | 'soldOut' | 'participated' | 'unavailable'
 
-type Props = { copy: SiteCopy['presale']; contractAddress?: Address | null; provider?: WalletEventProvider; publicClient?: PublicClient; walletClient?: WalletClient; now?: () => number; onStatusChange?: (status: PresaleDisplayStatus) => void }
+type Props = { copy: SiteCopy['presale']; contractAddress?: Address | null; provider?: WalletEventProvider; publicClient?: PublicClient; walletClient?: WalletClient; now?: () => number; onAccountChange?: (account: Address | null) => void; onStatusChange?: (status: PresaleDisplayStatus) => void }
 
 const POLL_INTERVAL_MS = 15_000
 const deterministicFailures = ['reverted', 'cancelled', 'replaced with a different call']
@@ -32,8 +32,9 @@ const formatCountdown = (endTime: bigint, now: number) => {
 }
 const parseChainId = (value: unknown) => typeof value === 'number' ? value : typeof value === 'string' ? Number.parseInt(value, value.startsWith('0x') ? 16 : 10) : null
 
-export function Presale({ copy, contractAddress = projectConfig.presale.contractAddress, provider, publicClient, walletClient, now = Date.now, onStatusChange }: Props) {
+export function Presale({ copy, contractAddress = projectConfig.presale.contractAddress, provider, publicClient, walletClient, now = Date.now, onStatusChange, onAccountChange }: Props) {
   const [account, setAccount] = useState<Address | null>(null)
+  useEffect(() => { onAccountChange?.(account) }, [account, onAccountChange])
   const [chainId, setChainId] = useState<number | null>(null)
   const [selectedProvider, setSelectedProvider] = useState<WalletEventProvider | undefined>(provider)
   const [providers, setProviders] = useState<WalletProviderDetail[]>([])
