@@ -6,7 +6,6 @@ import type { SiteCopy } from '../content/siteContent'
 import { classifyTransactionError, loadParticipationRecord, saveParticipationRecord, type ParticipationRecord } from '../web3/participationRecord'
 import { participate, readPresaleState, waitForParticipationReceipt, type PresaleState } from '../web3/presale'
 import { discoverWalletProviders, type WalletProviderDetail } from '../web3/walletProviders'
-import { CopyControl } from './CopyControl'
 import { MyParticipation } from './MyParticipation'
 import { PresaleConsole } from './PresaleConsole'
 import { WalletChooser } from './WalletChooser'
@@ -111,11 +110,6 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
     } catch (error) { setPhaseError(errorMessage(error)); setPhase('failed') }
   }
 
-  const disconnect = () => {
-    accountRef.current = null; setAccount(null); setChainId(null); setPhase('idle'); setPhaseError(null); setTransactionHash(null); setSavedRecord(null); walletRef.current = walletClient
-    void refresh(null, true)
-  }
-
   const submit = async () => {
     const client = walletRef.current
     const validatedAccount = accountRef.current
@@ -162,7 +156,6 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
     <div className="presale-countdown"><span>{copy.interaction.countdown}</span><strong>{presaleState ? formatCountdown(presaleState.endTime, nowMs) : '—'}</strong><small>{presaleState ? 'DD : HH : MM : SS' : copy.interaction.unavailable}</small></div>
     {readError && <p className="status-message is-error" role="alert">{copy.interaction.rpcError}: {readError}</p>}
     {presaleState?.soldOut && <p className="status-message">{copy.interaction.soldOut}</p>}{presaleState?.paused && <p className="status-message">{copy.interaction.paused}</p>}{ended && <p className="status-message">{copy.interaction.ended}</p>}{presaleState?.hasParticipated && <p className="status-message is-success">{copy.interaction.alreadyParticipated}</p>}
-    {account && <div className="wallet-state"><div><span>{copy.interaction.account}</span><code>{account}</code></div><div><span>{copy.interaction.network}</span><strong>{chainId === 56 ? 'BSC MAINNET · 56' : `CHAIN · ${chainId ?? '—'}`}</strong></div><div className="wallet-state-actions"><CopyControl value={account} label={copy.interaction.copy} copiedLabel={copy.interaction.copied} /><button className="text-action" type="button" onClick={disconnect}>{copy.interaction.disconnect}</button></div></div>}
     {account && chainId !== null && chainId !== 56 && <p className="status-message is-warning">{copy.interaction.wrongNetwork}</p>}
     {phaseLabel && <div className={`transaction-state phase-${phase}`}><span>{phaseLabel}</span>{phaseError && <small>{phaseError}</small>}{transactionHash && <><code>{transactionHash}</code><a href={`https://bscscan.com/tx/${transactionHash}`} target="_blank" rel="noreferrer">{copy.interaction.viewOnBscScan}</a></>}</div>}
     <button className="button button-primary participate-button" disabled={account ? blocked : false} onClick={() => void (account ? submit() : walletClient || provider ? connectWith() : setChooserOpen(true))} type="button">{actionLabel}</button>
