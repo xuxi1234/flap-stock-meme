@@ -16,7 +16,6 @@ export function PresaleConsole({
       <h2>{copy.title}</h2>
       <p>{copy.body}</p>
       <ul>{copy.facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
-      <p role="note">{copy.warning}</p>
       {action ?? <PendingAction label={presaleEnabled ? copy.actionLabel : copy.unavailable} href={presaleEnabled ? projectConfig.presale.purchaseUrl : null} pendingLabel={copy.pendingLabel} />}
     </section>
   )
