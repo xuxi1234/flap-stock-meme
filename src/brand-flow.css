@@ -1,0 +1,81 @@
+.hero { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 48px; min-height: 0; padding-block: 56px; }
+.hero h1 { font-size: clamp(64px, 7vw, 96px); line-height: 1.08; letter-spacing: -.07em; }
+.hero h1 span { text-shadow: 3px 3px 0 var(--ink); }
+.hero-tagline { font-size: clamp(24px, 2.5vw, 34px); line-height: 1.4; }
+.hero-description { font-size: 17px; line-height: 1.75; font-weight: 500; max-width: 580px; }
+.hero-quick-facts { gap: 16px; }
+.hero-quick-facts li { min-height: 0; border: 0; border-left: 2px solid var(--purple); border-radius: 0; background: transparent; padding: 2px 12px; }
+.hero-quick-facts span { font-size: 13px; margin-bottom: 8px; }
+.hero-quick-facts strong { font-size: 16px; line-height: 1.5; }
+.hero-visual { min-height: 0; padding: 22px 22px 32px; max-width: 440px; width: 100%; justify-self: end; }
+.hero-visual .ticker { margin: 18px 0 0; padding: 0; white-space: normal; overflow: visible; overflow-wrap: anywhere; font-size: clamp(18px, 2vw, 25px); line-height: 1.5; }
+.butterfly-stage { width: 88%; }
+.terminal-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 14px; }
+.terminal-strip span { font-size: 12px; }
+.terminal-strip strong { font-size: 15px; }
+.statement { margin-block: 64px; padding: clamp(24px, 4vw, 48px); border-width: 2px; box-shadow: 4px 4px 0 var(--ink); }
+.statement h2 { font-size: clamp(32px, 4vw, 54px); line-height: 1.2; letter-spacing: -.04em; text-wrap: balance; }
+.statement p { font-size: 16px; line-height: 1.75; font-weight: 400; }
+.statement .eyebrow { font-size: 12px; font-weight: 800; }
+.mechanism-status { display: inline-block; border: 1px solid var(--purple); color: var(--purple); border-radius: 8px; padding: 8px 12px; background: var(--acid-soft); margin: 0 0 12px; }
+.mechanism-intro { margin-bottom: 30px; }
+.allocation-heading { font-size: 22px; line-height: 1.5; margin: 24px 0 16px; }
+.allocation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.allocation-card { border: 1px solid #c8c5ce; border-radius: 16px; background: white; padding: 24px; min-width: 0; }
+.allocation-card h3 { font-size: 21px; margin: 12px 0; }
+.allocation-value { color: var(--purple); font-size: clamp(36px, 4vw, 48px); font-weight: 900; line-height: 1.1; }
+.treasury-source { border: 2px solid var(--purple); background: var(--acid-soft); }
+.treasury-jump { display: inline-block; color: var(--purple); font-weight: 800; font-size: 14px; padding-block: 10px; }
+.allocation-card details { border-top: 1px solid #c8c5ce; margin-top: 16px; padding-top: 10px; }
+.allocation-card summary { font-size: 14px; cursor: pointer; line-height: 1.6; padding: 8px 0; }
+.treasury-branch { border-left: 3px solid var(--purple); padding: 12px 0 0 24px; margin: 28px 0 28px 20px; scroll-margin-top: 24px; }
+.treasury-branch .treasury-origin { color: var(--purple); font-size: 14px; font-weight: 800; margin: 0; }
+.contract-status-row { border-block: 1px solid #c8c5ce; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 0; flex-wrap: wrap; }
+.contract-status-row strong { color: var(--purple); background: var(--acid-soft); border-radius: 6px; padding: 5px 10px; font-size: 14px; }
+.contract-status-row a { overflow-wrap: anywhere; min-width: 0; }
+.statement .mechanism-footnote { font-size: 14px; color: #514b60; margin-top: 14px; }
+.name-core-grid { margin-top: 24px; gap: 16px; }
+.name-core-grid article { min-height: 0; padding: 22px; border: 1px solid #706183; background: #25183b; }
+.name-core-glyph { font-size: 52px; margin-bottom: 20px; }
+.name-core-grid h3 { font-size: 20px; line-height: 1.5; }
+.name-core-grid p { font-size: 16px; line-height: 1.7; }
+.community-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.community-cards > a { padding: 24px; background: white; border: 1px solid #c8c5ce; border-radius: 16px; color: var(--ink); text-decoration: none; }
+.community-cards > a:hover { border-color: var(--purple); background: var(--acid-soft); }
+.community-cards img { border-radius: 10px; }
+.community-cards h3 { font-size: 22px; display: flex; justify-content: space-between; margin: 16px 0 8px; }
+.header-community .community-link { background: transparent; border: 1px solid #c8c5ce; }
+.button { font-size: 15px; }
+.presale-share { width: min(calc(100% - 40px), var(--max-width)); margin: -32px auto 64px; padding: 24px; border: 2px solid var(--ink); border-radius: 18px; background: var(--paper); }
+.presale-share h3 { font-size: 22px; }
+.presale-share input { width: 100%; margin-top: 20px; padding: 12px; border: 1px solid var(--ink); border-radius: 8px; background: white; color: var(--ink); font-size: 14px; }
+.presale-share p { font-size: 14px; }
+@media (max-width: 760px) { body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); } .presale-share { width: calc(100% - 20px); margin-top: -16px; padding: 18px; } }
+@media (max-width: 1000px) { .site-header { gap: 10px; } .header-community .community-link { min-width: 44px; padding: 6px; } .header-community .community-link span { display: none; } .allocation-card { padding: 18px; } }
+@media (max-width: 760px) {
+  .hero { display: flex; gap: 28px; padding-block: 32px; }
+  .hero h1 { font-size: clamp(52px, 13vw, 78px); margin-bottom: 18px; }
+  .hero-tagline { font-size: 25px; }
+  .hero-description { font-size: 16px; }
+  .hero-quick-facts { gap: 6px; }
+  .hero-quick-facts li { padding-inline: 8px; }
+  .hero-quick-facts span { font-size: 12px; }
+  .hero-quick-facts strong { font-size: 14px; }
+  .hero-visual { max-width: 360px; margin: 8px auto; align-self: center; order: 10; min-height: 0; }
+  .hero-actions { width: 100%; display: flex; }
+  .hero-actions a { flex: 1; padding-inline: 12px; text-align: center; }
+  .statement { margin-block: 40px; padding: 26px 18px; }
+  .statement h2 { font-size: 32px; line-height: 1.25; }
+  .allocation-grid, .community-cards { grid-template-columns: 1fr; }
+  .allocation-card { padding: 20px; }
+  .allocation-heading { font-size: 20px; }
+  .treasury-branch { margin-left: 0; padding-left: 14px; }
+  .name-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .name-core-grid article { padding: 16px; min-height: 0; }
+  .name-core-grid h3 { font-size: 18px; }
+  .name-core-grid p { font-size: 16px; }
+  .terminal-strip p { padding: 14px 10px; }
+  .terminal-strip strong { font-size: 13px; }
+  .header-community .community-link span { display: inline; }
+}
+@media (max-width: 360px) { .name-core-grid { grid-template-columns: 1fr; } .hero-quick-facts { grid-template-columns: 1fr; gap: 12px; } }
