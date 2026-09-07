@@ -46,6 +46,11 @@
 .community-cards h3 { font-size: 22px; display: flex; justify-content: space-between; margin: 16px 0 8px; }
 .header-community .community-link { background: transparent; border: 1px solid #c8c5ce; }
 .button { font-size: 15px; }
+.presale-share { width: min(calc(100% - 40px), var(--max-width)); margin: -32px auto 64px; padding: 24px; border: 2px solid var(--ink); border-radius: 18px; background: var(--paper); }
+.presale-share h3 { font-size: 22px; }
+.presale-share input { width: 100%; margin-top: 20px; padding: 12px; border: 1px solid var(--ink); border-radius: 8px; background: white; color: var(--ink); font-size: 14px; }
+.presale-share p { font-size: 14px; }
+@media (max-width: 760px) { body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); } .presale-share { width: calc(100% - 20px); margin-top: -16px; padding: 18px; } }
 @media (max-width: 1000px) { .site-header { gap: 10px; } .header-community .community-link { min-width: 44px; padding: 6px; } .header-community .community-link span { display: none; } .allocation-card { padding: 18px; } }
 @media (max-width: 760px) {
   .hero { display: flex; gap: 28px; padding-block: 32px; }
