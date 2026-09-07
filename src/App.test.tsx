@@ -8,12 +8,11 @@ describe('simplified bilingual brand page', () => {
   it('removes the three sections and their entry points in both languages', () => {
     const { container } = render(<App />)
     const check = () => {
-      expect(container.querySelector('#presale')).toBeNull()
+      expect(container.querySelector('#presale')).not.toBeNull()
       expect(container.querySelector('#proof')).toBeNull()
-      expect(container.querySelector('.mobile-presale-dock')).toBeNull()
-      expect(container.textContent).not.toMatch(/PARTICIPATION CENTER|PUBLIC PROOF|KEEP THE SIGNAL/)
-      expect(container.textContent).not.toMatch(/0\.05 BNB|10,000 SEATS|预售正在进行|PRESALE IS LIVE/)
-      expect(container.querySelector('a[href="#community"]')).not.toBeNull()
+      expect(container.querySelector('.mobile-presale-dock')).not.toBeNull()
+      expect(container.textContent).not.toMatch(/PUBLIC PROOF|KEEP THE SIGNAL|0\.055 BNB|0\.2 BNB/)
+      expect(container.querySelector('.presale-share input')).toHaveValue('https://www.hudiegupiao.com/?utm_source=community&utm_medium=share&utm_campaign=presale#presale')
       expect(container.querySelector('#treasury')).not.toBeNull()
       for (const link of container.querySelectorAll('a[href^="#"]')) {
         expect(document.getElementById(link.getAttribute('href')!.slice(1))).not.toBeNull()
