@@ -57,7 +57,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 nav { align-items: center; display: flex; gap: clamp(12px, 2vw, 26px); margin-left: auto; }
 nav a { font-size: .72rem; font-weight: 900; letter-spacing: .04em; padding: 13px 2px; }
 nav a:hover { color: var(--purple); }
-.header-community { display: none; }
+.header-community { display: flex; }
 .header-controls { align-items: center; display: flex; gap: 8px; }
 .language-toggle, .menu-toggle { align-items: center; background: var(--purple); border: 2px solid var(--ink); border-radius: 999px; color: var(--white); display: inline-flex; font-size: .72rem; font-weight: 900; justify-content: center; min-height: 46px; min-width: 58px; padding: 0 15px; }
 .menu-toggle { display: none; }
@@ -252,6 +252,10 @@ h1 em { color: var(--ink); font-size: .25em; font-style: normal; letter-spacing:
 .community-links { display: flex; gap: 8px; }
 .community-link { background: var(--acid); border: 2px solid var(--ink); border-radius: 999px; color: var(--ink); display: grid; font-size: .7rem; font-weight: 900; min-height: 44px; min-width: 84px; padding: 5px 11px; place-items: center; }
 .community-link small { font-size: .5rem; }
+.community-links .community-link { display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; min-height: 46px; }
+.community-link img { border-radius: 8px; object-fit: contain; flex-shrink: 0; }
+.community-link:hover { background: var(--paper); transform: translateY(-2px); }
+.community-link:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .mobile-presale-dock { display: none; }
 .mechanism-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 32px; }
 .mechanism-group { background: var(--paper); border: 2px solid var(--ink); border-radius: 22px; padding: 24px; min-width: 0; }
@@ -283,7 +287,10 @@ h1 em { color: var(--ink); font-size: .25em; font-style: normal; letter-spacing:
   .brand-lockup img { height: 44px; width: 44px; }
   .brand-lockup strong { font-size: .72rem; }
   .brand-lockup small { font-size: .57rem; }
-  .header-community { display: none; }
+  .site-header { flex-wrap: wrap; }
+  .header-community { display: flex; order: 3; flex-basis: 100%; justify-content: center; padding-top: 7px; border-top: 1px solid var(--ink); }
+  .header-community .community-link { flex: 1; min-width: 0; padding-inline: 6px; }
+  .footer-community { flex-wrap: wrap; max-width: 100%; }
   .language-toggle, .menu-toggle { min-height: 44px; min-width: 50px; padding: 0 11px; }
   .menu-toggle { display: flex; }
   nav { background: var(--paper); border: var(--line); border-radius: 20px; box-shadow: 6px 6px 0 var(--ink); display: none; gap: 5px; left: 0; margin: 10px 0 0; padding: 8px; position: absolute; right: 0; top: 100%; }
