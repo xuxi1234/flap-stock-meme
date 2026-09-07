@@ -253,6 +253,17 @@ h1 em { color: var(--ink); font-size: .25em; font-style: normal; letter-spacing:
 .community-link { background: var(--acid); border: 2px solid var(--ink); border-radius: 999px; color: var(--ink); display: grid; font-size: .7rem; font-weight: 900; min-height: 44px; min-width: 84px; padding: 5px 11px; place-items: center; }
 .community-link small { font-size: .5rem; }
 .mobile-presale-dock { display: none; }
+.mechanism-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 32px; }
+.mechanism-group { background: var(--paper); border: 2px solid var(--ink); border-radius: 22px; padding: 24px; min-width: 0; }
+.mechanism-group > p, .token-address-slot p { font-size: 14px; line-height: 1.7; }
+.mechanism-group dl { margin: 24px 0 0; }
+.mechanism-group dl > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 2px solid var(--ink); padding: 20px 0; }
+.mechanism-group dt { font-weight: 800; }
+.mechanism-group dd { margin: 0; color: var(--purple); font-size: clamp(28px, 4vw, 48px); font-weight: 900; }
+.token-address-slot { margin-top: 24px; background: var(--purple); color: white; border: 2px solid var(--ink); border-radius: 22px; padding: 24px; overflow-wrap: anywhere; }
+.token-address-slot > span, .token-address-slot > strong, .token-address-slot > a { display: block; }
+.token-address-slot > strong, .token-address-slot > a { color: var(--acid); font-size: 24px; margin-top: 12px; }
+@media (max-width: 700px) { .mechanism-groups { grid-template-columns: 1fr; gap: 16px; } .mechanism-group, .token-address-slot { padding: 20px; } }
 
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr 380px; }
