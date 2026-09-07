@@ -1,8 +1,12 @@
 # 蝴蝶股票宣发图片
 
-本次归档保存本会话全部 **65 个 PNG 原图文件**：63 张当前版本，以及 2 张已被修正版替换的旧图。图片按原始字节保存，没有压缩或重绘。
+本次归档保存本会话全部 **72 个 PNG 原图文件**：69 张当前版本，以及 3 张已被修正版替换的旧图。图片按原始字节保存，没有压缩或重绘。
 
-## 最新新增：币圈梗图第二组
+## 最新新增：币圈梗图第三组
+
+[打开第三组图片与中文索引](crypto-memes-03/README.md)：反向指标、最后一笔、收藏 Alpha、群聊与钱包、牛熊生活、链上侦探。
+
+## 币圈梗图第二组
 
 [打开第二组图片与中文索引](crypto-memes-02/README.md)：卖飞、抄底、空投、FOMO、K 线心情、牛熊反差。
 
@@ -88,9 +92,21 @@
 |64|心情跟着K线走|[查看 / 下载](crypto-memes-02/064-mood-candles.png)|
 |65|牛熊两副面孔：叙事专家与养生专家|[查看 / 下载](crypto-memes-02/065-bull-bear-persona.png)|
 
+## 币圈梗图第三组
+
+|编号|主题|PNG 原图|
+|---|---|---|
+|66|反向指标：一买就跌，一卖就涨|[查看 / 下载](crypto-memes-03/066-reverse-indicator.png)|
+|67|最后一笔：和下一笔之间差一个刷新|[查看 / 下载](crypto-memes-03/067-last-trade.png)|
+|68|收藏一堆Alpha，执行全靠随缘|[查看 / 下载](crypto-memes-03/068-saved-alpha.png)|
+|69|群聊很热闹，钱包很安静|[查看 / 下载](crypto-memes-03/069-quiet-wallet.png)|
+|70|牛市环游世界，熊市小区散步|[查看 / 下载](crypto-memes-03/070-bull-plan-bear-life.png)|
+|71|链上侦探：查到自己的钱包|[查看 / 下载](crypto-memes-03/071-onchain-detective.png)|
+
 ## 旧版与修正版
 
 |旧版|修正版|
 |---|---|
 |[给自己打个气旧版多触角](archive-superseded/058-3a7c9bcc.png)|[使用修正版](community-and-brand/036-1c3018fd.png)|
 |[Gas饭钱旧版多手](archive-superseded/059-806e261d.png)|[使用修正版](crypto-memes/055-f7a66943.png)|
+|[收藏Alpha旧版触角异常](archive-superseded/072-saved-alpha-original.png)|[使用修正版](crypto-memes-03/068-saved-alpha.png)|
