@@ -10,9 +10,9 @@ export function TokenMechanism({ language }: { language: Language }) {
     ['6%', zh ? '销毁' : 'Burn', zh ? '用于代币销毁。' : 'Allocated to token burning.'],
   ]
   const second = [
-    ['0.1%', zh ? '裂变回购' : 'Referral buyback', zh ? '触发条件、资金使用与执行方式待公布。' : 'Triggers, use of funds and execution are not yet announced.'],
-    ['30%', zh ? '溢价池' : 'Premium pool', zh ? '运作方式与触发条件待公布。' : 'Operation and trigger conditions are not yet announced.'],
-    ['69.9%', zh ? '锁仓分红' : 'Locked-token rewards', zh ? '锁仓资产、期限、计算及领取规则待公布。' : 'Lockable assets, duration, calculation and claims are not yet announced.'],
+    ['0.1%', zh ? '裂变回购' : 'Referral buyback'],
+    ['30%', zh ? '溢价池' : 'Premium pool'],
+    ['69.9%', zh ? '锁仓分红' : 'Locked-token rewards'],
   ]
   return <section className="statement token-mechanism" id="mechanism" aria-label={zh ? '代币机制' : 'Token mechanism'}>
     <p className="eyebrow">TOKENOMICS</p>
@@ -28,8 +28,8 @@ export function TokenMechanism({ language }: { language: Language }) {
       <p className="treasury-origin">{zh ? '来自第一层的 77% 金库份额 ↓' : 'FROM THE 77% TREASURY SHARE ABOVE ↓'}</p>
       <h3 className="allocation-heading">{zh ? '第二层 · 这 77% 进入金库后，再分配' : 'LAYER 2 · WITHIN THAT 77% TREASURY SHARE'}</h3>
       <p>{zh ? '每收到 100 份税款，77 份进入金库；下面三项比例，以这 77 份为基数。' : 'For every 100 units of tax, 77 go to the treasury. The three percentages below apply only to those 77 units.'}</p>
-      <div className="allocation-grid">{second.map(([value, title, detail]) => <article className="allocation-card" key={title}>
-        <span className="allocation-value">{value}</span><h3>{title}</h3><p>{detail}</p>
+      <div className="allocation-grid">{second.map(([value, title]) => <article className="allocation-card" key={title}>
+        <span className="allocation-value">{value}</span><h3>{title}</h3>
       </article>)}</div>
     </div>
     <div className="contract-status-row"><span>{zh ? '蝴蝶股票代币合约' : 'FLAP STOCK TOKEN CONTRACT'}</span>
