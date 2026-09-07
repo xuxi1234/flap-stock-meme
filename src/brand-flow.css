@@ -147,3 +147,18 @@
 @media (max-width: 760px) { .header-controls { flex-wrap: wrap; gap: 6px; } .wallet-connect-button { padding: 10px 12px; font-size: 12px; } }
 
 .name-core-section .eyebrow::before { background: var(--acid); }
+
+/* Shared color hierarchy: vivid branding, calm reading surfaces. */
+:root { --page-neutral: #eeede7; --muted-surface: #e8e3ef; --muted-text: #625970; }
+body, .site-shell { background: var(--page-neutral); }
+.hero { position: relative; isolation: isolate; }
+.hero::before { content: ''; position: absolute; z-index: -1; top: -220px; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); background: var(--acid); pointer-events: none; }
+.language-toggle, .menu-toggle { background: var(--paper); color: var(--purple-dark); border-color: var(--purple); }
+.hero-description { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 22px; }
+.hero-description strong { color: var(--purple-dark); }
+.button-secondary { background: var(--paper); color: var(--purple-dark); border-color: var(--purple); }
+.button:disabled { background: var(--muted-surface); color: var(--muted-text); border-color: #c9c2d2; opacity: 1; box-shadow: none; }
+.presale-countdown strong { color: var(--paper); }
+.mechanism-status, .contract-status-row strong { background: var(--muted-surface); color: var(--purple-dark); border-color: #c9bfd9; }
+.site-footer .community-link { background: var(--paper); color: var(--ink); }
+@media (max-width: 760px) { .hero-description { padding: 18px; } }
