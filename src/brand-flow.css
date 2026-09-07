@@ -134,3 +134,10 @@
 
 .hero-presale-link { display: block; text-decoration: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hero-presale-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 6px; }
+
+.hero-description > p { margin: 0 0 14px; }
+.hero-description strong { font-weight: 700; }
+.hero-official-links { display: grid; gap: 6px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(20,10,35,.2); }
+.hero-official-links p { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.hero-official-links a { color: #4d16ba; text-underline-offset: 3px; }
+@media (max-width: 760px) { .hero-description { margin-block: 0; } .hero-official-links a { display: inline-block; padding-block: 6px; } }
