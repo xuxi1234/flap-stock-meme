@@ -101,3 +101,8 @@
   .presale-section > ul li { border-radius: 10px; padding: 9px 12px; font-size: 12px; }
   .presale-section > ul li:last-child { flex-basis: 100%; }
 }
+
+.primary-allocation .allocation-card { display: flex; flex-direction: column; padding: 24px; }
+.primary-allocation .allocation-card p { margin: 0; }
+.primary-allocation .treasury-jump { margin-top: 16px; padding-bottom: 0; }
+@media (max-width: 760px) { .primary-allocation .allocation-card { padding: 20px; } }
