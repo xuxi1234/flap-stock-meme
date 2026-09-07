@@ -24,5 +24,5 @@ export const projectConfig = Object.freeze({
     contractAddress: '0x409c9448172b0f244a6823e91ad669281294622b' as NullableAddress,
     purchaseUrl: '#presale' as NullableLink,
   }),
-  community: Object.freeze({ x: null as NullableLink, telegram: null as NullableLink }),
+  community: Object.freeze({ x: 'https://x.com/hudiegupiao', telegram: 'https://t.me/hudiegupiao', debox: 'https://m.debox.pro/group?id=g4o88wvy&code=pgk4b63r' }),
 })
