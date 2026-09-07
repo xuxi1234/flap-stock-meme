@@ -106,3 +106,14 @@
 .primary-allocation .allocation-card p { margin: 0; }
 .primary-allocation .treasury-jump { margin-top: 16px; padding-bottom: 0; }
 @media (max-width: 760px) { .primary-allocation .allocation-card { padding: 20px; } }
+
+.treasury-branch .allocation-card { padding: 22px 24px; }
+.treasury-branch .allocation-card h3 { margin-bottom: 0; }
+.name-core-section { background: var(--paper); color: var(--ink); border-color: #d4cde0; box-shadow: 4px 4px 0 #cec0eb; }
+.name-core-section .eyebrow { color: #5420bd; }
+.name-core-section h2 { color: var(--ink); }
+.name-core-section .name-core-grid article { background: #f0eafa; border: 1px solid #d8cbea; color: var(--ink); }
+.name-core-section .name-core-glyph { color: #6425dc; }
+.name-core-section .name-core-grid h3 { color: #241331; }
+.name-core-section .name-core-grid p { color: #4c405b; font-weight: 400; }
+@media (max-width: 760px) { .treasury-branch .allocation-card { padding: 20px; } }
