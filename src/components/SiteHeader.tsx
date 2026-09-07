@@ -26,8 +26,6 @@ export function SiteHeader({ copy, communityCopy, language, onLanguageChange }: 
         <span><strong>{projectConfig.brand.englishName}</strong><small>{projectConfig.brand.symbol}</small></span>
       </a>
       <nav id="primary-navigation" aria-label={copy.navigationLabel} data-open={menuOpen}>
-        <a href="#presale" onClick={() => setMenuOpen(false)}>{copy.participate}</a>
-        <a href="#proof" onClick={() => setMenuOpen(false)}>{copy.proof}</a>
         <a href="#story" onClick={() => setMenuOpen(false)}>{copy.story}</a>
       </nav>
       <CommunityLinks className="header-community" copy={communityCopy} />
