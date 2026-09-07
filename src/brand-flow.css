@@ -117,3 +117,17 @@
 .name-core-section .name-core-grid h3 { color: #241331; }
 .name-core-section .name-core-grid p { color: #4c405b; font-weight: 400; }
 @media (max-width: 760px) { .treasury-branch .allocation-card { padding: 20px; } }
+
+@media (max-width: 760px) {
+  .hero { gap: 18px; padding-block: 24px; }
+  .hero-visual { order: 4; margin: 0 auto 8px; width: min(100% - 12px, 340px); padding: 16px 16px 22px; box-shadow: 8px 8px 0 var(--ink); }
+  .hero-visual .ticker { margin-top: 12px; font-size: 18px; }
+  .terminal-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; scroll-snap-type: none; margin-top: 8px; }
+  .terminal-strip p { min-width: 0; padding: 16px 10px; gap: 10px; }
+  .terminal-strip span { font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+  .terminal-strip strong { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+}
+@media (max-width: 360px) {
+  .terminal-strip p { padding: 14px 8px; }
+  .terminal-strip strong { font-size: 13px; }
+}
