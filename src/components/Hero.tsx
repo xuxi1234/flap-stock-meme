@@ -15,7 +15,7 @@ export function Hero({ copy }: Props) {
         <ul className="hero-quick-facts" aria-label={copy.statusLabel}>
           {copy.quickFacts.map((fact) => <li key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></li>)}
         </ul>
-        <div className="hero-actions"><a className="button button-primary" href="#mechanism">{copy.enterPresale}</a><a className="button button-secondary" href="#community">{copy.brandSignalLabel}</a></div>
+        <div className="hero-actions"><a className="button button-primary" href="#presale">{copy.enterPresale}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
       </div>
       <div className="hero-visual" role="img" aria-label={copy.visualLabel}>
         <span className="hero-visual-status" aria-hidden="true">FLAP STOCK</span>
