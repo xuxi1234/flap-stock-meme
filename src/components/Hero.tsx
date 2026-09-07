@@ -1,9 +1,9 @@
 import type { Language, SiteCopy } from '../content/siteContent'
 import { projectConfig } from '../config/project'
 
-type Props = { copy: SiteCopy['hero']; language?: Language }
+type Props = { copy: SiteCopy['hero']; language?: Language; onWalletClick?: () => void }
 
-export function Hero({ copy, language = 'zh' }: Props) {
+export function Hero({ copy, language = 'zh', onWalletClick }: Props) {
 
   return (
     <section className="hero" aria-labelledby="hero-title">
@@ -23,10 +23,11 @@ export function Hero({ copy, language = 'zh' }: Props) {
         </ul>
         <div className="hero-actions"><a className="button button-primary" href="#presale">{copy.enterPresale}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
       </div>
-      <a className="hero-visual hero-presale-link" href="#presale" aria-label={copy.enterPresale}>
+      <a className="hero-visual hero-presale-link" href="#presale" onClick={event => { if (onWalletClick) { event.preventDefault(); onWalletClick() } }} aria-label={copy.enterPresale}>
         <span className="hero-visual-status" aria-hidden="true">{projectConfig.brand.chineseName}</span>
         <p className="ticker" aria-hidden="true">{copy.visualTicker}</p>
         <div className="butterfly-stage" aria-hidden="true"><img src="/flap-stock-avatar.png" alt="" /></div>
+        <span className="hero-card-action">{language === 'zh' ? '点击参与 · 0.05 BNB ↗' : 'JOIN · 0.05 BNB ↗'}</span>
       </a>
     </section>
   )
