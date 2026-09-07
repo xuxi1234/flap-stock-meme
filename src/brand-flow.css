@@ -162,3 +162,45 @@ body, .site-shell { background: var(--page-neutral); }
 .mechanism-status, .contract-status-row strong { background: var(--muted-surface); color: var(--purple-dark); border-color: #c9bfd9; }
 .site-footer .community-link { background: var(--paper); color: var(--ink); }
 @media (max-width: 760px) { .hero-description { padding: 18px; } }
+
+/* Compact rhythm without reducing text size or touch targets. */
+.hero { gap: 32px; padding-block: 32px; }
+.hero h1 { margin-bottom: 16px; }
+.hero-tagline { margin-bottom: 16px; }
+.hero-description { padding: 18px; }
+.hero-description > p { margin-bottom: 10px; }
+.hero-official-links { margin-top: 12px; padding-top: 10px; }
+.hero-quick-facts { margin-block: 18px; }
+.statement { margin-block: 40px; padding: 32px; }
+.statement .eyebrow { margin-bottom: 14px; }
+.statement h2 { margin-bottom: 20px; }
+.mechanism-intro { margin-bottom: 20px; }
+.allocation-heading { margin: 18px 0 12px; }
+.allocation-card, .primary-allocation .allocation-card { padding: 20px; }
+.treasury-branch { margin-block: 20px; padding-top: 4px; }
+.treasury-branch .allocation-card { padding: 16px 20px; }
+.name-core-grid, .community-cards { margin-top: 18px; gap: 12px; }
+.name-core-grid article { padding: 18px; }
+.name-core-glyph { margin-bottom: 12px; }
+.name-core-grid p, .community-cards p { margin-bottom: 0; }
+.community-cards > a { padding: 20px; }
+.presale-share { margin-top: -20px; margin-bottom: 40px; padding: 20px; }
+.presale-share h3 { margin-bottom: 14px; }
+.presale-share input { margin-top: 14px; }
+.presale-share p:empty { display: none; }
+@media (max-width: 760px) {
+  .hero { gap: 14px; padding-block: 18px 22px; }
+  .hero h1 { margin-bottom: 8px; }
+  .hero-tagline { margin-bottom: 8px; }
+  .hero-description { padding: 16px; }
+  .hero-quick-facts { margin-block: 8px; }
+  .statement { margin-block: 24px; padding: 22px 16px; }
+  .statement h2 { margin-bottom: 16px; }
+  .statement .eyebrow { margin-bottom: 12px; }
+  .allocation-card, .primary-allocation .allocation-card { padding: 16px; }
+  .treasury-branch .allocation-card { padding: 14px 16px; }
+  .name-core-grid article { padding: 14px; }
+  .name-core-glyph { margin-bottom: 10px; }
+  .community-cards > a { padding: 16px; }
+  .presale-share { margin-top: -12px; margin-bottom: 24px; padding: 16px; }
+}
