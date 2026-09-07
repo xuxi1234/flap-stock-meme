@@ -265,7 +265,7 @@ h1 em { color: var(--ink); font-size: .25em; font-style: normal; letter-spacing:
 }
 
 @media (max-width: 760px) {
-  body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
   .site-header, .hero, .terminal-strip, .statement, .site-footer { width: min(calc(100% - 20px), var(--max-width)); }
   .site-header { border-radius: 20px; margin-top: 10px; min-height: 64px; padding: 7px; }
   .brand-lockup { min-height: 44px; min-width: 44px; }
