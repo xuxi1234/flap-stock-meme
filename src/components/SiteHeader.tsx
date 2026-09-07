@@ -4,13 +4,15 @@ import { projectConfig } from '../config/project'
 import { CommunityLinks } from './CommunityLinks'
 
 type Props = {
+  account: `0x${string}` | null
+  onWalletClick: () => void
   copy: SiteCopy['nav']
   communityCopy: SiteCopy['community']
   language: Language
   onLanguageChange: (language: Language) => void
 }
 
-export function SiteHeader({ copy, communityCopy, language, onLanguageChange }: Props) {
+export function SiteHeader({ copy, communityCopy, language, onLanguageChange, account, onWalletClick }: Props) {
   const nextLanguage: Language = language === 'zh' ? 'en' : 'zh'
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -31,7 +33,7 @@ export function SiteHeader({ copy, communityCopy, language, onLanguageChange }: 
         <a href="#story" onClick={() => setMenuOpen(false)}>{copy.story}</a>
       </nav>
       <CommunityLinks className="header-community" copy={communityCopy} />
-      <div className="header-controls">
+      <div className="header-controls"><button className="wallet-connect-button" type="button" onClick={onWalletClick}>{account ? `${account.slice(0, 6)}…${account.slice(-4)}` : language === 'zh' ? '连接钱包' : 'CONNECT WALLET'}</button>
         <button className="language-toggle" type="button" onClick={changeLanguage} aria-label={copy.languageSwitchLabel}>{copy.languageLabel}</button>
         <button className="menu-toggle" type="button" aria-controls="primary-navigation" aria-expanded={menuOpen} aria-label={menuOpen ? copy.menuCloseLabel : copy.menuOpenLabel} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? copy.closeLabel : copy.menuLabel}</button>
       </div>

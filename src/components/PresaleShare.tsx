@@ -3,7 +3,7 @@ import type { Language } from '../content/siteContent'
 
 export const presaleShareUrl = 'https://www.hudiegupiao.com/?utm_source=community&utm_medium=share&utm_campaign=presale#presale'
 
-export function PresaleShare({ language, account }: { language: Language; account: `0x${string}` | null }) {
+export function PresaleShare({ language, account, onConnect }: { onConnect: () => void; language: Language; account: `0x${string}` | null }) {
   const zh = language === 'zh'
   const [status, setStatus] = useState('')
   useEffect(() => setStatus(''), [account, language])
@@ -26,7 +26,7 @@ export function PresaleShare({ language, account }: { language: Language; accoun
   }
   return <div className="presale-share" aria-label={zh ? '分享预售' : 'Share presale'}>
     <h3>{zh ? '把蝴蝶分享给朋友' : 'SHARE FLAP WITH FRIENDS'}</h3>
-    {!account && <p><a href="#presale">{zh ? '请先连接钱包，生成专属分享链接' : 'Connect your wallet to create your share link'}</a></p>}
+    {!account && <p><button className="button button-primary" type="button" onClick={onConnect}>{zh ? '请先连接钱包，生成专属分享链接' : 'Connect your wallet to create your share link'}</button></p>}
     <div className="hero-actions"><button disabled={!account} className="button button-primary" onClick={() => void share()}>{zh ? '分享' : 'SHARE'}</button><button disabled={!account} className="button" onClick={() => void copy()}>{zh ? '复制分享链接' : 'COPY SHARE LINK'}</button></div>
     <input aria-label={zh ? '预售分享链接' : 'Presale share link'} placeholder={zh ? '连接钱包后显示含钱包地址的链接' : 'Your wallet share link appears after connecting'} value={shareUrl} readOnly onFocus={event => event.target.select()} />
     <p role="status">{status}</p>
