@@ -1,4 +1,5 @@
 import { projectConfig } from '../config/project'
+import { communityLogos } from '../config/communityLogos'
 import type { SiteCopy } from '../content/siteContent'
 
 type Props = {
@@ -8,19 +9,17 @@ type Props = {
 
 export function CommunityLinks({ copy, className = '' }: Props) {
   const channels = [
-    { label: copy.xLabel, href: projectConfig.community.x, pendingLabel: copy.xPendingLabel },
-    { label: copy.telegramLabel, href: projectConfig.community.telegram, pendingLabel: copy.telegramPendingLabel },
+    { label: copy.xLabel, href: projectConfig.community.x, icon: communityLogos.x },
+    { label: copy.telegramLabel, href: projectConfig.community.telegram, icon: communityLogos.telegram },
+    { label: 'DeBox', href: projectConfig.community.debox, icon: communityLogos.debox },
   ]
 
   return (
     <div className={`community-links ${className}`.trim()} role="group" aria-label={copy.regionLabel}>
-      {channels.map(({ label, href, pendingLabel }) => href ? (
-        <a className="community-link" href={href} key={label} rel="noreferrer">{label}</a>
-      ) : (
-        <button className="community-link" disabled key={label} type="button" aria-label={pendingLabel}>
-          <span>{label}</span>
-          <small>{copy.comingSoon}</small>
-        </button>
+      {channels.map(({ label, href, icon }) => (
+        <a className="community-link" href={href} key={label} target="_blank" rel="noopener noreferrer" aria-label={label}>
+          <img src={icon} alt="" width="28" height="28" /><span>{label}</span>
+        </a>
       ))}
     </div>
   )
