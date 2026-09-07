@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Hero } from './components/Hero'
 import { NameCore } from './components/NameCore'
+import { TokenMechanism } from './components/TokenMechanism'
 import { SiteFooter } from './components/SiteFooter'
 import { SiteHeader } from './components/SiteHeader'
 import { TickerStrip } from './components/TickerStrip'
@@ -16,6 +17,7 @@ export default function App() {
     <main id="top">
       <Hero copy={copy.hero} />
       <TickerStrip copy={copy.ticker} />
+      <TokenMechanism language={language} />
       <NameCore copy={{ ...copy.nameCore, eyebrow: 'BRAND STORY' }} />
     </main>
     <SiteFooter copy={copy.footer} communityCopy={copy.community} />
