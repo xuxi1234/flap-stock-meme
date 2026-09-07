@@ -1,6 +1,6 @@
 {
   "archive_date": "2026-09-07",
-  "count": 80,
+  "count": 87,
   "images": [
     {
       "bytes": 2110679,
@@ -726,86 +726,157 @@
       "title": "收藏Alpha旧版触角异常"
     },
     {
-      "id": 73,
-      "title": "巨鲸动一下，散户忙一夜",
-      "path": "crypto-memes-04/073-whale-overtime.png",
-      "status": "current",
-      "source_filename": "exec-5fb611f1-0293-4c39-88bb-a375bd9c439d.png",
       "bytes": 2204057,
+      "git_blob_sha": "50d867f3fd13a48dcfd07ef138c76b7caeafd063",
+      "id": 73,
+      "path": "crypto-memes-04/073-whale-overtime.png",
       "sha256": "28bc2092132588f7bafd9bc4bbd7ab3e737bfcf9219c9184309837e694996187",
-      "git_blob_sha": "50d867f3fd13a48dcfd07ef138c76b7caeafd063"
+      "source_filename": "exec-5fb611f1-0293-4c39-88bb-a375bd9c439d.png",
+      "status": "current",
+      "title": "巨鲸动一下，散户忙一夜"
     },
     {
-      "id": 74,
-      "title": "钱包连接：比相亲还紧张",
-      "path": "crypto-memes-04/074-wallet-connection.png",
-      "status": "current",
-      "source_filename": "exec-036dbe07-fbd2-4f45-b1f5-defa93770c55.png",
       "bytes": 2070682,
+      "git_blob_sha": "75fdfa575dbaf78d44918a3ff3e5aafac49dc6a0",
+      "id": 74,
+      "path": "crypto-memes-04/074-wallet-connection.png",
       "sha256": "6b1eadd059c7ef5758868741376059e468bf9ce739e4794a29dc13ea73985c44",
-      "git_blob_sha": "75fdfa575dbaf78d44918a3ff3e5aafac49dc6a0"
+      "source_filename": "exec-036dbe07-fbd2-4f45-b1f5-defa93770c55.png",
+      "status": "current",
+      "title": "钱包连接：比相亲还紧张"
     },
     {
-      "id": 75,
-      "title": "钻石手，截图手",
-      "path": "crypto-memes-04/075-screenshot-hands.png",
-      "status": "current",
-      "source_filename": "exec-f13c5ec8-6d08-4bce-9e06-dd2ec0bb2941.png",
       "bytes": 2083377,
+      "git_blob_sha": "507272822d6bec0715bae454aff496afb624eb93",
+      "id": 75,
+      "path": "crypto-memes-04/075-screenshot-hands.png",
       "sha256": "1194ef20957c6475962eb505b2bf13d771e77710ae67f5b05d6666c3f3b6e5ef",
-      "git_blob_sha": "507272822d6bec0715bae454aff496afb624eb93"
+      "source_filename": "exec-f13c5ec8-6d08-4bce-9e06-dd2ec0bb2941.png",
+      "status": "current",
+      "title": "钻石手，截图手"
     },
     {
-      "id": 76,
-      "title": "人类过周末，链上不打烊",
-      "path": "crypto-memes-04/076-weekend-chain.png",
-      "status": "current",
-      "source_filename": "exec-23846cee-1a6e-4674-9be1-d0f20e73cacb.png",
       "bytes": 2421700,
+      "git_blob_sha": "da372869a140a927b7e68d756175a29780c66de9",
+      "id": 76,
+      "path": "crypto-memes-04/076-weekend-chain.png",
       "sha256": "4f9d55c9baaa45dc43f9f423172270e8e1fc82f45aa8a1acaf53e1752fcafb13",
-      "git_blob_sha": "da372869a140a927b7e68d756175a29780c66de9"
+      "source_filename": "exec-23846cee-1a6e-4674-9be1-d0f20e73cacb.png",
+      "status": "current",
+      "title": "人类过周末，链上不打烊"
     },
     {
-      "id": 77,
-      "title": "DYOR：打开研究，迷失标签页",
-      "path": "crypto-memes-04/077-dyor-tabs.png",
-      "status": "current",
-      "source_filename": "exec-300fd897-5b6c-467b-95bd-48323798e4dd.png",
       "bytes": 2071769,
+      "git_blob_sha": "50de8a3e2e9cf65bbbe00be38e9a2f7400f5c161",
+      "id": 77,
+      "path": "crypto-memes-04/077-dyor-tabs.png",
       "sha256": "f36bdec50a2c6079fa131d7298473e272cc8ebeada419d56ccda19cb9b95064b",
-      "git_blob_sha": "50de8a3e2e9cf65bbbe00be38e9a2f7400f5c161"
-    },
-    {
-      "id": 78,
-      "title": "GM：早安发出，天已黑",
-      "path": "crypto-memes-04/078-gm-night.png",
+      "source_filename": "exec-300fd897-5b6c-467b-95bd-48323798e4dd.png",
       "status": "current",
-      "source_filename": "exec-1075163f-a30d-48a4-92fa-124511c24cfa.png",
+      "title": "DYOR：打开研究，迷失标签页"
+    },
+    {
       "bytes": 2006432,
+      "git_blob_sha": "d1bf56ff50e93b4a5f10f40780e762bb8d408e27",
+      "id": 78,
+      "path": "crypto-memes-04/078-gm-night.png",
       "sha256": "18a2ceff40302a0e75fc744480803f06267e94068c83c1727006e5df86f94767",
-      "git_blob_sha": "d1bf56ff50e93b4a5f10f40780e762bb8d408e27"
+      "source_filename": "exec-1075163f-a30d-48a4-92fa-124511c24cfa.png",
+      "status": "current",
+      "title": "GM：早安发出，天已黑"
     },
     {
-      "id": 79,
-      "title": "巨鲸动一下，散户忙一夜（触角修正前）",
-      "path": "archive-superseded/079-whale-overtime-original.png",
-      "status": "superseded",
-      "source_filename": "exec-6c3b62b5-6775-406b-8dfe-4c4310602c0c.png",
       "bytes": 2222011,
-      "sha256": "536945af622240fb5d53a0d60b2b444c23ec462fe4bac5747f835a983b3c7fc6",
       "git_blob_sha": "7064fae7c2611362f8bf9646cfabe198d766913e",
-      "replaced_by": "crypto-memes-04/073-whale-overtime.png"
+      "id": 79,
+      "path": "archive-superseded/079-whale-overtime-original.png",
+      "replaced_by": "crypto-memes-04/073-whale-overtime.png",
+      "sha256": "536945af622240fb5d53a0d60b2b444c23ec462fe4bac5747f835a983b3c7fc6",
+      "source_filename": "exec-6c3b62b5-6775-406b-8dfe-4c4310602c0c.png",
+      "status": "superseded",
+      "title": "巨鲸动一下，散户忙一夜（触角修正前）"
     },
     {
-      "id": 80,
-      "title": "钻石手，截图手（触角修正前）",
-      "path": "archive-superseded/080-screenshot-hands-original.png",
-      "status": "superseded",
-      "source_filename": "exec-efab9104-bef5-4240-b030-0f22611dedfd.png",
       "bytes": 2098217,
-      "sha256": "ee2ccd39e9044faadb3499d1fe5176f6ccbf00a0fe40c91ee8625a91a0d67ac6",
       "git_blob_sha": "261fc0ff554103d1ae249bcbe656b78fca25ead0",
-      "replaced_by": "crypto-memes-04/075-screenshot-hands.png"
+      "id": 80,
+      "path": "archive-superseded/080-screenshot-hands-original.png",
+      "replaced_by": "crypto-memes-04/075-screenshot-hands.png",
+      "sha256": "ee2ccd39e9044faadb3499d1fe5176f6ccbf00a0fe40c91ee8625a91a0d67ac6",
+      "source_filename": "exec-efab9104-bef5-4240-b030-0f22611dedfd.png",
+      "status": "superseded",
+      "title": "钻石手，截图手（触角修正前）"
+    },
+    {
+      "id": 81,
+      "title": "滑点：价格没滑，我先滑了",
+      "path": "crypto-memes-05/081-slippage-slide.png",
+      "status": "current",
+      "source_filename": "exec-ab1fbbe1-bf32-4119-a864-f1d2d982c967.png",
+      "bytes": 2104712,
+      "sha256": "c4af5ae90fb89d27101995522bb150741f629d610e44bd3226245128d8b66834",
+      "git_blob_sha": "abb78309ecaef8a33f965c4934ebf3ddc80ac8eb"
+    },
+    {
+      "id": 82,
+      "title": "跨链：资产在路上，我在原地老去",
+      "path": "crypto-memes-05/082-bridge-wait.png",
+      "status": "current",
+      "source_filename": "exec-4f671145-ab28-4f5e-83a4-e01ff5f48fe8.png",
+      "bytes": 2094866,
+      "sha256": "1ffb00e7b5437633dca0c3bf3f0eea4aa2c97c45f823b202e5df9629b811719c",
+      "git_blob_sha": "6cfa58cebb5806900dfb0e22451037ecc4f7f438"
+    },
+    {
+      "id": 83,
+      "title": "测试网富豪，主网省着花",
+      "path": "crypto-memes-05/083-testnet-rich.png",
+      "status": "current",
+      "source_filename": "exec-0233a954-38d0-4e2e-b84e-9074ed3250a4.png",
+      "bytes": 2197203,
+      "sha256": "4b9f27a11549410a0f4098626794559f36ba7de09eb77ec69a85bd8288762ef7",
+      "git_blob_sha": "59903d3296c4db5c42afa47147e35999772fe65d"
+    },
+    {
+      "id": 84,
+      "title": "Mint：手速输给已售罄",
+      "path": "crypto-memes-05/084-mint-speed.png",
+      "status": "current",
+      "source_filename": "exec-c75c333a-bf5c-460a-9b42-dab45c796e79.png",
+      "bytes": 2114024,
+      "sha256": "22ea8810cd601c05248683c3245126d74aa9383432968724d32dcd2080bb84ce",
+      "git_blob_sha": "060d7c58385f2c309132512cd4ea4d56dd9a7b0d"
+    },
+    {
+      "id": 85,
+      "title": "社区投票：研究半天，选了午饭",
+      "path": "crypto-memes-05/085-dao-vote.png",
+      "status": "current",
+      "source_filename": "exec-a62d6a28-5301-4e4a-878e-62b70b1de7d3.png",
+      "bytes": 2171387,
+      "sha256": "9c10647e082cd028077ea75e40e95827ceb2692c7161801a2e6ff701cc6d6ee9",
+      "git_blob_sha": "0093284889a280a6a10f2fd92db8f9b56afda8e3"
+    },
+    {
+      "id": 86,
+      "title": "长期持有：从五分钟开始",
+      "path": "crypto-memes-05/086-long-term.png",
+      "status": "current",
+      "source_filename": "exec-9be84b9f-cde5-4470-a4e7-ef56c53fd365.png",
+      "bytes": 2053238,
+      "sha256": "15d267bec046280d62988ebbc0c0359aa06f7e967c95e31cd5301a80a3f6316e",
+      "git_blob_sha": "b32111b53390c7850f433baf3de768ffc6aa05af"
+    },
+    {
+      "id": 87,
+      "title": "滑点（多余鞋子修正前）",
+      "path": "archive-superseded/087-slippage-slide-original.png",
+      "status": "superseded",
+      "source_filename": "exec-272334d5-827b-4663-abc9-bfd6915e9ddc.png",
+      "bytes": 2143621,
+      "sha256": "51218660805914cd6cc404374584c2c858f06ff74402f26d842852e3d4cfd1a0",
+      "git_blob_sha": "9e2e6368c8a338a1b357ab244026a8441631981f",
+      "replaced_by": "crypto-memes-05/081-slippage-slide.png"
     }
   ],
   "scope": "本会话工作区全部生成图片，上传参考图不包含在内"

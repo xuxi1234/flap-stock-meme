@@ -1,8 +1,12 @@
 # 蝴蝶股票宣发图片
 
-本次归档保存本会话全部 **80 个 PNG 原图文件**：75 张当前版本，以及 5 张已被修正版替换的旧图。图片按原始字节保存，没有压缩或重绘。
+本次归档保存本会话全部 **87 个 PNG 原图文件**：81 张当前版本，以及 6 张已被修正版替换的旧图。图片按原始字节保存，没有压缩或重绘。
 
-## 最新新增：币圈梗图第四组
+## 最新新增：币圈梗图第五组
+
+[打开第五组图片与中文索引](crypto-memes-05/README.md)：滑点、跨链等待、测试网富豪、Mint 手速、社区投票、长期持有。
+
+## 币圈梗图第四组
 
 [打开第四组图片与中文索引](crypto-memes-04/README.md)：巨鲸翻身、钱包连接、钻石手与截图手、链上周末、DYOR 标签页、GM 时差。
 
@@ -118,6 +122,17 @@
 |77|DYOR：打开研究，迷失标签页|[查看 / 下载](crypto-memes-04/077-dyor-tabs.png)|
 |78|GM：早安发出，天已黑|[查看 / 下载](crypto-memes-04/078-gm-night.png)|
 
+## 币圈梗图第五组
+
+|编号|主题|PNG 原图|
+|---|---|---|
+|81|滑点：价格没滑，我先滑了|[查看 / 下载](crypto-memes-05/081-slippage-slide.png)|
+|82|跨链：资产在路上，我在原地老去|[查看 / 下载](crypto-memes-05/082-bridge-wait.png)|
+|83|测试网富豪，主网省着花|[查看 / 下载](crypto-memes-05/083-testnet-rich.png)|
+|84|Mint：手速输给已售罄|[查看 / 下载](crypto-memes-05/084-mint-speed.png)|
+|85|社区投票：研究半天，选了午饭|[查看 / 下载](crypto-memes-05/085-dao-vote.png)|
+|86|长期持有：从五分钟开始|[查看 / 下载](crypto-memes-05/086-long-term.png)|
+
 ## 旧版与修正版
 
 |旧版|修正版|
@@ -127,3 +142,4 @@
 |[收藏Alpha旧版触角异常](archive-superseded/072-saved-alpha-original.png)|[使用修正版](crypto-memes-03/068-saved-alpha.png)|
 |[巨鲸动一下，散户忙一夜（触角修正前）](archive-superseded/079-whale-overtime-original.png)|[使用修正版](crypto-memes-04/073-whale-overtime.png)|
 |[钻石手，截图手（触角修正前）](archive-superseded/080-screenshot-hands-original.png)|[使用修正版](crypto-memes-04/075-screenshot-hands.png)|
+|[滑点（多余鞋子修正前）](archive-superseded/087-slippage-slide-original.png)|[使用修正版](crypto-memes-05/081-slippage-slide.png)|
