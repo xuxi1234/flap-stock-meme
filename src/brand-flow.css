@@ -120,7 +120,7 @@
 
 @media (max-width: 760px) {
   .hero { gap: 18px; padding-block: 24px; }
-  .hero-visual { order: 4; margin: 0 auto 8px; width: min(100% - 12px, 340px); padding: 16px 16px 22px; box-shadow: 8px 8px 0 var(--ink); }
+  .hero-visual { order: -1; margin: 0 auto 8px; width: min(calc(100% - 12px), 340px); padding: 16px 16px 22px; box-shadow: 8px 8px 0 var(--ink); }
   .hero-visual .ticker { margin-top: 12px; font-size: 18px; }
   .terminal-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; scroll-snap-type: none; margin-top: 8px; }
   .terminal-strip p { min-width: 0; padding: 16px 10px; gap: 10px; }
