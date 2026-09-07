@@ -1,7 +1,7 @@
 {
   "archive_date": "2026-09-07",
   "scope": "本会话工作区全部生成图片，上传参考图不包含在内",
-  "count": 59,
+  "count": 65,
   "images": [
     {
       "id": 1,
@@ -594,6 +594,66 @@
       "sha256": "55a0c72d6d54810e955470c340e0c7405ea8e8c8e9b0fc7916167b102628c9e5",
       "git_blob_sha": "429158cbcb74fde0eb0f74d546523cbfd5fa8d87",
       "replaced_by": "crypto-memes/055-f7a66943.png"
+    },
+    {
+      "id": 60,
+      "title": "卖飞：赚了奶茶，错过火箭",
+      "path": "crypto-memes-02/060-sold-too-early.png",
+      "status": "current",
+      "source_filename": "exec-ab9e32f1-79f7-4ae6-9b8d-08cf4e516cbb.png",
+      "bytes": 2149226,
+      "sha256": "15db8971eb0f2412020d74e35d80150cd9f214cff5821231d95bd5f9224a4946",
+      "git_blob_sha": "7e1ad3bfc051ad3f31c905e7bf9f04e671883bbe"
+    },
+    {
+      "id": 61,
+      "title": "抄底：地下室下面还有地下室",
+      "path": "crypto-memes-02/061-dip-keeps-dipping.png",
+      "status": "current",
+      "source_filename": "exec-82880f8a-d3a9-44fb-a41d-bdbed35d3ad3.png",
+      "bytes": 2397150,
+      "sha256": "9f95013eedb7f0f1039675118452bfe59e3359fb8ff008024b2cd5b2f9830d2b",
+      "git_blob_sha": "ce7585509ab027a14c1b6b89f83110d20ada3e23"
+    },
+    {
+      "id": 62,
+      "title": "空投：还没到账，Gas先到账单",
+      "path": "crypto-memes-02/062-airdrop-fees.png",
+      "status": "current",
+      "source_filename": "exec-1366d478-8654-44bc-b3f5-f221b0854417.png",
+      "bytes": 2187069,
+      "sha256": "d77bbf77b772df45f0ea35f32c6b9f9a8371e689eb0077ff42f5ce6152b49f53",
+      "git_blob_sha": "e0e0d68118ef93426da7a7af91bf02a261b64548"
+    },
+    {
+      "id": 63,
+      "title": "FOMO：脑子说等等，手说买点",
+      "path": "crypto-memes-02/063-fomo-hand.png",
+      "status": "current",
+      "source_filename": "exec-461fd90c-15ee-4f6f-9fc0-ee3b572e7cf6.png",
+      "bytes": 1983808,
+      "sha256": "3340be4e17f274edb36311536aa0952eb54fbc4e371afba8bf5bb9f5726c6d9d",
+      "git_blob_sha": "0ba1399d183b7f033ca15f1709f9a3848c683a84"
+    },
+    {
+      "id": 64,
+      "title": "心情跟着K线走",
+      "path": "crypto-memes-02/064-mood-candles.png",
+      "status": "current",
+      "source_filename": "exec-38c71ba8-d22e-4e01-9bea-97d2f07b5c70.png",
+      "bytes": 2067536,
+      "sha256": "ebfefc8692f6db53be0abf28d913cd75d223a6e5b4f8dded44252091f9e3316b",
+      "git_blob_sha": "21a4d3c43f41b9eb4c5b22ad7e341b679592fdc0"
+    },
+    {
+      "id": 65,
+      "title": "牛熊两副面孔：叙事专家与养生专家",
+      "path": "crypto-memes-02/065-bull-bear-persona.png",
+      "status": "current",
+      "source_filename": "exec-c0df1f9e-71ce-42bb-b938-52517623674a.png",
+      "bytes": 2082622,
+      "sha256": "0a4931cdb5794080d06c83e03629c1b939e13a41739baaba17547205baff8eb2",
+      "git_blob_sha": "ff7ac31247b59065aa295549392ab244bc318f22"
     }
   ]
 }
