@@ -4,5 +4,5 @@ import { CommunityLinks } from './CommunityLinks'
 type Props = { copy: SiteCopy['footer']; communityCopy: SiteCopy['community'] }
 
 export function SiteFooter({ copy, communityCopy }: Props) {
-  return <footer className="site-footer"><p>{copy.rights}</p><CommunityLinks className="footer-community" copy={communityCopy} /><p className="disclaimer">{copy.disclaimer}</p></footer>
+  return <footer className="site-footer"><p>{copy.rights}</p><CommunityLinks className="footer-community" copy={communityCopy} /></footer>
 }
