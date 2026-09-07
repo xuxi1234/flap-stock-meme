@@ -23,7 +23,7 @@ export function SiteHeader({ copy, communityCopy, language, onLanguageChange }: 
     <header className="site-header">
       <a className="brand-lockup" href="#top" aria-label={copy.homeLabel}>
         <img src="/flap-stock-avatar.png" alt={copy.logoLabel} />
-        <span><strong>{projectConfig.brand.englishName}</strong><small>{projectConfig.brand.symbol}</small></span>
+        <span><strong>{projectConfig.brand.chineseName}</strong><small>{projectConfig.brand.englishName}</small></span>
       </a>
       <nav id="primary-navigation" aria-label={copy.navigationLabel} data-open={menuOpen}>
         <a href="#presale" onClick={() => setMenuOpen(false)}>{language === 'zh' ? '预售' : 'PRESALE'}</a>
