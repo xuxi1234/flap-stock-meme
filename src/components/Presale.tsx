@@ -17,7 +17,7 @@ type ReadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type TransactionPhase = 'idle' | 'awaitingSignature' | 'broadcast' | 'confirming' | 'confirmed' | 'rejected' | 'failed' | 'uncertain'
 export type PresaleDisplayStatus = 'live' | 'paused' | 'ended' | 'soldOut' | 'participated' | 'unavailable'
 
-type Props = { copy: SiteCopy['presale']; contractAddress?: Address | null; provider?: WalletEventProvider; publicClient?: PublicClient; walletClient?: WalletClient; now?: () => number; onAccountChange?: (account: Address | null) => void; onStatusChange?: (status: PresaleDisplayStatus) => void }
+type Props = { walletRequest?: number; copy: SiteCopy['presale']; contractAddress?: Address | null; provider?: WalletEventProvider; publicClient?: PublicClient; walletClient?: WalletClient; now?: () => number; onAccountChange?: (account: Address | null) => void; onStatusChange?: (status: PresaleDisplayStatus) => void }
 
 const POLL_INTERVAL_MS = 15_000
 const deterministicFailures = ['reverted', 'cancelled', 'replaced with a different call']
@@ -32,13 +32,14 @@ const formatCountdown = (endTime: bigint, now: number) => {
 }
 const parseChainId = (value: unknown) => typeof value === 'number' ? value : typeof value === 'string' ? Number.parseInt(value, value.startsWith('0x') ? 16 : 10) : null
 
-export function Presale({ copy, contractAddress = projectConfig.presale.contractAddress, provider, publicClient, walletClient, now = Date.now, onStatusChange, onAccountChange }: Props) {
+export function Presale({ copy, contractAddress = projectConfig.presale.contractAddress, provider, publicClient, walletClient, now = Date.now, onStatusChange, onAccountChange, walletRequest = 0 }: Props) {
   const [account, setAccount] = useState<Address | null>(null)
   useEffect(() => { onAccountChange?.(account) }, [account, onAccountChange])
   const [chainId, setChainId] = useState<number | null>(null)
   const [selectedProvider, setSelectedProvider] = useState<WalletEventProvider | undefined>(provider)
   const [providers, setProviders] = useState<WalletProviderDetail[]>([])
   const [chooserOpen, setChooserOpen] = useState(false)
+  useEffect(() => { if (walletRequest > 0) setChooserOpen(true) }, [walletRequest])
   const [presaleState, setPresaleState] = useState<PresaleState | null>(null)
   const [readStatus, setReadStatus] = useState<ReadStatus>('idle')
   const [readError, setReadError] = useState<string | null>(null)
@@ -164,7 +165,7 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
     {account && <div className="wallet-state"><div><span>{copy.interaction.account}</span><code>{account}</code></div><div><span>{copy.interaction.network}</span><strong>{chainId === 56 ? 'BSC MAINNET · 56' : `CHAIN · ${chainId ?? '—'}`}</strong></div><div className="wallet-state-actions"><CopyControl value={account} label={copy.interaction.copy} copiedLabel={copy.interaction.copied} /><button className="text-action" type="button" onClick={disconnect}>{copy.interaction.disconnect}</button></div></div>}
     {account && chainId !== null && chainId !== 56 && <p className="status-message is-warning">{copy.interaction.wrongNetwork}</p>}
     {phaseLabel && <div className={`transaction-state phase-${phase}`}><span>{phaseLabel}</span>{phaseError && <small>{phaseError}</small>}{transactionHash && <><code>{transactionHash}</code><a href={`https://bscscan.com/tx/${transactionHash}`} target="_blank" rel="noreferrer">{copy.interaction.viewOnBscScan}</a></>}</div>}
-    <button className="button button-primary participate-button" disabled={account ? blocked : readStatus === 'loading'} onClick={() => void (account ? submit() : walletClient || provider ? connectWith() : setChooserOpen(true))} type="button">{readStatus === 'loading' && !account ? copy.interaction.loading : actionLabel}</button>
+    <button className="button button-primary participate-button" disabled={account ? blocked : false} onClick={() => void (account ? submit() : walletClient || provider ? connectWith() : setChooserOpen(true))} type="button">{actionLabel}</button>
     <MyParticipation copy={copy.interaction} account={account} hasParticipated={Boolean(presaleState?.hasParticipated)} record={savedRecord} />
     {chooserOpen && <WalletChooser copy={copy.interaction} providers={providers} onClose={() => setChooserOpen(false)} onSelect={(wallet) => void connectWith(wallet)} />}
   </div>} />
