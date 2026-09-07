@@ -79,3 +79,30 @@
   .header-community .community-link span { display: inline; }
 }
 @media (max-width: 360px) { .name-core-grid { grid-template-columns: 1fr; } .hero-quick-facts { grid-template-columns: 1fr; gap: 12px; } }
+.presale-countdown { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center; padding: 24px; background: var(--ink); color: var(--white); border-radius: 18px; }
+.presale-countdown > span { font-size: 16px; font-weight: 700; }
+.presale-countdown strong { grid-column: 2; grid-row: 1 / 3; color: var(--acid); font-size: clamp(26px, 3.5vw, 44px); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.presale-countdown small { font-size: 12px; letter-spacing: .12em; }
+.participation-console .wallet-state { background: transparent; color: var(--ink); border: 1px solid var(--ink); padding: 20px; }
+.participation-console .wallet-state span { color: var(--purple); }
+.participation-console .wallet-state .text-action { color: var(--purple); min-height: 44px; }
+.participation-console .wallet-state code { overflow-wrap: anywhere; font-size: 14px; }
+.participation-console .participate-button { min-height: 60px; }
+@media (max-width: 600px) {
+  .presale-countdown { grid-template-columns: 1fr; text-align: center; padding: 22px 12px; gap: 10px; }
+  .presale-countdown strong { grid-column: auto; grid-row: auto; font-size: clamp(25px, 7vw, 38px); }
+  .participation-console .wallet-state { padding: 16px; gap: 16px; }
+}
+
+.presale-section > ul { gap: 10px; margin: 20px 0 24px; }
+.presale-section > ul li { font-size: 13px; font-weight: 700; border-width: 1px; padding: 10px 15px; }
+@media (max-width: 760px) {
+  .presale-section > ul { display: flex; gap: 8px; margin: 18px 0; }
+  .presale-section > ul li { border-radius: 10px; padding: 9px 12px; font-size: 12px; }
+  .presale-section > ul li:last-child { flex-basis: 100%; }
+}
+
+.primary-allocation .allocation-card { display: flex; flex-direction: column; padding: 24px; }
+.primary-allocation .allocation-card p { margin: 0; }
+.primary-allocation .treasury-jump { margin-top: 16px; padding-bottom: 0; }
+@media (max-width: 760px) { .primary-allocation .allocation-card { padding: 20px; } }

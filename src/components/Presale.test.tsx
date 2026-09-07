@@ -27,16 +27,17 @@ function clients(options: { participated?: () => boolean; writeError?: unknown; 
 
 async function connectAndAgree() {
   fireEvent.click(await screen.findByRole('button', { name: 'CHOOSE & CONNECT WALLET' }))
-  fireEvent.click(await screen.findByRole('checkbox'))
+  await waitFor(() => expect(screen.getByRole('button', { name: 'CONFIRM 0.05 BNB PAYMENT' })).toBeEnabled())
 }
 
 describe('participation transaction feedback', () => {
-  it('shows confirmed addresses, derived BNB, and never confuses addresses with people', async () => {
+  it('shows the countdown without removed statistics or checkbox', async () => {
     const setup = clients()
     render(<Presale copy={siteContent.en.presale} contractAddress={contract} publicClient={setup.publicClient} walletClient={setup.walletClient} />)
-    expect(await screen.findByText('18 / 10,000')).toBeInTheDocument()
-    expect(screen.getByText('0.90 BNB')).toBeInTheDocument()
-    expect(screen.getByText('Addresses are not unique people')).toBeInTheDocument()
+    expect(await screen.findByText('00:01:00:00')).toBeInTheDocument()
+    expect(screen.queryByText('18 / 10,000')).not.toBeInTheDocument()
+    expect(screen.queryByText('0.90 BNB')).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   })
 
   it('shows the hash immediately after broadcast and then confirms from fresh chain state', async () => {
