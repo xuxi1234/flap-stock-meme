@@ -1,11 +1,9 @@
 import type { SiteCopy } from '../content/siteContent'
 import { projectConfig } from '../config/project'
-import { PendingAction } from './PendingAction'
 
 type Props = { copy: SiteCopy['hero'] }
 
 export function Hero({ copy }: Props) {
-  const presaleEnabled = Boolean(projectConfig.presale.contractAddress && projectConfig.presale.purchaseUrl)
 
   return (
     <section className="hero" aria-labelledby="hero-title">
@@ -23,9 +21,6 @@ export function Hero({ copy }: Props) {
           <strong>{copy.brandSignalValue}</strong>
           <small>{copy.safetyLabel}</small>
         </aside>
-        <div className="hero-actions">
-          <PendingAction label={copy.enterPresale} href={presaleEnabled ? projectConfig.presale.purchaseUrl : null} className="button-primary" pendingLabel={copy.presalePendingLabel} />
-        </div>
       </div>
       <div className="hero-visual" role="img" aria-label={copy.visualLabel}>
         <span className="hero-visual-status" aria-hidden="true">LIVE · BSC / 56</span>
