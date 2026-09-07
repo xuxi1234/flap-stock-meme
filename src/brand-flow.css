@@ -131,3 +131,6 @@
   .terminal-strip p { padding: 14px 8px; }
   .terminal-strip strong { font-size: 13px; }
 }
+
+.hero-presale-link { display: block; text-decoration: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hero-presale-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 6px; }
