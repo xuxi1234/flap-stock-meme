@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Faq } from './components/Faq'
 import { Hero } from './components/Hero'
-import { HowToJoin } from './components/HowToJoin'
 import { MobilePresaleDock } from './components/MobilePresaleDock'
 import { NameCore } from './components/NameCore'
-import { ParticipationRules } from './components/ParticipationRules'
 import { Presale, type PresaleDisplayStatus } from './components/Presale'
 import { ProjectUpdates } from './components/ProjectUpdates'
 import { PublicProof } from './components/PublicProof'
@@ -24,13 +21,10 @@ export default function App() {
     <main id="top">
       <Hero copy={copy.hero} />
       <TickerStrip copy={copy.ticker} />
-      <ParticipationRules copy={copy.participationRules} />
-      <Presale copy={copy.presale} onStatusChange={setPresaleStatus} />
-      <HowToJoin copy={copy.howTo} />
-      <PublicProof copy={copy.publicProof} />
-      <ProjectUpdates copy={copy.updates} />
-      <NameCore copy={copy.nameCore} />
-      <Faq copy={copy.faq} />
+      <Presale copy={{ ...copy.presale, eyebrow: '01 / PARTICIPATION CENTER' }} onStatusChange={setPresaleStatus} />
+      <PublicProof copy={{ ...copy.publicProof, eyebrow: '02 / PUBLIC PROOF' }} />
+      <ProjectUpdates copy={{ ...copy.updates, eyebrow: '03 / KEEP THE SIGNAL' }} />
+      <NameCore copy={{ ...copy.nameCore, eyebrow: '04 / BRAND STORY' }} />
     </main>
     <SiteFooter copy={copy.footer} communityCopy={copy.community} />
     <MobilePresaleDock copy={copy.hero} status={presaleStatus} />
