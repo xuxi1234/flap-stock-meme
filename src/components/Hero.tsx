@@ -18,7 +18,7 @@ export function Hero({ copy }: Props) {
         <div className="hero-actions"><a className="button button-primary" href="#presale">{copy.enterPresale}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
       </div>
       <div className="hero-visual" role="img" aria-label={copy.visualLabel}>
-        <span className="hero-visual-status" aria-hidden="true">FLAP STOCK</span>
+        <span className="hero-visual-status" aria-hidden="true">{projectConfig.brand.chineseName}</span>
         <p className="ticker" aria-hidden="true">{copy.visualTicker}</p>
         <div className="butterfly-stage" aria-hidden="true"><img src="/flap-stock-avatar.png" alt="" /></div>
       </div>
