@@ -87,8 +87,9 @@ function Widget({ kind, config, title }: { kind: string; config: Record<string, 
 export function MarketDashboard() {
   const [selected, setSelected] = useState(readSymbol)
   const searchRef = useRef<HTMLInputElement>(null)
-  // Preserve the current official domain and omit stale symbol/referral parameters.
-  const chartUrl = new URL('/?view=markets', window.location.origin).href
+  // The widget appends '?tvwidgetsymbol=…', so use a query-free URL.
+  // App recognizes that parameter as a market-page entry on either domain.
+  const chartUrl = new URL('/', window.location.origin).href
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('tvwidgetsymbol')) {
       document.getElementById('market-chart')?.scrollIntoView({ block: 'start' })
@@ -132,6 +133,7 @@ export function MarketDashboard() {
       const url = new URL(window.location.href)
       // Otherwise the embedding script can override a later stock selection.
       url.searchParams.delete('tvwidgetsymbol')
+      url.searchParams.set('view', 'markets')
       url.searchParams.set('symbol', symbol)
       window.history.pushState(null, '', url)
     }
