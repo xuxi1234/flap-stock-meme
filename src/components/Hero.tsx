@@ -9,7 +9,7 @@ export function Hero({ copy, language = 'zh', onWalletClick }: Props) {
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero-copy">
         <p className="eyebrow">{copy.eyebrow}</p>
-        <h1 id="hero-title"><span className="hero-title-wave" aria-label={projectConfig.brand.chineseName}>{Array.from(projectConfig.brand.chineseName).map((character, index) => <b className="hero-title-letter" aria-hidden="true" key={index} style={{ animationDelay: `${index * 0.16}s` }}>{character}</b>)}</span><em>{projectConfig.brand.englishName}</em></h1>
+        <h1 id="hero-title"><span className="hero-title-wave" aria-label={projectConfig.brand.chineseName}>{Array.from(projectConfig.brand.chineseName).map((character, index) => <b className="hero-title-letter" aria-hidden="true" key={index} style={{ animationDelay: `${index * 0.1}s` }}>{character}</b>)}</span><em>{projectConfig.brand.englishName}</em></h1>
         <p className="hero-tagline">{copy.tagline}</p>
         <div className="hero-description">
           <p>{language === 'zh' ? <>蝴蝶股票是基于 <strong>BNB Chain</strong> 的社区 Meme 项目，计划通过 <strong>Flap.SH 平台</strong>发射</> : <>蝴蝶股票 is a community Meme project on <strong>BNB Chain</strong>, with plans to launch through the <strong>Flap.SH platform</strong>.</>}</p>
