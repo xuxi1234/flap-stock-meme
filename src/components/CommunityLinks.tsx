@@ -9,6 +9,7 @@ type Props = {
 
 export function CommunityLinks({ copy, className = '' }: Props) {
   const channels = [
+    { label: 'QQ', href: projectConfig.community.qq, icon: communityLogos.qq },
     { label: copy.xLabel, href: projectConfig.community.x, icon: communityLogos.x },
     { label: copy.telegramLabel, href: projectConfig.community.telegram, icon: communityLogos.telegram },
     { label: 'DeBox', href: projectConfig.community.debox, icon: communityLogos.debox },

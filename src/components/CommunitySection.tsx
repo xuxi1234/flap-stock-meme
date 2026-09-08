@@ -5,6 +5,7 @@ import { communityLogos } from '../config/communityLogos'
 export function CommunitySection({ language }: { language: Language }) {
   const zh = language === 'zh'
   const channels = [
+    { id: 'qq', name: 'QQ', body: zh ? '加入蝴蝶股票 QQ 群，一起交流。' : 'Join the 蝴蝶股票 QQ group and chat with the community.' },
     { id: 'x', name: 'X', body: zh ? '关注项目动态与公开公告。' : 'Follow project updates and announcements.' },
     { id: 'telegram', name: 'Telegram', body: zh ? '加入交流，分享问题与想法。' : 'Join the conversation and share questions.' },
     { id: 'debox', name: 'DeBox', body: zh ? '走进社区，关注活动与讨论。' : 'Explore community activities and discussions.' },

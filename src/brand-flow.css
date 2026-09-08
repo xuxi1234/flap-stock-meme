@@ -227,3 +227,18 @@ body, .site-shell { background: var(--acid); }
 @media (prefers-reduced-motion: reduce) {
   .site-header .brand-lockup > img { animation: none; transform: none; }
 }
+
+/* Four community channels: balanced cards and touch-friendly links. */
+.community-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.community-cards img { object-fit: contain; }
+@media (min-width: 761px) and (max-width: 1150px) {
+  .header-community .community-link { min-width: 44px; padding: 6px; }
+  .header-community .community-link span { display: none; }
+  .community-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .header-community { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .header-community .community-link { gap: 4px; padding-inline: 3px; font-size: 10px; }
+  .header-community .community-link img { width: 22px; height: 28px; }
+  .community-cards { grid-template-columns: 1fr; }
+}
