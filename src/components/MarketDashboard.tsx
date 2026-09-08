@@ -14,14 +14,24 @@ const stocks = [
   { symbol: 'NYSE:BABA', name: '阿里巴巴 Alibaba' },
   { symbol: 'NYSE:BRK.B', name: '伯克希尔 Berkshire Hathaway' },
 ]
+const indexEtfs = [
+  { symbol: 'AMEX:SPY', name: 'SPY · 标普500 ETF' },
+  { symbol: 'NASDAQ:QQQ', name: 'QQQ · 纳斯达克100 ETF' },
+  { symbol: 'AMEX:DIA', name: 'DIA · 道琼斯 ETF' },
+  { symbol: 'AMEX:IWM', name: 'IWM · 罗素2000 ETF' },
+]
+const instruments = [...stocks, ...indexEtfs]
 const key = 'flap-stock-watchlist-v1'
 const valid = (s: unknown): s is string => typeof s === 'string' && /^(NASDAQ|NYSE|AMEX):[A-Z0-9.\-]{1,16}$/.test(s)
 function readSaved(): string[] {
   try { const data: unknown = JSON.parse(localStorage.getItem(key) ?? '[]'); return Array.isArray(data) ? [...new Set(data.filter(valid))].slice(0, 30) : [] } catch { return [] }
 }
 function readSymbol() {
-  const symbol = new URLSearchParams(window.location.search).get('symbol')
-  return valid(symbol) ? symbol : 'NASDAQ:AAPL'
+  const params = new URLSearchParams(window.location.search)
+  // TradingView appends this parameter to the site's custom chart URL.
+  const widgetSymbol = params.get('tvwidgetsymbol')
+  const symbol = params.get('symbol')
+  return valid(widgetSymbol) ? widgetSymbol : valid(symbol) ? symbol : 'NASDAQ:AAPL'
 }
 function Widget({ kind, config, title }: { kind: string; config: Record<string, unknown>; title: string }) {
   const host = useRef<HTMLDivElement>(null)
@@ -77,6 +87,14 @@ function Widget({ kind, config, title }: { kind: string; config: Record<string, 
 export function MarketDashboard() {
   const [selected, setSelected] = useState(readSymbol)
   const searchRef = useRef<HTMLInputElement>(null)
+  // The widget appends '?tvwidgetsymbol=…', so use a query-free URL.
+  // App recognizes that parameter as a market-page entry on either domain.
+  const chartUrl = new URL('/', window.location.origin).href
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has('tvwidgetsymbol')) {
+      document.getElementById('market-chart')?.scrollIntoView({ block: 'start' })
+    }
+  }, [])
   useEffect(() => {
     const onBack = () => { setSelected(readSymbol()); setMessage(''); setShareUrl('') }
     const onKey = (event: KeyboardEvent) => {
@@ -102,8 +120,8 @@ export function MarketDashboard() {
     return () => { window.removeEventListener('online', onNetwork); window.removeEventListener('offline', onNetwork); window.removeEventListener('storage', onStorage); document.body.classList.remove('market-route') }
   }, [])
   const [tab, setTab] = useState<'overview' | 'movers'>('overview')
-  const results = stocks.filter(s => (s.symbol + ' ' + s.name).toLowerCase().includes(query.trim().toLowerCase()))
-  const name = stocks.find(s => s.symbol === selected)?.name ?? selected
+  const results = (query.trim() ? instruments : stocks).filter(s => (s.symbol + ' ' + s.name).toLowerCase().includes(query.trim().toLowerCase()))
+  const name = instruments.find(s => s.symbol === selected)?.name ?? selected
   const isSaved = saved.includes(selected)
   const updateSaved = (next: string[]) => {
     setSaved(next)
@@ -111,8 +129,11 @@ export function MarketDashboard() {
     catch { setWatchMessage('浏览器无法保存，自选仅在本次页面有效；请生成备份') }
   }
   const choose = (symbol: string) => {
-    if (symbol !== selected) {
+    if (symbol !== selected || new URLSearchParams(window.location.search).has('tvwidgetsymbol')) {
       const url = new URL(window.location.href)
+      // Otherwise the embedding script can override a later stock selection.
+      url.searchParams.delete('tvwidgetsymbol')
+      url.searchParams.set('view', 'markets')
       url.searchParams.set('symbol', symbol)
       window.history.pushState(null, '', url)
     }
@@ -161,13 +182,13 @@ export function MarketDashboard() {
           <section className="market-panel" id="market-watchlist">
             <p className="market-kicker">02 / MY WATCHLIST</p><h2>我的自选 <small>{saved.length}/30</small></h2>
             <p className="market-help">保存在当前浏览器，点击股票查看走势。</p>
-            {saved.length === 0 ? <div className="market-empty">还没有自选股票。<br />选中股票后，点击“加入自选”。</div> : <ul className="market-saved">{saved.map(s => <li key={s}><button type="button" onClick={() => choose(s)}>{s.split(':')[1]}<small>{stocks.find(v => v.symbol === s)?.name ?? s}</small></button><button type="button" aria-label={'移除 ' + s} onClick={() => updateSaved(saved.filter(v => v !== s))}>×</button></li>)}</ul>}
+            {saved.length === 0 ? <div className="market-empty">还没有自选股票。<br />选中股票后，点击“加入自选”。</div> : <ul className="market-saved">{saved.map(s => <li key={s}><button type="button" onClick={() => choose(s)}>{s.split(':')[1]}<small>{instruments.find(v => v.symbol === s)?.name ?? s}</small></button><button type="button" aria-label={'移除 ' + s} onClick={() => updateSaved(saved.filter(v => v !== s))}>×</button></li>)}</ul>}
             <p className="market-feedback" role="status">{watchMessage}</p>
             <WatchlistTransfer saved={saved} onMerge={updateSaved} />
           </section>
           <section className="market-panel market-overview">
             <div className="market-tabs"><button type="button" aria-pressed={tab === 'overview'} onClick={() => setTab('overview')}>大盘参考</button><button type="button" aria-pressed={tab === 'movers'} onClick={() => setTab('movers')}>涨跌榜</button></div>
-            {tab === 'overview' ? <><p className="market-help">下列为跟踪主要指数的 ETF，显示 ETF 价格，并非指数点位。</p><Widget title="大盘 ETF 行情" kind="market-overview" config={{ colorTheme: 'light', dateRange: '1D', locale: 'zh_CN', width: '100%', height: '100%', showChart: false, showSymbolLogo: true, isTransparent: false, tabs: [{title: '指数 ETF', symbols: [{s: 'AMEX:SPY',d:'SPY · 标普500 ETF'},{s:'NASDAQ:QQQ',d:'QQQ · 纳斯达克100 ETF'},{s:'AMEX:DIA',d:'DIA · 道琼斯 ETF'},{s:'AMEX:IWM',d:'IWM · 罗素2000 ETF'}]}] }} /></> : <><p className="market-help">美国市场涨幅、跌幅与活跃股票，按数据源更新。</p><Widget title="美国股票涨跌榜" kind="hotlists" config={{ colorTheme:'light',dateRange:'1D',exchange:'US',showChart:false,locale:'zh_CN',width:'100%',height:'100%',isTransparent:false,showSymbolLogo:true,showFloatingTooltip:true }} /></>}
+            {tab === 'overview' ? <><p className="market-help">下列为跟踪主要指数的 ETF，显示 ETF 价格，并非指数点位。点击代码或图标，在本站查看走势。</p><Widget title="大盘 ETF 行情" kind="market-overview" config={{ largeChartUrl: chartUrl, colorTheme: 'light', dateRange: '1D', locale: 'zh_CN', width: '100%', height: '100%', showChart: false, showSymbolLogo: true, isTransparent: false, tabs: [{title: '指数 ETF', symbols: indexEtfs.map(({ symbol, name }) => ({ s: symbol, d: name }))}] }} /></> : <><p className="market-help">美国市场涨幅、跌幅与活跃股票，按数据源更新。</p><Widget title="美国股票涨跌榜" kind="hotlists" config={{ largeChartUrl: chartUrl, colorTheme:'light',dateRange:'1D',exchange:'US',showChart:false,locale:'zh_CN',width:'100%',height:'100%',isTransparent:false,showSymbolLogo:true,showFloatingTooltip:true }} /></>}
           </section>
         </aside>
       </div>
