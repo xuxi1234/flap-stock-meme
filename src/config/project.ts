@@ -13,7 +13,7 @@ export const projectConfig = Object.freeze({
   network: Object.freeze({ name: 'BNB Smart Chain', chainId: 56 }),
   token: Object.freeze({ contractAddress: null as NullableAddress, totalSupply: null as string | null }),
   presale: Object.freeze({
-    websiteOpen: false,
+    websiteOpen: true,
     priceBnb: '0.05',
     maxParticipants: 10_000,
     initialDeadline: 1_788_969_599,
