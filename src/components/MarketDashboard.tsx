@@ -119,7 +119,7 @@ export function MarketDashboard() {
     return () => { window.removeEventListener('online', onNetwork); window.removeEventListener('offline', onNetwork); window.removeEventListener('storage', onStorage); document.body.classList.remove('market-route') }
   }, [])
   const [tab, setTab] = useState<'overview' | 'movers'>('overview')
-  const results = instruments.filter(s => (s.symbol + ' ' + s.name).toLowerCase().includes(query.trim().toLowerCase()))
+  const results = (query.trim() ? instruments : stocks).filter(s => (s.symbol + ' ' + s.name).toLowerCase().includes(query.trim().toLowerCase()))
   const name = instruments.find(s => s.symbol === selected)?.name ?? selected
   const isSaved = saved.includes(selected)
   const updateSaved = (next: string[]) => {
