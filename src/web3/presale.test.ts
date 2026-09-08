@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Address, PublicClient, WalletClient } from 'viem'
 import { participate, readPresaleState, waitForParticipationReceipt } from './presale'
 
 const contract = '0x1111111111111111111111111111111111111111' as Address
 const account = '0x2222222222222222222222222222222222222222' as Address
+
+beforeEach(() => { vi.spyOn(Date, 'now').mockReturnValue(1_788_904_799_000) })
+afterEach(() => { vi.restoreAllMocks() })
 
 describe('presale web3 boundary', () => {
   it('reads the live sale state and the connected address participation flag', async () => {

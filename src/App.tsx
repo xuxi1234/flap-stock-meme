@@ -1,5 +1,6 @@
 import { Component, lazy, Suspense, type ReactNode } from 'react'
 
+const PresaleDeadlineAdmin = lazy(() => import('./components/PresaleDeadlineAdmin').then(module => ({ default: module.PresaleDeadlineAdmin })))
 const HomePage = lazy(() => import('./HomePage'))
 const MarketDashboard = lazy(() => import('./components/MarketDashboard').then(module => ({ default: module.MarketDashboard })))
 
@@ -13,6 +14,7 @@ class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 }
 export default function App() {
   const params = new URLSearchParams(window.location.search)
+  const admin = params.get('view') === 'presale-admin'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
-  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{markets ? '美股看板' : '蝴蝶股票'}…</main>}>{markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
+  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{markets ? '美股看板' : '蝴蝶股票'}…</main>}>{admin ? <PresaleDeadlineAdmin /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
 }

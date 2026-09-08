@@ -1,6 +1,7 @@
 import { parseEther, type Address, type Hash, type PublicClient, type ReplacementReturnType, type WalletClient } from 'viem'
 import { bsc } from 'viem/chains'
 import { presaleAbi } from './presaleAbi'
+import { presaleDeadlineReached } from './presaleDeadline'
 
 const BSC_CHAIN_ID = 56
 const MAX_PARTICIPANTS = 10_000n
@@ -36,6 +37,7 @@ export async function readPresaleState(client: PublicClient, contract: Address, 
 
 export async function participate(walletClient: WalletClient, contract: Address | null, expectedAccount?: Address): Promise<Hash> {
   if (!contract) throw new Error('Presale contract is unavailable')
+  if (presaleDeadlineReached(undefined, Date.now())) throw new Error('Private sale deadline reached')
 
   let accounts = await walletClient.getAddresses()
   if (accounts.length === 0) accounts = await walletClient.requestAddresses()
@@ -49,6 +51,8 @@ export async function participate(walletClient: WalletClient, contract: Address 
     await walletClient.switchChain({ id: BSC_CHAIN_ID })
   }
 
+  // Recheck after account access and network switching, which can take time.
+  if (presaleDeadlineReached(undefined, Date.now())) throw new Error('Private sale deadline reached')
   return walletClient.writeContract({
     account,
     address: contract,
