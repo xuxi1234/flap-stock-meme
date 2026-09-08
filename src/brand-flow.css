@@ -150,7 +150,7 @@
 
 /* Shared color hierarchy: vivid branding, calm reading surfaces. */
 :root { --page-neutral: #eeede7; --muted-surface: #e8e3ef; --muted-text: #625970; }
-body, .site-shell { background: var(--page-neutral); }
+body, .site-shell { background: var(--acid); }
 .hero { position: relative; isolation: isolate; }
 .hero::before { content: ''; position: absolute; z-index: -1; top: -220px; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); background: var(--acid); pointer-events: none; }
 .language-toggle, .menu-toggle { background: var(--paper); color: var(--purple-dark); border-color: var(--purple); }
