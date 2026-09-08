@@ -21,7 +21,7 @@ export function PresaleShare({ language, account, onConnect }: { onConnect: () =
   const share = async () => {
     if (!account) return
     if (!navigator.share) return copy()
-    try { await navigator.share({ title: '蝴蝶股票 | FLAP STOCK', text: zh ? '蝴蝶股票预售：BSC 主网，每地址固定 0.05 BNB。参与前请查看官网条件与实时状态。' : 'FLAP STOCK presale: fixed 0.05 BNB per address on BSC. Check the terms and live status before joining.', url: shareUrl }) }
+    try { await navigator.share({ title: '蝴蝶股票 | FLAP STOCK', text: zh ? '蝴蝶股票私募暂未开放，敬请等待官方通知。关注官网与官方社区获取最新动态。' : 'The 蝴蝶股票 private sale is not open. Follow the website and official community for announcements.', url: shareUrl }) }
     catch (error) { if (!(error instanceof Error && error.name === 'AbortError')) setStatus(zh ? '分享未完成，可以复制链接' : 'Sharing did not complete. You can copy the link.') }
   }
   return <div className="presale-share" aria-label={zh ? '分享预售' : 'Share presale'}>
