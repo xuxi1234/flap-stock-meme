@@ -19,7 +19,7 @@ export function CommunityLinks({ copy, className = '' }: Props) {
     <div className={`community-links ${className}`.trim()} role="group" aria-label={copy.regionLabel}>
       {channels.map(({ label, href, icon }) => (
         <a className="community-link" href={href} key={label} target="_blank" rel="noopener noreferrer" aria-label={label}>
-          <img src={icon} alt="" width="28" height="28" /><span>{label}</span>
+          <img src={icon} alt="" width="28" height="28" />{label !== 'QQ' && <span>{label}</span>}
         </a>
       ))}
     </div>
