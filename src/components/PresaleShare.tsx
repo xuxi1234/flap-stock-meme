@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Language } from '../content/siteContent'
 
-export const presaleShareUrl = 'https://www.hudiegupiao.com/?utm_source=community&utm_medium=share&utm_campaign=presale#presale'
+export const presaleShareUrl = 'https://www.hudiegupiao.com/share.html?utm_source=community&utm_medium=share&utm_campaign=presale#presale'
 
 export function PresaleShare({ language, account, onConnect }: { onConnect: () => void; language: Language; account: `0x${string}` | null }) {
   const zh = language === 'zh'
