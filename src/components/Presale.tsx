@@ -6,6 +6,7 @@ import type { SiteCopy } from '../content/siteContent'
 import { classifyTransactionError, loadParticipationRecord, saveParticipationRecord, type ParticipationRecord } from '../web3/participationRecord'
 import { participate, readPresaleState, waitForParticipationReceipt, type PresaleState } from '../web3/presale'
 import { discoverWalletProviders, type WalletProviderDetail } from '../web3/walletProviders'
+import { effectivePresaleDeadline, presaleDeadlineReached } from '../web3/presaleDeadline'
 import { MyParticipation } from './MyParticipation'
 import { PresaleConsole } from './PresaleConsole'
 import { WalletChooser } from './WalletChooser'
@@ -122,7 +123,7 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
     try {
       const latest = await readPresaleState(readClient, contractAddress!, validatedAccount)
       setPresaleState(latest)
-      if (latest.paused || latest.soldOut || latest.hasParticipated || Number(latest.endTime) <= Math.floor(now() / 1_000)) { setPhase('idle'); return }
+      if (latest.paused || latest.soldOut || latest.hasParticipated || presaleDeadlineReached(latest.endTime, now())) { setPhase('idle'); return }
       broadcastHash = await participate(client, contractAddress!, validatedAccount)
       setTransactionHash(broadcastHash); setPhase('broadcast')
       const initial: ParticipationRecord = { account: validatedAccount, hash: broadcastHash, status: 'broadcast', amountBnb: '0.05', submittedAt: now() }
@@ -146,8 +147,8 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
     } finally { submittingRef.current = false }
   }
 
-  const ended = Boolean(presaleState && Number(presaleState.endTime) <= Math.floor(nowMs / 1_000))
-  const displayStatus: PresaleDisplayStatus = !projectConfig.presale.websiteOpen || readStatus !== 'ready' ? 'unavailable' : presaleState?.soldOut ? 'soldOut' : presaleState?.paused ? 'paused' : ended ? 'ended' : presaleState?.hasParticipated ? 'participated' : 'live'
+  const ended = presaleDeadlineReached(presaleState?.endTime, nowMs)
+  const displayStatus: PresaleDisplayStatus = !projectConfig.presale.websiteOpen ? 'unavailable' : ended ? 'ended' : readStatus !== 'ready' ? 'unavailable' : presaleState?.soldOut ? 'soldOut' : presaleState?.paused ? 'paused' : presaleState?.hasParticipated ? 'participated' : 'live'
   useEffect(() => { onStatusChange?.(displayStatus) }, [displayStatus, onStatusChange])
   if (!projectConfig.presale.websiteOpen) return <section className="statement presale-section" id="presale" aria-label={copy.regionLabel}>
     <p className="eyebrow">PRIVATE SALE</p>
@@ -163,7 +164,7 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
   const phaseLabel = phase === 'idle' ? null : phase === 'awaitingSignature' ? copy.interaction.waitingSignature : copy.interaction[phase]
 
   return <PresaleConsole copy={copy} action={<div className="participation-console" aria-live="polite">
-    <div className="presale-countdown"><span>{copy.interaction.countdown}</span><strong>{presaleState ? formatCountdown(presaleState.endTime, nowMs) : '—'}</strong><small>{presaleState ? 'DD : HH : MM : SS' : copy.interaction.unavailable}</small></div>
+    <div className="presale-countdown"><span>{copy.interaction.countdown}</span><strong>{presaleState ? formatCountdown(effectivePresaleDeadline(presaleState.endTime), nowMs) : '—'}</strong><small>{presaleState ? 'DD : HH : MM : SS' : copy.interaction.unavailable}</small></div>
     {readError && <p className="status-message is-error" role="alert">{copy.interaction.rpcError}。 <button className="text-action" type="button" disabled={readStatus === 'loading'} onClick={() => void refresh(accountRef.current, true)}>{copy.interaction.rpcError.includes('链') ? '重新连接' : 'Retry connection'}</button></p>}
     {presaleState?.soldOut && <p className="status-message">{copy.interaction.soldOut}</p>}{presaleState?.paused && <p className="status-message">{copy.interaction.paused}</p>}{ended && <p className="status-message">{copy.interaction.ended}</p>}{presaleState?.hasParticipated && <p className="status-message is-success">{copy.interaction.alreadyParticipated}</p>}
     {account && chainId !== null && chainId !== 56 && <p className="status-message is-warning">{copy.interaction.wrongNetwork}</p>}
