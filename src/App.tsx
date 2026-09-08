@@ -12,6 +12,7 @@ class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
 }
 export default function App() {
-  const markets = new URLSearchParams(window.location.search).get('view') === 'markets'
+  const params = new URLSearchParams(window.location.search)
+  const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
   return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{markets ? '美股看板' : '蝴蝶股票'}…</main>}>{markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
 }
