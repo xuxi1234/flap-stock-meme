@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { MarketDashboard } from './components/MarketDashboard'
 import { Hero } from './components/Hero'
 import { NameCore } from './components/NameCore'
 import { TokenMechanism } from './components/TokenMechanism'
@@ -23,6 +24,7 @@ export default function App() {
   }
   const copy = siteContent[language]
   useEffect(() => { document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en' }, [language])
+  if (new URLSearchParams(window.location.search).get('view') === 'markets') return <MarketDashboard />
   return <div className="site-shell">
     <div className="site-grid" aria-hidden="true" />
     <SiteHeader account={shareAccount} onWalletClick={walletEntry} copy={copy.nav} communityCopy={copy.community} language={language} onLanguageChange={setLanguage} />
