@@ -79,3 +79,43 @@
 .market-selected { flex-wrap:wrap; }
 .market-selected>div { min-width:0; overflow-wrap:anywhere; }
 @media(max-width:600px) { .market-news .market-widget { height:460px; } .market-section-head { flex-wrap:wrap; } .market-panel h2 { font-size:21px; } .market-search kbd { display:none; } }
+
+/* Navigation and portable watchlists share the site's brand palette. */
+body.market-route { padding-bottom:0; background:#eeeee7; }
+.market-quicknav { display:flex; gap:8px; padding:0 0 18px; }
+.market-quicknav a { display:flex; align-items:center; justify-content:center; min-height:48px; padding:8px 20px; border:1px solid #d6cce9; border-radius:12px; background:#fff; color:#4816c9; font-weight:700; font-size:14px; }
+.market-quicknav a:hover { background:#eee9fa; border-color:#5b20ff; }
+.market-page a:focus-visible { outline:3px solid #5b20ff; outline-offset:3px; }
+.market-skip { position:fixed; top:8px; left:8px; z-index:99; background:#10051f; color:white; padding:14px; transform:translateY(-200%); }
+.market-skip:focus { transform:none; }
+.market-heatmap { margin-top:18px; }
+.market-heatmap .market-widget { height:540px; }
+.market-widget-stage { position:relative; }
+.market-widget-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border-radius:12px; background:linear-gradient(135deg,#f6f3fb,#f8f7ef); color:#766a82; pointer-events:none; }
+.market-widget-placeholder span { color:#5b20ff; font-size:22px; font-weight:800; }
+.market-widget-placeholder p { font-size:13px; }
+.watchlist-transfer { border-top:1px solid #e3dcea; padding-top:8px; }
+.watchlist-transfer summary { cursor:pointer; min-height:48px; display:list-item; align-content:center; font-weight:700; color:#4816c9; font-size:13px; }
+.watchlist-transfer label { display:block; font-size:12px; margin-top:12px; color:#675780; }
+.watchlist-transfer textarea { display:block; box-sizing:border-box; resize:vertical; width:100%; min-width:0; margin:8px 0; padding:10px; font:12px/1.6 monospace; border:1px solid #c8bdd8; border-radius:8px; background:#f8f7ef; color:#10051f; }
+.watchlist-transfer textarea:focus-visible, .watchlist-transfer summary:focus-visible { outline:3px solid #5b20ff; outline-offset:2px; }
+.market-transfer-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.market-page button:disabled { cursor:not-allowed; opacity:.5; }
+.market-offline { background:#fff4db; border:1px solid #c79b35; border-radius:12px; padding:14px; font-size:14px; line-height:1.7; }
+@media(max-width:600px) {
+ .market-intro { padding-top:18px; }
+ .market-intro h1 { font-size:30px; }
+ .market-data-note { padding:14px 16px; border-width:1px; }
+ .market-data-note>span { margin-top:8px; }
+ .market-quicknav { position:sticky; top:0; z-index:8; margin-inline:-10px; padding:8px 10px; background:#eeeee7; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+ .market-quicknav a { padding:8px 3px; font-size:12px; }
+ .market-panel { scroll-margin-top:76px; }
+ .market-header>div { flex-wrap:wrap; gap:8px; justify-content:space-between; font-size:12px; }
+ .market-heatmap .market-widget { height:430px; }
+ .market-stock-buttons { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; }
+ .market-stock-buttons button { flex:0 0 auto; }
+ .market-search input { font-size:16px; }
+ .market-page button { min-height:48px; }
+ .watchlist-transfer textarea { font-size:16px; }
+}
+@media(pointer:coarse) { .market-page button { min-height:48px; } }
