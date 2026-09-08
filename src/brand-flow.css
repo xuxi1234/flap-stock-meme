@@ -207,7 +207,7 @@ body, .site-shell { background: var(--acid); }
 
 /* Transform-only title wave keeps surrounding content steady on every screen. */
 .hero h1 .hero-title-wave { white-space: nowrap; overflow: visible; }
-.hero-title-wave .hero-title-letter { display: inline-block; font-weight: inherit; animation: hero-title-wave 3.2s ease-in-out infinite; }
+.hero-title-wave .hero-title-letter { display: inline-block; font-weight: inherit; animation: hero-title-wave 1s ease-in-out infinite; }
 @keyframes hero-title-wave {
   0%, 45%, 100% { transform: translateY(0) rotate(0); }
   18% { transform: translateY(-.08em) rotate(-2deg); }
