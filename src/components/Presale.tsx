@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createPublicClient, createWalletClient, custom, http, isAddress, type Address, type EIP1193Provider, type Hash, type PublicClient, type WalletClient } from 'viem'
+import { createPublicClient, createWalletClient, custom, fallback, http, isAddress, type Address, type EIP1193Provider, type Hash, type PublicClient, type WalletClient } from 'viem'
 import { bsc } from 'viem/chains'
 import { projectConfig } from '../config/project'
 import type { SiteCopy } from '../content/siteContent'
@@ -52,7 +52,10 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
   const submittingRef = useRef(false)
   const requestRef = useRef(0)
 
-  const readClient = useMemo(() => contractAddress ? (publicClient ?? createPublicClient({ chain: bsc, transport: http() })) : null, [contractAddress, publicClient])
+  const readClient = useMemo(() => contractAddress ? (publicClient ?? createPublicClient({ chain: bsc, transport: fallback([
+    http('https://bsc-rpc.publicnode.com', { timeout: 4_000, retryCount: 0 }),
+    http('https://bsc-dataseed.bnbchain.org', { timeout: 4_000, retryCount: 0 }),
+  ], { retryCount: 0 }) })) : null, [contractAddress, publicClient])
 
   const refresh = useCallback(async (target: Address | null, showLoading = false) => {
     if (!contractAddress || !readClient) return null
@@ -144,7 +147,7 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
   }
 
   const ended = Boolean(presaleState && Number(presaleState.endTime) <= Math.floor(nowMs / 1_000))
-  const displayStatus: PresaleDisplayStatus = readStatus === 'error' ? 'unavailable' : presaleState?.soldOut ? 'soldOut' : presaleState?.paused ? 'paused' : ended ? 'ended' : presaleState?.hasParticipated ? 'participated' : 'live'
+  const displayStatus: PresaleDisplayStatus = readStatus !== 'ready' ? 'unavailable' : presaleState?.soldOut ? 'soldOut' : presaleState?.paused ? 'paused' : ended ? 'ended' : presaleState?.hasParticipated ? 'participated' : 'live'
   useEffect(() => { onStatusChange?.(displayStatus) }, [displayStatus, onStatusChange])
   if (!contractAddress) return <PresaleConsole copy={copy} presaleEnabled={false} />
   const pending = ['awaitingSignature', 'broadcast', 'confirming'].includes(phase)
@@ -154,10 +157,10 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
 
   return <PresaleConsole copy={copy} action={<div className="participation-console" aria-live="polite">
     <div className="presale-countdown"><span>{copy.interaction.countdown}</span><strong>{presaleState ? formatCountdown(presaleState.endTime, nowMs) : '—'}</strong><small>{presaleState ? 'DD : HH : MM : SS' : copy.interaction.unavailable}</small></div>
-    {readError && <p className="status-message is-error" role="alert">{copy.interaction.rpcError}: {readError}</p>}
+    {readError && <p className="status-message is-error" role="alert">{copy.interaction.rpcError}。 <button className="text-action" type="button" disabled={readStatus === 'loading'} onClick={() => void refresh(accountRef.current, true)}>{copy.interaction.rpcError.includes('链') ? '重新连接' : 'Retry connection'}</button></p>}
     {presaleState?.soldOut && <p className="status-message">{copy.interaction.soldOut}</p>}{presaleState?.paused && <p className="status-message">{copy.interaction.paused}</p>}{ended && <p className="status-message">{copy.interaction.ended}</p>}{presaleState?.hasParticipated && <p className="status-message is-success">{copy.interaction.alreadyParticipated}</p>}
     {account && chainId !== null && chainId !== 56 && <p className="status-message is-warning">{copy.interaction.wrongNetwork}</p>}
-    {phaseLabel && <div className={`transaction-state phase-${phase}`}><span>{phaseLabel}</span>{phaseError && <small>{phaseError}</small>}{transactionHash && <><code>{transactionHash}</code><a href={`https://bscscan.com/tx/${transactionHash}`} target="_blank" rel="noreferrer">{copy.interaction.viewOnBscScan}</a></>}</div>}
+    {phaseLabel && <div className={`transaction-state phase-${phase}`}><span>{phaseLabel}</span>{phaseError && <small>{copy.interaction.rpcError.includes('链') ? '操作未完成，请检查钱包和网络连接后重试；已发送的交易请先查询记录。' : 'Check your wallet and connection. If a transaction was sent, check its record before retrying.'}</small>}{transactionHash && <><code>{transactionHash}</code><a href={`https://bscscan.com/tx/${transactionHash}`} target="_blank" rel="noreferrer">{copy.interaction.viewOnBscScan}</a></>}</div>}
     <button className="button button-primary participate-button" disabled={account ? blocked : false} onClick={() => void (account ? submit() : walletClient || provider ? connectWith() : setChooserOpen(true))} type="button">{actionLabel}</button>
     <MyParticipation copy={copy.interaction} account={account} hasParticipated={Boolean(presaleState?.hasParticipated)} record={savedRecord} />
     {chooserOpen && <WalletChooser copy={copy.interaction} providers={providers} onClose={() => setChooserOpen(false)} onSelect={(wallet) => void connectWith(wallet)} />}
