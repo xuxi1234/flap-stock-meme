@@ -58,7 +58,7 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
   ], { retryCount: 0 }) })) : null, [contractAddress, publicClient])
 
   const refresh = useCallback(async (target: Address | null, showLoading = false) => {
-    if (!contractAddress || !readClient) return null
+    if (!projectConfig.presale.websiteOpen || !contractAddress || !readClient) return null
     const id = ++requestRef.current
     if (showLoading) setReadStatus('loading')
     setReadError(null)
@@ -116,7 +116,7 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
   const submit = async () => {
     const client = walletRef.current
     const validatedAccount = accountRef.current
-    if (!client || !validatedAccount || !readClient || submittingRef.current) return
+    if (!projectConfig.presale.websiteOpen || !client || !validatedAccount || !readClient || submittingRef.current) return
     submittingRef.current = true; setPhaseError(null); setTransactionHash(null); setPhase('awaitingSignature')
     let broadcastHash: Hash | null = null
     try {
@@ -147,8 +147,15 @@ export function Presale({ copy, contractAddress = projectConfig.presale.contract
   }
 
   const ended = Boolean(presaleState && Number(presaleState.endTime) <= Math.floor(nowMs / 1_000))
-  const displayStatus: PresaleDisplayStatus = readStatus !== 'ready' ? 'unavailable' : presaleState?.soldOut ? 'soldOut' : presaleState?.paused ? 'paused' : ended ? 'ended' : presaleState?.hasParticipated ? 'participated' : 'live'
+  const displayStatus: PresaleDisplayStatus = !projectConfig.presale.websiteOpen || readStatus !== 'ready' ? 'unavailable' : presaleState?.soldOut ? 'soldOut' : presaleState?.paused ? 'paused' : ended ? 'ended' : presaleState?.hasParticipated ? 'participated' : 'live'
   useEffect(() => { onStatusChange?.(displayStatus) }, [displayStatus, onStatusChange])
+  if (!projectConfig.presale.websiteOpen) return <section className="statement presale-section" id="presale" aria-label={copy.regionLabel}>
+    <p className="eyebrow">PRIVATE SALE</p>
+    <h2>{copy.interaction.rpcError.includes('链') ? '私募暂未开放' : 'PRIVATE SALE NOT OPEN'}</h2>
+    <p>{copy.interaction.rpcError.includes('链') ? '敬请等待官方通知。开放时间及参与规则将通过官方渠道公布。' : 'Please wait for an official announcement. Opening times and participation rules will be published through our official channels.'}</p>
+    <a className="button button-secondary" href="#community">{copy.interaction.rpcError.includes('链') ? '关注官方社区' : 'FOLLOW THE COMMUNITY'}</a>
+    {chooserOpen && <WalletChooser copy={copy.interaction} providers={providers} onClose={() => setChooserOpen(false)} onSelect={(wallet) => void connectWith(wallet)} />}
+  </section>
   if (!contractAddress) return <PresaleConsole copy={copy} presaleEnabled={false} />
   const pending = ['awaitingSignature', 'broadcast', 'confirming'].includes(phase)
   const blocked = readStatus !== 'ready' || pending || displayStatus !== 'live'
