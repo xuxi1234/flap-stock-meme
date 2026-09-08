@@ -5,7 +5,7 @@ export const flapTokenAddress: string | null = null
 export function TokenMechanism({ language }: { language: Language }) {
   const zh = language === 'zh'
   const first = [
-    ['77%', zh ? '金库' : 'Treasury', zh ? '进入金库后，按下方第二层方案分配。' : 'Allocated again through the treasury plan below.'],
+    ['77%', zh ? '蝴蝶股票金库' : '蝴蝶股票 Treasury', zh ? '进入金库后，按下方第二层方案分配。' : 'Allocated again through the treasury plan below.'],
     ['17%', zh ? 'QQQB 奖励' : 'QQQB rewards', zh ? '用于 QQQB 奖励分配。' : 'Allocated to QQQB rewards.'],
     ['6%', zh ? '销毁' : 'Burn', zh ? '用于代币销毁。' : 'Allocated to token burning.'],
   ]
