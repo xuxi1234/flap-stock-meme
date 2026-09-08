@@ -12,7 +12,7 @@ export function TokenMechanism({ language }: { language: Language }) {
   const second = [
     ['0.1%', zh ? '裂变回购' : 'Referral buyback'],
     ['30%', zh ? '蝴蝶股票溢价池' : '蝴蝶股票 Premium pool'],
-    ['69.9%', zh ? '锁仓分红' : 'Locked-token rewards'],
+    ['69.9%', zh ? '粉红锁仓分红' : 'Pink locked-token rewards'],
   ]
   return <section className="statement token-mechanism" id="mechanism" aria-label={zh ? '代币机制' : 'Token mechanism'}>
     <p className="eyebrow">TOKENOMICS</p>
