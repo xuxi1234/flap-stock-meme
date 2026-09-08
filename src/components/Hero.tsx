@@ -21,13 +21,13 @@ export function Hero({ copy, language = 'zh' }: Props) {
         <ul className="hero-quick-facts" aria-label={copy.statusLabel}>
           {copy.quickFacts.map((fact) => <li key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></li>)}
         </ul>
-        <div className="hero-actions"><a className="button button-primary" href="/?view=markets">{language === 'zh' ? '查看美股动态 ↗' : 'EXPLORE US STOCKS ↗'}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
+        <div className="hero-actions"><a className="button button-primary" href={projectConfig.presale.websiteOpen ? '#presale' : '/?view=markets'}>{projectConfig.presale.websiteOpen ? copy.enterPresale : language === 'zh' ? '查看美股动态 ↗' : 'EXPLORE US STOCKS ↗'}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
       </div>
-      <a className="hero-visual hero-presale-link" href="#presale"  aria-label={language === 'zh' ? '查看私募通知' : 'Private sale notice'}>
+      <a className="hero-visual hero-presale-link" href="#presale"  aria-label={projectConfig.presale.websiteOpen ? copy.enterPresale : language === 'zh' ? '查看私募通知' : 'Private sale notice'}>
         <span className="hero-visual-status" aria-hidden="true">{projectConfig.brand.chineseName}</span>
         <p className="ticker" aria-hidden="true">{copy.visualTicker}</p>
         <div className="butterfly-stage" aria-hidden="true"><img src="/flap-stock-avatar.png" alt="" /></div>
-        <span className="hero-card-action">{language === 'zh' ? '私募暂未开放 · 等待通知' : 'NOT OPEN · AWAIT ANNOUNCEMENT'}</span>
+        <span className="hero-card-action">{projectConfig.presale.websiteOpen ? copy.enterPresale : language === 'zh' ? '私募暂未开放 · 等待通知' : 'NOT OPEN · AWAIT ANNOUNCEMENT'}</span>
       </a>
     </section>
   )
