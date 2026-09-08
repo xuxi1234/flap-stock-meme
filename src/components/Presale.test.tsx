@@ -7,7 +7,7 @@ import { Presale } from './Presale'
 const contract = '0x1111111111111111111111111111111111111111' as Address
 const account = '0x2222222222222222222222222222222222222222' as Address
 const hash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const
-const frozenNow = 1_788_965_999_000
+const frozenNow = 1_788_904_799_000
 
 beforeEach(() => { vi.spyOn(Date, 'now').mockReturnValue(frozenNow); localStorage.clear() })
 afterEach(() => { cleanup(); vi.restoreAllMocks(); localStorage.clear() })
@@ -31,6 +31,16 @@ async function connectAndAgree() {
 }
 
 describe('participation transaction feedback', () => {
+  it('ends website participation at the earlier cutoff even while the contract remains open', async () => {
+    vi.mocked(Date.now).mockReturnValue(1_788_908_399_000)
+    const setup = clients()
+    render(<Presale copy={siteContent.en.presale} contractAddress={contract} publicClient={setup.publicClient} walletClient={setup.walletClient} />)
+    expect(await screen.findByText('00:00:00:00')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'CHOOSE & CONNECT WALLET' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'PRIVATE SALE HAS ENDED' })).toBeDisabled())
+    expect(setup.writeContract).not.toHaveBeenCalled()
+  })
+
   it('shows the countdown without removed statistics or checkbox', async () => {
     const setup = clients()
     render(<Presale copy={siteContent.en.presale} contractAddress={contract} publicClient={setup.publicClient} walletClient={setup.walletClient} />)
