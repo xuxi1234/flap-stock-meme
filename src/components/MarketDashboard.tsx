@@ -105,7 +105,7 @@ export function MarketDashboard() {
       url.searchParams.set('symbol', symbol)
       window.history.pushState(null, '', url)
     }
-    setSelected(symbol); setMessage('')
+    setSelected(symbol); setMessage(''); setShareUrl('')
   }
   const shareStock = async () => {
     const url = new URL(window.location.href)
@@ -140,7 +140,7 @@ export function MarketDashboard() {
           {query && results.length === 0 && <p className="market-help">未匹配常用列表？可输入 NASDAQ:代码、NYSE:代码或 AMEX:代码查询，是否支持以图表结果为准。</p>}
           <div className="market-selected"><div><strong>{name}</strong><small>{selected}</small></div><button type="button" disabled={!isSaved && saved.length >= 30} aria-pressed={isSaved} onClick={() => updateSaved(isSaved ? saved.filter(s => s !== selected) : [...saved, selected])}>{isSaved ? '★ 移出自选' : '☆ 加入自选'}</button></div>
           <div className="market-share-row"><button type="button" onClick={shareStock}>分享这只股票 ↗</button><p className="market-feedback" role="status">{message}</p></div>
-          {shareUrl && <label className="market-share-link">股票分享链接<input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} /></label>
+          {shareUrl && <label className="market-share-link">股票分享链接<input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} /></label>}
           <Widget title="股票价格走势图" kind="advanced-chart" config={{ autosize: true, symbol: selected, interval: 'D', timezone: 'America/New_York', theme: 'light', style: '1', locale: 'zh_CN', allow_symbol_change: false, withdateranges: true, hide_side_toolbar: true, save_image: false, calendar: false, support_host: 'https://www.tradingview.com' }} />
         </section>
         <aside className="market-sidebar">
