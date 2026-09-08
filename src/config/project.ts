@@ -24,5 +24,5 @@ export const projectConfig = Object.freeze({
     contractAddress: '0x409c9448172b0f244a6823e91ad669281294622b' as NullableAddress,
     purchaseUrl: '#presale' as NullableLink,
   }),
-  community: Object.freeze({ x: 'https://x.com/hudiegupiao', telegram: 'https://t.me/hudiegupiao', debox: 'https://m.debox.pro/group?id=g4o88wvy&code=pgk4b63r' }),
+  community: Object.freeze({ qq: 'https://qun.qq.com/universal-share/share?ac=1&authKey=9rKcpHa4zVf5U%2BhEQkeckgDVNXi4JJl3t%2F5nTjPnf1RCCBu4%2BftY7kQxIdcrPK6g&busi_data=eyJncm91cENvZGUiOiIxMDMxMDEwMTk5IiwidG9rZW4iOiJpQU5JSE9VallPQ1JGTkdwL1cvWW9UZC8yZ0lKSmVEWjlUdGxtMjN6TXFpVW5YRHF6M0hhaHdDVi9ucmZvYUxaIiwidWluIjoiMTY2NjAzNDEifQ%3D%3D&data=_lpqaylGtDfUtGqHVh0Uu7a_YE77kkRQDpGC7ptNgsBLt2Sr5LeQCHqP-Dta6nxpK8K9dKOBQnx0pzlSRqlpBg&svctype=4&tempid=h5_group_info', x: 'https://x.com/hudiegupiao', telegram: 'https://t.me/hudiegupiao', debox: 'https://m.debox.pro/group?id=g4o88wvy&code=pgk4b63r' }),
 })
