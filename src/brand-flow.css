@@ -204,3 +204,15 @@ body, .site-shell { background: var(--acid); }
   .community-cards > a { padding: 16px; }
   .presale-share { margin-top: -12px; margin-bottom: 24px; padding: 16px; }
 }
+
+/* Transform-only title wave keeps surrounding content steady on every screen. */
+.hero h1 .hero-title-wave { white-space: nowrap; overflow: visible; }
+.hero-title-wave .hero-title-letter { display: inline-block; font-weight: inherit; animation: hero-title-wave 3.2s ease-in-out infinite; }
+@keyframes hero-title-wave {
+  0%, 45%, 100% { transform: translateY(0) rotate(0); }
+  18% { transform: translateY(-.08em) rotate(-2deg); }
+  30% { transform: translateY(.015em) rotate(1deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-title-wave .hero-title-letter { animation: none; transform: none; }
+}
