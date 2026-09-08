@@ -33,13 +33,13 @@ export default function HomePage() {
         <div><p className="eyebrow">FLAP STOCK / US MARKETS</p><h2>{language === 'zh' ? '美股动态，随时掌握。' : 'FOLLOW THE US MARKET.'}</h2><p>{language === 'zh' ? '查看股票走势、板块热力图与公司新闻。自选支持备份，关注的股票随时继续看。' : 'Explore stock charts, market ETFs and movers. Save companies to your watchlist.'}</p><small>{language === 'zh' ? 'TradingView 提供行情 · 数据可能延迟 · 无需连接钱包' : 'Data by TradingView · Quotes may be delayed · No wallet required'}</small></div>
         <a className="button button-primary" href="/?view=markets">{language === 'zh' ? '打开美股看板 ↗' : 'OPEN STOCK DASHBOARD ↗'}</a>
       </section>
-      <Presale walletRequest={walletRequest} copy={{ ...copy.presale, eyebrow: 'FLAP / PRESALE', title: language === 'zh' ? '每个地址，固定 0.05 BNB。' : 'ONE ADDRESS. FIXED 0.05 BNB.', body: language === 'zh' ? '连接 BSC 钱包，查看实时状态后参与。每地址仅一次；网络费由钱包另行显示。' : 'Connect a BSC wallet and check the live status before joining. One entry per address; network fees are shown separately in your wallet.' }} onAccountChange={setShareAccount} onStatusChange={setPresaleStatus} />
+      <Presale walletRequest={walletRequest} copy={{ ...copy.presale, eyebrow: 'FLAP / PRIVATE SALE', title: language === 'zh' ? '每个地址，固定 0.05 BNB。' : 'ONE ADDRESS. FIXED 0.05 BNB.', body: language === 'zh' ? '连接 BSC 钱包，查看实时状态后参与。每地址仅一次；网络费由钱包另行显示。' : 'Connect a BSC wallet and check the live status before joining. One entry per address; network fees are shown separately in your wallet.' }} onAccountChange={setShareAccount} onStatusChange={setPresaleStatus} />
       <PresaleShare onConnect={openWallet} language={language} account={shareAccount} />
       <TokenMechanism language={language} />
       <NameCore copy={{ ...copy.nameCore, eyebrow: 'BRAND STORY' }} />
       <CommunitySection language={language} />
     </main>
     <SiteFooter copy={copy.footer} communityCopy={copy.community} />
-    <MobilePresaleDock account={shareAccount} onWalletClick={walletEntry} language={language} copy={{ ...copy.hero, enterPresale: language === 'zh' ? '进入预售' : 'OPEN PRESALE' }} status={presaleStatus} />
+    <MobilePresaleDock account={shareAccount} onWalletClick={walletEntry} language={language} copy={{ ...copy.hero, enterPresale: language === 'zh' ? '进入私募' : 'OPEN PRIVATE SALE' }} status={presaleStatus} />
   </div>
 }
