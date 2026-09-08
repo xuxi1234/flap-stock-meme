@@ -242,3 +242,7 @@ body, .site-shell { background: var(--acid); }
   .header-community .community-link img { width: 22px; height: 28px; }
   .community-cards { grid-template-columns: 1fr; }
 }
+
+/* Keep network and transaction feedback inside narrow wallet browsers. */
+.status-message, .transaction-state, .transaction-state small { min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+.status-message .text-action { margin-left: 8px; }
