@@ -18,7 +18,7 @@ export function CommunityLinks({ copy, className = '' }: Props) {
   return (
     <div className={`community-links ${className}`.trim()} role="group" aria-label={copy.regionLabel}>
       {channels.map(({ label, href, icon }) => (
-        <a className="community-link" href={href} key={label} target="_blank" rel="noopener noreferrer" aria-label={label}>
+        <a className="community-link" href={href} aria-disabled={!href || undefined} tabIndex={href ? undefined : -1} style={!href ? { pointerEvents: 'none' } : undefined} key={label} target="_blank" rel="noopener noreferrer" aria-label={label}>
           <img src={icon} alt="" width="28" height="28" />{label !== 'QQ' && <span>{label}</span>}
         </a>
       ))}
