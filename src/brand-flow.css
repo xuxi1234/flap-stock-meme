@@ -216,3 +216,14 @@ body, .site-shell { background: var(--acid); }
 @media (prefers-reduced-motion: reduce) {
   .hero-title-wave .hero-title-letter { animation: none; transform: none; }
 }
+
+/* Small header logo bounce; link and navigation keep their positions. */
+.site-header .brand-lockup > img { animation: header-logo-bounce 1s ease-in-out infinite; transform-origin: center; }
+@keyframes header-logo-bounce {
+  0%, 65%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-3px) scale(1.04); }
+  45% { transform: translateY(0) scale(.98); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header .brand-lockup > img { animation: none; transform: none; }
+}
