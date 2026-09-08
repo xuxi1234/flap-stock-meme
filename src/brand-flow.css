@@ -246,3 +246,21 @@ body, .site-shell { background: var(--acid); }
 /* Keep network and transaction feedback inside narrow wallet browsers. */
 .status-message, .transaction-state, .transaction-state small { min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
 .status-message .text-action { margin-left: 8px; }
+
+/* Market dashboard entry shares the project's existing brand palette. */
+.market-nav-link { color: var(--purple); }
+.market-home-entry { width: min(calc(100% - 40px), var(--max-width)); margin: 24px auto; padding: 26px 30px; background: var(--paper); border: 2px solid var(--ink); border-radius: 22px; display: flex; gap: 24px; align-items: center; justify-content: space-between; }
+.market-home-entry .eyebrow { margin-bottom: 10px; }
+.market-home-entry h2 { font-size: clamp(24px, 3vw, 36px); margin-bottom: 10px; line-height: 1.25; }
+.market-home-entry p { line-height: 1.65; margin-bottom: 8px; }
+.market-home-entry small { color: #655876; font-size: 12px; }
+.market-home-entry .button { flex-shrink: 0; }
+@media (min-width: 761px) and (max-width: 1250px) {
+ .site-header { gap: 10px; }
+ .header-community .community-link { min-width: 44px; padding: 6px; }
+ .header-community .community-link span { display: none; }
+ nav { gap: 10px; }
+}
+@media (max-width: 760px) {
+ .market-home-entry { width: calc(100% - 20px); padding: 20px; flex-direction: column; align-items: stretch; gap: 16px; }
+}

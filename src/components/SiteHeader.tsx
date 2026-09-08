@@ -28,6 +28,7 @@ export function SiteHeader({ copy, communityCopy, language, onLanguageChange, ac
         <span><strong>{projectConfig.brand.chineseName}</strong><small>{projectConfig.brand.englishName}</small></span>
       </a>
       <nav id="primary-navigation" aria-label={copy.navigationLabel} data-open={menuOpen}>
+        <a className="market-nav-link" href="/?view=markets">{language === 'zh' ? '美股动态' : 'US STOCKS'}</a>
         <a href="#presale" onClick={() => setMenuOpen(false)}>{language === 'zh' ? '私募通知' : 'SALE NOTICE'}</a>
         <a href="#mechanism" onClick={() => setMenuOpen(false)}>{language === 'zh' ? '代币机制' : 'TOKENOMICS'}</a>
         <a href="#story" onClick={() => setMenuOpen(false)}>{copy.story}</a>

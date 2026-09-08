@@ -21,7 +21,7 @@ export function Hero({ copy, language = 'zh' }: Props) {
         <ul className="hero-quick-facts" aria-label={copy.statusLabel}>
           {copy.quickFacts.map((fact) => <li key={fact.label}><span>{fact.label}</span><strong>{fact.value}</strong></li>)}
         </ul>
-        <div className="hero-actions"><a className="button button-primary" href="#presale">{language === 'zh' ? '私募暂未开放' : 'PRIVATE SALE NOT OPEN'}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
+        <div className="hero-actions"><a className="button button-primary" href="/?view=markets">{language === 'zh' ? '查看美股动态 ↗' : 'EXPLORE US STOCKS ↗'}</a><a className="button button-secondary" href="#mechanism">{copy.brandSignalLabel}</a></div>
       </div>
       <a className="hero-visual hero-presale-link" href="#presale"  aria-label={language === 'zh' ? '查看私募通知' : 'Private sale notice'}>
         <span className="hero-visual-status" aria-hidden="true">{projectConfig.brand.chineseName}</span>
