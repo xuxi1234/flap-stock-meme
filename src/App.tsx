@@ -31,6 +31,10 @@ export default function App() {
     <main id="top">
       <Hero onWalletClick={walletEntry} copy={copy.hero} language={language} />
       <TickerStrip copy={copy.ticker} />
+      <section className="market-home-entry" aria-label={language === 'zh' ? '美股动态' : 'US stock market'}>
+        <div><p className="eyebrow">FLAP STOCK / US MARKETS</p><h2>{language === 'zh' ? '美股动态，随时掌握。' : 'FOLLOW THE US MARKET.'}</h2><p>{language === 'zh' ? '查看股票走势、大盘 ETF 与涨跌榜，收藏你关注的公司。' : 'Explore stock charts, market ETFs and movers. Save companies to your watchlist.'}</p><small>{language === 'zh' ? 'TradingView 提供行情 · 数据可能延迟 · 无需连接钱包' : 'Data by TradingView · Quotes may be delayed · No wallet required'}</small></div>
+        <a className="button button-primary" href="/?view=markets">{language === 'zh' ? '打开美股看板 ↗' : 'OPEN STOCK DASHBOARD ↗'}</a>
+      </section>
       <Presale walletRequest={walletRequest} copy={{ ...copy.presale, eyebrow: 'FLAP / PRESALE', title: language === 'zh' ? '每个地址，固定 0.05 BNB。' : 'ONE ADDRESS. FIXED 0.05 BNB.', body: language === 'zh' ? '连接 BSC 钱包，查看实时状态后参与。每地址仅一次；网络费由钱包另行显示。' : 'Connect a BSC wallet and check the live status before joining. One entry per address; network fees are shown separately in your wallet.' }} onAccountChange={setShareAccount} onStatusChange={setPresaleStatus} />
       <PresaleShare onConnect={openWallet} language={language} account={shareAccount} />
       <TokenMechanism language={language} />
