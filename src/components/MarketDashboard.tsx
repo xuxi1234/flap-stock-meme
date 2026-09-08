@@ -18,14 +18,28 @@ const valid = (s: unknown): s is string => typeof s === 'string' && /^(NASDAQ|NY
 function readSaved(): string[] {
   try { const data: unknown = JSON.parse(localStorage.getItem(key) ?? '[]'); return Array.isArray(data) ? [...new Set(data.filter(valid))].slice(0, 30) : [] } catch { return [] }
 }
+function readSymbol() {
+  const symbol = new URLSearchParams(window.location.search).get('symbol')
+  return valid(symbol) ? symbol : 'NASDAQ:AAPL'
+}
 function Widget({ kind, config, title }: { kind: string; config: Record<string, unknown>; title: string }) {
   const host = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (!host.current) return
+    if (!('IntersectionObserver' in window)) { setVisible(true); return }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { setVisible(true); observer.disconnect() }
+    }, { rootMargin: '200px' })
+    observer.observe(host.current)
+    return () => observer.disconnect()
+  }, [])
   const [retry, setRetry] = useState(0)
   const [slow, setSlow] = useState(false)
   const serialized = JSON.stringify(config)
   useEffect(() => {
     const parent = host.current
-    if (!parent) return
+    if (!parent || !visible) return
     setSlow(false)
     const container = document.createElement('div')
     container.className = 'tradingview-widget-container'
@@ -48,7 +62,7 @@ function Widget({ kind, config, title }: { kind: string; config: Record<string, 
     })
     observer.observe(container, { childList: true, subtree: true })
     return () => { script.onerror = null; window.clearTimeout(timer); observer.disconnect(); container.remove() }
-  }, [kind, serialized, retry, title])
+  }, [kind, serialized, retry, title, visible])
   return <div className="market-widget-wrap">
     <div className="market-widget" ref={host} />
     <div className="market-widget-footer">
@@ -59,7 +73,20 @@ function Widget({ kind, config, title }: { kind: string; config: Record<string, 
   </div>
 }
 export function MarketDashboard() {
-  const [selected, setSelected] = useState('NASDAQ:AAPL')
+  const [selected, setSelected] = useState(readSymbol)
+  const searchRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const onBack = () => setSelected(readSymbol())
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault(); searchRef.current?.focus(); searchRef.current?.select()
+      }
+    }
+    window.addEventListener('popstate', onBack)
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('popstate', onBack); window.removeEventListener('keydown', onKey) }
+  }, [])
+  useEffect(() => { document.title = selected + ' · 美股动态 · 蝴蝶股票' }, [selected])
   const [query, setQuery] = useState('')
   const [saved, setSaved] = useState(readSaved)
   const [message, setMessage] = useState('')
@@ -72,7 +99,26 @@ export function MarketDashboard() {
     try { localStorage.setItem(key, JSON.stringify(next)); setMessage('自选已保存在当前浏览器') }
     catch { setMessage('浏览器无法保存，自选仅在本次页面有效') }
   }
-  const choose = (symbol: string) => { setSelected(symbol); setMessage('') }
+  const choose = (symbol: string) => {
+    if (symbol !== selected) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('symbol', symbol)
+      window.history.pushState(null, '', url)
+    }
+    setSelected(symbol); setMessage('')
+  }
+  const shareStock = async () => {
+    const url = new URL(window.location.href)
+    url.search = ''; url.hash = ''
+    url.searchParams.set('view', 'markets'); url.searchParams.set('symbol', selected)
+    try {
+      await navigator.clipboard.writeText(url.toString())
+      setMessage('股票链接已复制，朋友打开后可直接查看 ' + selected)
+    } catch { setMessage('无法自动复制，请复制下方股票链接') }
+    setShareUrl(url.toString())
+  }
+  const [shareUrl, setShareUrl] = useState('')
+
   return <div className="market-page">
     <header className="market-header">
       <a className="market-brand" href="/"><img src="/flap-stock-avatar.png" alt="" /><span>蝴蝶股票<small>FLAP STOCK</small></span></a>
@@ -87,13 +133,14 @@ export function MarketDashboard() {
         <section className="market-panel market-main-chart" id="market-chart">
           <div className="market-section-head"><div><p className="market-kicker">01 / STOCK EXPLORER</p><h2>股票行情</h2></div><span className="market-badge">价格单位以图表为准</span></div>
           <form className="market-search" onSubmit={e => { e.preventDefault(); const symbol = query.trim().toUpperCase(); if (valid(symbol)) choose(symbol); else if (results.length === 1) choose(results[0].symbol); else setMessage('请选择搜索结果，或输入完整代码，例如 NYSE:IBM') }}>
-            <label htmlFor="stock-search">搜索常用股票，或输入交易所代码</label>
-            <div><input id="stock-search" value={query} onChange={e => setQuery(e.target.value)} placeholder="苹果 / AAPL / NYSE:IBM" maxLength={40} /><button type="submit">查看</button></div>
+            <label htmlFor="stock-search">搜索常用股票，或输入交易所代码 <kbd>Ctrl / ⌘ K</kbd></label>
+            <div><input ref={searchRef} id="stock-search" value={query} onChange={e => setQuery(e.target.value)} placeholder="苹果 / AAPL / NYSE:IBM" maxLength={40} /><button type="submit">查看</button></div>
           </form>
           <div className="market-stock-buttons">{results.map(s => <button type="button" key={s.symbol} aria-pressed={selected === s.symbol} onClick={() => choose(s.symbol)} title={s.name}>{s.symbol.split(':')[1]}<small>{s.name.split(' ')[0]}</small></button>)}</div>
           {query && results.length === 0 && <p className="market-help">未匹配常用列表？可输入 NASDAQ:代码、NYSE:代码或 AMEX:代码查询，是否支持以图表结果为准。</p>}
           <div className="market-selected"><div><strong>{name}</strong><small>{selected}</small></div><button type="button" disabled={!isSaved && saved.length >= 30} aria-pressed={isSaved} onClick={() => updateSaved(isSaved ? saved.filter(s => s !== selected) : [...saved, selected])}>{isSaved ? '★ 移出自选' : '☆ 加入自选'}</button></div>
-          <p className="market-feedback" role="status">{message}</p>
+          <div className="market-share-row"><button type="button" onClick={shareStock}>分享这只股票 ↗</button><p className="market-feedback" role="status">{message}</p></div>
+          {shareUrl && <label className="market-share-link">股票分享链接<input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} /></label>
           <Widget title="股票价格走势图" kind="advanced-chart" config={{ autosize: true, symbol: selected, interval: 'D', timezone: 'America/New_York', theme: 'light', style: '1', locale: 'zh_CN', allow_symbol_change: false, withdateranges: true, hide_side_toolbar: true, save_image: false, calendar: false, support_host: 'https://www.tradingview.com' }} />
         </section>
         <aside className="market-sidebar">
@@ -108,6 +155,11 @@ export function MarketDashboard() {
           </section>
         </aside>
       </div>
+      <section className="market-panel market-news" id="market-news">
+        <div className="market-section-head"><div><p className="market-kicker">03 / COMPANY NEWS</p><h2>{name} · 相关新闻</h2></div><span className="market-badge">{selected}</span></div>
+        <p className="market-help">随所选股票切换；新闻语言、发布时间与可用内容以来源为准。没有新闻不代表公司没有动态。</p>
+        <Widget title={name + '相关新闻'} kind="timeline" config={{ feedMode: 'symbol', symbol: selected, displayMode: 'regular', colorTheme: 'light', isTransparent: false, locale: 'zh_CN', width: '100%', height: '100%' }} />
+      </section>
       <footer className="market-disclaimer"><strong>关于这里的数据</strong><p>行情及图表由 TradingView 官方组件展示，具体覆盖、延迟和交易时段以组件信息为准。休市期间可能显示最近交易日数据。自选只保存股票代码，不保存价格；网络异常时不会用模拟数字补位。</p><a href="https://www.tradingview.com/widget-docs/markets/north-america/" target="_blank" rel="noopener noreferrer">查看数据覆盖与延迟说明 ↗</a><a href="/">返回蝴蝶股票官网 ↗</a></footer>
     </main>
   </div>
