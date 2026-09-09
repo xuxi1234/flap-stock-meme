@@ -31,7 +31,8 @@ export const wrappedAbi = parseAbi(['function deposit() payable', 'function with
 export const executionAbi = [...routerAbi, ...wrappedAbi] as const
 
 export function swapHref(hostname = window.location.hostname) {
-  // Keep parent-domain navigation usable independently of app-subdomain DNS.
+  if (/^(www\.)?gupiao\.sh$/.test(hostname)) return 'https://app.gupiao.sh/'
+  if (/^(www\.)?hudiegupiao\.com$/.test(hostname)) return 'https://app.hudiegupiao.com/'
   if (hostname === 'app.gupiao.sh' || hostname === 'app.hudiegupiao.com') return '/'
   return '/?view=swap'
 }

@@ -6,9 +6,9 @@ The user approved production release on 2026-09-09 after desktop and mobile prev
 
 - Preview: `/?view=swap` on the Vercel preview deployment.
 - `app.gupiao.sh` and `app.hudiegupiao.com` select the swap page at `/`.
-- Production and preview homepage navigation use the same-origin `/?view=swap` route, so navigation does not depend on a second domain's DNS or certificate. On an app subdomain the swap entry is `/`.
+- Production homepage navigation maps each parent domain to its matching `app` subdomain. Preview navigation stays on the preview deployment at `/?view=swap`; on an app subdomain the swap entry is `/`. Existing parent-domain `/?view=swap` links remain supported.
 - Attach the app subdomains to this Vercel project's Production environment using the DNS targets Vercel supplies. Do not guess DNS values or change the parent-domain aliases.
-- Production entry points: `https://gupiao.sh/?view=swap` and `https://www.hudiegupiao.com/?view=swap`. Both app subdomains have been attached to Production in Vercel; external DNS remains pending because the registrar requires login. For each domain, Vercel supplied CNAME host `app` and target `081129d8b8e669f0.vercel-dns-016.com.`. Keep same-origin navigation working while the optional app aliases are being completed.
+- Production entry points: `https://app.gupiao.sh/` and `https://app.hudiegupiao.com/`. Both subdomains are attached to Production in Vercel. On 2026-09-09, the user provided an authenticated Dynadot session and authorized completion. For each domain, the `app` CNAME was added with Vercel's supplied target `081129d8b8e669f0.vercel-dns-016.com` and the existing 5-minute TTL; existing apex and `www` records were preserved.
 
 ## Implemented
 
