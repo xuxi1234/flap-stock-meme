@@ -17,8 +17,10 @@ describe('exact integer amounts and routes', () => {
   it.each(['-1', '0', '1e18', 'Infinity', 'NaN', '1,000', '0.1234567'])('rejects unsafe amount %s', value => expect(() => parseAmount(value, 6)).toThrow())
   it('rejects slippage outside 0.1–5 percent and rounds min out down', () => { expect(minimumReceived(101n, 50)).toBe(100n); expect(() => minimumReceived(1n, 0)).toThrow(); expect(() => minimumReceived(1n, 501)).toThrow() })
   it('builds only bounded paths without loops', () => { for (const path of candidatePaths(TOKENS[0], TOKENS[1])) { expect(new Set(path.map(a => a.toLowerCase())).size).toBe(path.length); expect(path.length).toBeLessThanOrEqual(4) } })
-  it('sets intended production subdomains while retaining preview navigation', () => {
-    expect(swapHref('gupiao.sh')).toBe('https://app.gupiao.sh/'); expect(swapHref('www.hudiegupiao.com')).toBe('https://app.hudiegupiao.com/'); expect(swapHref('example.vercel.app')).toBe('/?view=swap'); expect(homeHref('app.gupiao.sh')).toBe('https://gupiao.sh/')
+  it('keeps production navigation on working parent domains and supports app hosts', () => {
+    for (const host of ['gupiao.sh', 'www.gupiao.sh', 'hudiegupiao.com', 'www.hudiegupiao.com', 'example.vercel.app']) expect(swapHref(host)).toBe('/?view=swap')
+    for (const host of ['app.gupiao.sh', 'app.hudiegupiao.com']) expect(swapHref(host)).toBe('/')
+    expect(homeHref('app.gupiao.sh')).toBe('https://gupiao.sh/')
   })
 })
 describe('transaction invariants', () => {
