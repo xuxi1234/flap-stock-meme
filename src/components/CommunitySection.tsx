@@ -12,6 +12,6 @@ export function CommunitySection({ language }: { language: Language }) {
   ] as const
   return <section className="statement community-section" id="community" aria-label={zh ? '加入社区' : 'Join the community'}>
     <p className="eyebrow">COMMUNITY</p><h2>{zh ? '故事，从相遇开始。' : 'THE STORY STARTS WITH US.'}</h2>
-    <div className="community-cards">{channels.map(c => <a key={c.id} href={projectConfig.community[c.id]} aria-disabled={c.id === 'qq' || undefined} tabIndex={c.id === 'qq' ? -1 : undefined} style={c.id === 'qq' ? { pointerEvents: 'none' } : undefined} target="_blank" rel="noopener noreferrer"><img src={communityLogos[c.id]} alt="" width="40" height="40" /><h3>{c.name}<span aria-hidden="true">↗</span></h3><p>{c.body}</p></a>)}</div>
+    <div className="community-cards">{channels.map(c => <a key={c.id} href={projectConfig.community[c.id]} aria-disabled={!projectConfig.community[c.id] || undefined} tabIndex={!projectConfig.community[c.id] ? -1 : undefined} style={!projectConfig.community[c.id] ? { pointerEvents: 'none' } : undefined} target="_blank" rel="noopener noreferrer"><img src={communityLogos[c.id]} alt="" width="40" height="40" /><h3>{c.name}<span aria-hidden="true">↗</span></h3><p>{c.body}</p></a>)}</div>
   </section>
 }
