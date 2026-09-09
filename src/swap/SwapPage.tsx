@@ -6,11 +6,11 @@ import { ROUTER, TOKENS, homeHref, tokenKey, type SwapToken } from './config'
 import { approveExact, displayAmount, executeSwap, friendlySwapError, getAllowance, getQuote, importToken, makeSwapClient, minimumReceived, parseAmount, readBalance, type SwapQuote, type SwapReview } from './service'
 import './swap.css'
 
-type Transaction = { hash: Hash; account: Address; title: string; time: number; status: 'pending' | 'success' | 'reverted' }
+type Transaction = { hash: Hash; account: Address; title: string; time: number; status: 'pending' | 'success' | 'reverted' | 'cancelled' | 'replaced' }
 const TX_KEY = 'butterfly-swap-transactions-v1'
 const short = (value: string) => value.slice(0, 6) + '…' + value.slice(-4)
 const readTransactions = (): Transaction[] => {
-  try { const values = JSON.parse(localStorage.getItem(TX_KEY) ?? '[]'); return Array.isArray(values) ? values.filter(t => /^0x[a-fA-F0-9]{64}$/.test(t.hash) && isAddress(t.account) && typeof t.title === 'string' && ['pending', 'success', 'reverted'].includes(t.status)).slice(0, 12) : [] } catch { return [] }
+  try { const values = JSON.parse(localStorage.getItem(TX_KEY) ?? '[]'); return Array.isArray(values) ? values.filter(t => /^0x[a-fA-F0-9]{64}$/.test(t.hash) && isAddress(t.account) && typeof t.title === 'string' && ['pending', 'success', 'reverted', 'cancelled', 'replaced'].includes(t.status)).slice(0, 12) : [] } catch { return [] }
 }
 function TokenIcon({ token }: { token: SwapToken }) {
   return <span className="swap-token-icon" style={{ background: token.color }} aria-hidden="true">{({ BNB: '◆', WBNB: '◆', USDT: '₮', USDC: '$', BTCB: '₿', ETH: 'Ξ', CAKE: '◒' } as Record<string, string>)[token.symbol] ?? token.symbol.slice(0, 1)}</span>
@@ -156,10 +156,13 @@ export function SwapPage() {
       const title = approval ? (allowance && allowance > 0n ? '重置 ' : '授权 ') + review.quote.input.symbol : `${displayAmount(review.quote.amountIn, review.quote.input.decimals)} ${review.quote.input.symbol} → ${review.quote.output.symbol}`
       setTransactions(list => [{ hash: hash!, account: review.account, title, time: Date.now(), status: 'pending' as const }, ...list].slice(0, 12))
       setMessage('交易已提交，正在等待链上确认…')
-      let replacement = false
-      const receipt = await client.waitForTransactionReceipt({ hash, timeout: 90_000, onReplaced: () => { replacement = true } })
-      if (replacement) { setMessage('钱包中的交易已被替换，请在 BscScan 核对结果。原记录保留待确认状态。'); setReview(null); return }
-      setTransactions(list => list.map(t => t.hash === hash ? { ...t, status: receipt.status } : t))
+      let replacementReason: string | undefined
+      const receipt = await client.waitForTransactionReceipt({ hash, timeout: 90_000, onReplaced: event => { replacementReason = event.reason } })
+      if (replacementReason && replacementReason !== 'repriced') {
+        setTransactions(list => list.map(t => t.hash === hash ? { ...t, hash: receipt.transactionHash, status: replacementReason === 'cancelled' ? 'cancelled' : 'replaced' } : t))
+        setMessage('钱包中的交易已取消或被其他交易替换；未将其记为兑换成功，请查看链上记录。'); setReview(null); return
+      }
+      setTransactions(list => list.map(t => t.hash === hash ? { ...t, hash: receipt.transactionHash, status: receipt.status } : t))
       if (receipt.status !== 'success') { setMessage('交易未执行成功，请查看链上记录。'); return }
       if (actionSession === session.current) { setReview(null); setRefresh(n => n + 1); setBalanceRefresh(n => n + 1); if (!approval) setAmount('') }
       setMessage(approval ? '授权操作已确认。请获取新报价，再确认兑换。' : '兑换已确认，资产已发送到你的钱包。')
@@ -207,7 +210,7 @@ export function SwapPage() {
               {(input.custom || output.custom) && <p className="swap-small-note">代币可能收取转账税。预计输出未扣代币税费，最低到账仍受滑点限制。</p>}
               <button className="swap-primary swap-submit" disabled={busy || (!!account && !canReview)} onClick={() => account ? openReview() : setWalletOpen(true)}>{!account ? '连接钱包' : pending ? '上一笔交易待确认' : quoteBusy ? '正在获取报价…' : !amount ? '输入兑换数量' : quote && balance !== null && balance < quote.amountIn ? '余额不足' : quote && stale ? '请刷新报价' : quote ? '预览兑换 →' : '等待有效报价'}</button>
               <p className="swap-card-foot">{account ? `${short(account)} · ${chainId === 56 ? 'BNB Smart Chain' : '请切换 BNB Chain'}` : '先查看报价，连接钱包后确认兑换'}</p>
-            </> : <div className="swap-history"><div className="swap-history-head"><h2>交易记录</h2><button onClick={() => void checkTransactions()}>刷新状态 ↻</button></div><p>仅保存在当前浏览器，链上结果以 BscScan 为准。</p>{transactions.length ? transactions.map(t => <a href={`https://bscscan.com/tx/${t.hash}`} key={t.hash} target="_blank" rel="noopener noreferrer"><span className={`swap-tx-status ${t.status}`}>{t.status === 'success' ? '✓' : t.status === 'pending' ? '◷' : '×'}</span><div><strong>{t.title}</strong><small>{short(t.account)} · {new Date(t.time).toLocaleString('zh-CN')}</small><small>{short(t.hash)}</small></div><span>{t.status === 'success' ? '已确认' : t.status === 'pending' ? '待确认' : '未成功'} ↗</span></a>) : <div className="swap-empty"><span>↔</span><h3>你的下一次兑换，从这里开始</h3><p>提交交易后，记录会显示在这里。</p><button onClick={() => setActiveTab('swap')}>开始兑换 →</button></div>}</div>}
+            </> : <div className="swap-history"><div className="swap-history-head"><h2>交易记录</h2><button onClick={() => void checkTransactions()}>刷新状态 ↻</button></div><p>仅保存在当前浏览器，链上结果以 BscScan 为准。</p>{transactions.length ? transactions.map(t => <a href={`https://bscscan.com/tx/${t.hash}`} key={t.hash} target="_blank" rel="noopener noreferrer"><span className={`swap-tx-status ${t.status}`}>{t.status === 'success' ? '✓' : t.status === 'pending' ? '◷' : '×'}</span><div><strong>{t.title}</strong><small>{short(t.account)} · {new Date(t.time).toLocaleString('zh-CN')}</small><small>{short(t.hash)}</small></div><span>{t.status === 'success' ? '已确认' : t.status === 'pending' ? '待确认' : t.status === 'cancelled' ? '已取消' : t.status === 'replaced' ? '已替换' : '未成功'} ↗</span></a>) : <div className="swap-empty"><span>↔</span><h3>你的下一次兑换，从这里开始</h3><p>提交交易后，记录会显示在这里。</p><button onClick={() => setActiveTab('swap')}>开始兑换 →</button></div>}</div>}
             {message && <p className="swap-feedback" role="status">{message}</p>}
             {pending && <p className="swap-pending"><a href={`https://bscscan.com/tx/${pending.hash}`} target="_blank" rel="noopener noreferrer">查看待确认交易 ↗</a><button onClick={() => void checkTransactions()}>检查状态</button></p>}
           </div>
