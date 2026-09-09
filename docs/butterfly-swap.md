@@ -56,3 +56,21 @@ Official contract sources:
 - Alphabet: https://www.binance.com/en/support/announcement/detail/6a55706a042c4a7ebedc2a0899744088
 
 Catalog inclusion does not promise a V2 route; route checks remain live.
+
+## Asset discovery and quote clarity — 2026-09-09
+
+### Product behavior
+- Asset explorer: Magnificent Seven, all assets, ETFs, and browser-local favorites. Search supports company names, tickers and contracts; sorting supports ticker and representative-pool liquidity.
+- DEX reference prices are separate from executable quotes. The fixed read-only `/api/stock-markets` endpoint requests only reviewed stock contracts, caches for 60 seconds, and filters provider results by BSC, PancakeSwap, exact base contract and trusted USDT/USDC/WBNB quote contracts. It selects the highest-liquidity eligible pool among returned results; all displayed metrics refer to that individual pool. No synthetic history, liquidity totals, or executable-price guarantees.
+- Missing metrics remain missing. Old snapshots are explicitly labeled after 3 minutes or a failed refresh. Provider failures do not disable independent chain quotes.
+- V2 candidates include up to two intermediate assets (three pools), at most 10 loop-free paths. The existing same-block output comparison chooses the highest output, then shortest path on ties. Display shows valid alternatives, actual route and expiry. This is not gas-adjusted or a V3/Infinity router.
+- Share links encode only known input/output assets, never amounts, wallet addresses, approvals, or the current query string. Unknown contracts and duplicate pair parameters cannot create automatic imports or wallet operations.
+- Expanded asset details include contract copying, issuer source and a link to the actual reference pool. Images share the same fallback component throughout.
+- `/butterfly-stock-list.json` is generated during build using the Uniswap Token Lists schema, with checksummed BSC addresses and stock/ETF tags.
+
+### Open-source and official sources inspected
+- Uniswap Token Lists specification (MIT): https://github.com/Uniswap/token-lists ; schema https://github.com/Uniswap/token-lists/blob/main/src/tokenlist.schema.json . Used for the public catalog format, no dependency on a default list or token safety endorsement.
+- PancakeSwap official Smart Router examples: https://github.com/pancakeswap/smart-router-example . Studied route comparison and multi-protocol separation; no V3/Infinity execution code imported into this V2 preview.
+- DEX Screener official API: https://docs.dexscreener.com/api/reference . Uses GET `/tokens/v1/bsc/{addresses}`. Source fields validated before display; provider-supplied logos, links, symbols and calldata are never trusted for asset identity or transactions.
+
+Validation: focused coverage for chain/contract binding, missing metrics, rejected malformed prices, endpoint failure, catalog search/filter, favorites after remount, pair-link sanitization, and a three-pool-only quote. No broadcast transaction is part of these checks.

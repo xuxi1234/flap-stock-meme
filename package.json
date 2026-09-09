@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/build-share-preview.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/build-share-preview.mjs && node scripts/build-stock-list.mjs",
     "test": "vitest",
     "test:responsive": "node scripts/responsive-qa.mjs"
   },

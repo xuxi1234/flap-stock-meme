@@ -16,7 +16,7 @@ describe('exact integer amounts and routes', () => {
   it('preserves values larger than JS safe integers and token decimals', () => { expect(parseAmount('123456789.123456789123456789', 18)).toBe(123456789123456789123456789n); expect(parseAmount('.1', 6)).toBe(100000n) })
   it.each(['-1', '0', '1e18', 'Infinity', 'NaN', '1,000', '0.1234567'])('rejects unsafe amount %s', value => expect(() => parseAmount(value, 6)).toThrow())
   it('rejects slippage outside 0.1–5 percent and rounds min out down', () => { expect(minimumReceived(101n, 50)).toBe(100n); expect(() => minimumReceived(1n, 0)).toThrow(); expect(() => minimumReceived(1n, 501)).toThrow() })
-  it('builds only bounded paths without loops', () => { for (const path of candidatePaths(TOKENS[0], TOKENS[1])) { expect(new Set(path.map(a => a.toLowerCase())).size).toBe(path.length); expect(path.length).toBeLessThanOrEqual(3) } })
+  it('builds only bounded paths without loops', () => { for (const path of candidatePaths(TOKENS[0], TOKENS[1])) { expect(new Set(path.map(a => a.toLowerCase())).size).toBe(path.length); expect(path.length).toBeLessThanOrEqual(4) } })
   it('sets intended production subdomains while retaining preview navigation', () => {
     expect(swapHref('gupiao.sh')).toBe('https://app.gupiao.sh/'); expect(swapHref('www.hudiegupiao.com')).toBe('https://app.hudiegupiao.com/'); expect(swapHref('example.vercel.app')).toBe('/?view=swap'); expect(homeHref('app.gupiao.sh')).toBe('https://gupiao.sh/')
   })
@@ -50,4 +50,22 @@ describe('quote behavior', () => {
     expect(client.readContract).toHaveBeenCalledWith(expect.objectContaining({ functionName: 'getAmountsOut', blockNumber: 100n }))
   })
   it('returns an error rather than inventing a price when all pools fail', async () => { const client = { getChainId: async () => 56, getBlockNumber: async () => 1n, readContract: async () => { throw new Error('offline') } }; await expect(getQuote(client as unknown as PublicClient, TOKENS[0], TOKENS[1], 100n)).rejects.toThrow('路径') })
+})
+
+describe('three-pool routes', () => {
+  it('finds a bridge between two assets when shorter routes fail and bounds requests', async () => {
+    const input = TOKENS[7], output = TOKENS[8]
+    const paths = candidatePaths(input, output)
+    expect(paths).toHaveLength(10)
+    expect(new Set(paths.map(p => p.join('-'))).size).toBe(10)
+    for (const path of paths) expect(new Set(path).size).toBe(path.length)
+    const client = { getChainId: async () => 56, getBlockNumber: async () => 100n, readContract: vi.fn(async ({ functionName, args }) => {
+      if (functionName === 'getAmountsOut') { if (args[1].length !== 4) throw new Error('no route'); return [100n, 100n, 100n, 90n] }
+      if (functionName === 'getPair') return other
+      return [1000000n, 1000000n, 0]
+    }) }
+    const quote = await getQuote(client as unknown as PublicClient, input, output, 100n)
+    expect(quote.path).toHaveLength(4); expect(quote.amountOut).toBe(90n)
+    expect(quote.checkedPaths).toBe(10); expect(quote.alternatives).toHaveLength(6)
+  })
 })

@@ -3,7 +3,7 @@ import { bsc } from 'viem/chains'
 import { FACTORY, ROUTER, TOKENS, WBNB, executionAbi, factoryAbi, pairAbi, routerAbi, tokenKey, type SwapToken } from './config'
 
 export const QUOTE_TTL = 30_000
-export type SwapQuote = { input: SwapToken; output: SwapToken; amountIn: bigint; amountOut: bigint; path: Address[]; expiresAt: number; block: bigint; impactBps: number; wrap: boolean }
+export type SwapQuote = { input: SwapToken; output: SwapToken; amountIn: bigint; amountOut: bigint; path: Address[]; expiresAt: number; block: bigint; impactBps: number; wrap: boolean; alternatives?: { path: Address[]; amountOut: bigint }[]; checkedPaths?: number }
 export type SwapReview = { quote: SwapQuote; account: Address; slippageBps: number; minimumOut: bigint }
 export class SwapError extends Error {}
 export const makeSwapClient = () => createPublicClient({ chain: bsc, transport: fallback([
@@ -35,7 +35,7 @@ export function candidatePaths(input: SwapToken, output: SwapToken): Address[][]
   if (a.toLowerCase() === b.toLowerCase()) return [[a]]
   const bridges = [WBNB, TOKENS[1].address, TOKENS[3].address]
     .filter(address => ![a.toLowerCase(), b.toLowerCase()].includes(address.toLowerCase()))
-  return [[a, b], ...bridges.map(bridge => [a, bridge, b])]
+  return [[a, b], ...bridges.map(bridge => [a, bridge, b]), ...bridges.flatMap(first => bridges.filter(second => second !== first).map(second => [a, first, second, b]))]
 }
 export async function importToken(client: PublicClient, address: string): Promise<SwapToken> {
   if (!isAddress(address) || address.toLowerCase() === zeroAddress) throw new SwapError('请输入有效的 BNB Chain 合约地址。')
@@ -64,7 +64,7 @@ export async function getQuote(client: PublicClient, input: SwapToken, output: S
     const amounts = await client.readContract({ address: ROUTER, abi: routerAbi, functionName: 'getAmountsOut', args: [amountIn, path], blockNumber: block })
     return { path, amountOut: amounts[amounts.length - 1] }
   }))
-  const routes = results.flatMap(r => r.status === 'fulfilled' && r.value.amountOut > 0n ? [r.value] : []).sort((a, b) => a.amountOut > b.amountOut ? -1 : 1)
+  const routes = results.flatMap(r => r.status === 'fulfilled' && r.value.amountOut > 0n ? [r.value] : []).sort((a, b) => a.amountOut === b.amountOut ? a.path.length - b.path.length : a.amountOut > b.amountOut ? -1 : 1)
   if (!routes.length) throw new SwapError('暂未找到可用的 PancakeSwap V2 路径，或节点连接失败。请重试；仅有 V3 / Infinity 池的代币暂不支持。')
   const best = routes[0]
   // Compare quoted output with marginal reserve pricing, including the same V2 pool fee.
@@ -78,7 +78,7 @@ export async function getQuote(client: PublicClient, input: SwapToken, output: S
     marginal = marginal * reserveOut * 9975n / (reserveIn * 10000n)
   }
   const impactBps = marginal > best.amountOut ? Number((marginal - best.amountOut) * 10000n / marginal) : 0
-  return { input, output, amountIn, ...best, block, impactBps, wrap, expiresAt: Date.now() + QUOTE_TTL }
+  return { input, output, amountIn, ...best, block, impactBps, wrap, alternatives: routes, checkedPaths: paths.length, expiresAt: Date.now() + QUOTE_TTL }
 }
 export function assertReview(review: SwapReview, now = Date.now()) {
   if (now >= review.quote.expiresAt) throw new SwapError('报价已过期，请关闭确认窗口并刷新报价。')

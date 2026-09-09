@@ -52,3 +52,20 @@ export function stockSwapHref(token: SwapToken) {
   const href = swapHref()
   return `${href}${href.includes('?') ? '&' : '?'}outputCurrency=${token.address}`
 }
+
+export function selectedPair(search: string): { input: SwapToken; output: SwapToken } {
+  const params = new URLSearchParams(search)
+  const find = (value: string | null) => TOKENS.find(t => tokenKey(t).toLowerCase() === value?.toLowerCase())
+  const output = find(params.get('outputCurrency')) ?? TOKENS[1]
+  const requestedInput = find(params.get('inputCurrency')) ?? TOKENS[0]
+  const input = tokenKey(output) === tokenKey(requestedInput) ? (output.native ? TOKENS[1] : TOKENS[0]) : requestedInput
+  return { input, output }
+}
+export function sharePairUrl(origin: string, input: SwapToken, output: SwapToken) {
+  if (![input, output].every(t => TOKENS.some(known => tokenKey(known) === tokenKey(t)))) return null
+  const url = new URL('/', origin)
+  url.searchParams.set('view', 'swap')
+  url.searchParams.set('inputCurrency', tokenKey(input))
+  url.searchParams.set('outputCurrency', tokenKey(output))
+  return url.href
+}
