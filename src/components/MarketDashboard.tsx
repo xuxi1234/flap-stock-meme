@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './market-dashboard.css'
 import { WatchlistTransfer } from './WatchlistTransfer'
+import { swapHref } from '../swap/config'
 
 const stocks = [
   { symbol: 'NASDAQ:AAPL', name: '苹果 Apple' },
@@ -155,7 +156,7 @@ export function MarketDashboard() {
     <a className="market-skip" href="#market-chart">跳到股票行情</a>
     <header className="market-header">
       <a className="market-brand" href="/"><img src="/flap-stock-avatar.png" alt="" /><span>蝴蝶股票<small>FLAP STOCK</small></span></a>
-      <div><a href="/">项目首页</a><a href="#market-chart">股票行情</a><a href="#market-watchlist">我的自选</a><a href="#market-map">板块热力图</a></div>
+      <div><a href="/">项目首页</a><a href="#market-chart">美股动态</a><a href={swapHref()}>蝴蝶swap</a><a href="#market-watchlist">我的自选</a><a href="#market-map">板块热力图</a></div>
     </header>
     <main className="market-main">
       {offline && <p className="market-offline" role="status">当前网络已断开。显示的数据可能是之前加载的内容；恢复连接后可点击对应区域的“重新加载”。</p>}
