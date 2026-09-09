@@ -81,7 +81,7 @@ export function PresaleDeadlineAdmin() {
       {account && <p style={{ overflowWrap: 'anywhere' }}>已连接：{account}{!isOwner && '（请切换至管理员钱包后重新连接）'}</p>}
       <div className="hero-actions">
         {!synced && <button className="button button-secondary" type="button" disabled={busy} onClick={() => setChooser(true)}>连接管理员钱包</button>}
-        <button className="button button-primary" type="button" disabled={busy || !isOwner || synced || !state || Boolean(hash)} onClick={() => void update()}>{synced ? '链上已同步' : busy ? '处理中…' : '确认修改为 06:59:59'}</button>
+        <button className="button button-primary" type="button" disabled={busy || !isOwner || synced || !state || Boolean(hash)} onClick={() => void update()}>{synced ? '链上已同步' : busy ? '处理中…' : '确认同步至上述截止时间'}</button>
         <button className="button button-secondary" type="button" disabled={busy} onClick={() => void refresh()}>重新检查</button>
       </div>
       <p role="status">{message}</p>

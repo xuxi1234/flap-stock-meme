@@ -21,13 +21,13 @@ describe('deadline administration', () => {
     await expect(submitDeadlineUpdate(c.client, c.signer)).resolves.toBe('0xabc')
     expect(c.simulateContract).toHaveBeenCalledWith(expect.objectContaining({
       address: projectConfig.presale.contractAddress, account: projectConfig.presale.adminAddress,
-      functionName: 'setEndTime', args: [1_788_908_399n], chain: expect.objectContaining({ id: 56 }),
+      functionName: 'setEndTime', args: [1_789_142_400n], chain: expect.objectContaining({ id: 56 }),
     }))
     expect(c.writeContract).toHaveBeenCalledTimes(1)
     expect(c.writeContract.mock.calls[0][0]).not.toHaveProperty('value')
   })
   it('does not submit again when chain state already matches', async () => {
-    const c = clients(1_788_908_399n)
+    const c = clients(1_789_142_400n)
     await expect(submitDeadlineUpdate(c.client, c.signer)).resolves.toBeNull()
     expect(c.writeContract).not.toHaveBeenCalled()
   })

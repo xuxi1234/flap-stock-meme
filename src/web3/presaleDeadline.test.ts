@@ -4,18 +4,23 @@ import { projectConfig } from '../config/project'
 import { effectivePresaleDeadline, presaleDeadlineReached } from './presaleDeadline'
 import { participate } from './presale'
 
-const cutoff = 1_788_908_399
+const cutoff = 1_789_142_400
 afterEach(() => vi.restoreAllMocks())
 
 describe('private sale cutoff', () => {
-  it('maps 06:59:59 Beijing to 22:59:59 UTC on the previous day', () => {
-    expect(Date.parse('2026-09-09T06:59:59+08:00') / 1000).toBe(cutoff)
+  it('maps the end of September 11 Beijing to September 11 16:00 UTC', () => {
+    expect(Date.parse('2026-09-12T00:00:00+08:00') / 1000).toBe(cutoff)
     expect(Date.parse(projectConfig.presale.deadlineUtc) / 1000).toBe(cutoff)
     expect(projectConfig.presale.websiteDeadline).toBe(cutoff)
   })
   it('always applies the earlier of website and on-chain deadlines', () => {
-    expect(effectivePresaleDeadline(1_788_969_599n)).toBe(BigInt(cutoff))
+    expect(effectivePresaleDeadline(BigInt(cutoff + 10))).toBe(BigInt(cutoff))
     expect(effectivePresaleDeadline(BigInt(cutoff - 10))).toBe(BigInt(cutoff - 10))
+  })
+  it('keeps the original contract deadline until the owner extends it', () => {
+    expect(effectivePresaleDeadline(1_788_969_599n)).toBe(1_788_969_599n)
+    expect(presaleDeadlineReached(1_788_969_599n, 1_788_969_599_000)).toBe(true)
+    expect(presaleDeadlineReached(BigInt(cutoff), 1_788_969_599_000)).toBe(false)
   })
   it('closes exactly at the deadline, including when chain reads fail', () => {
     expect(presaleDeadlineReached(undefined, cutoff * 1000 - 1)).toBe(false)
