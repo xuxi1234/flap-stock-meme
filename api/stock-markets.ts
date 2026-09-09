@@ -1,4 +1,4 @@
-import stocks from '../src/swap/stock-tokens.json'
+import stocks from '../src/swap/stock-tokens.json' with { type: 'json' }
 import { normalizeMarkets } from '../src/swap/marketData.js'
 
 type Request = { method?: string }
