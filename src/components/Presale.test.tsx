@@ -1,21 +1,22 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Address, PublicClient, WalletClient } from 'viem'
+import { projectConfig } from '../config/project'
 import { siteContent } from '../content/siteContent'
 import { Presale } from './Presale'
 
 const contract = '0x1111111111111111111111111111111111111111' as Address
 const account = '0x2222222222222222222222222222222222222222' as Address
 const hash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const
-const frozenNow = 1_788_904_799_000
+const frozenNow = (projectConfig.presale.websiteDeadline - 3600) * 1000
 
 beforeEach(() => { vi.spyOn(Date, 'now').mockReturnValue(frozenNow); localStorage.clear() })
 afterEach(() => { cleanup(); vi.restoreAllMocks(); localStorage.clear() })
 
-function clients(options: { participated?: () => boolean; writeError?: unknown; receipt?: Promise<{ status: 'success' | 'reverted'; transactionHash: typeof hash }> | (() => Promise<{ status: 'success' | 'reverted'; transactionHash: typeof hash }>) } = {}) {
+function clients(options: { endTime?: bigint; participated?: () => boolean; writeError?: unknown; receipt?: Promise<{ status: 'success' | 'reverted'; transactionHash: typeof hash }> | (() => Promise<{ status: 'success' | 'reverted'; transactionHash: typeof hash }>) } = {}) {
   const readContract = vi.fn(async ({ functionName }: { functionName: string }) => ({
     participantCount: 18n,
-    endTime: 1_788_969_599n,
+    endTime: options.endTime ?? BigInt(projectConfig.presale.websiteDeadline + 3600),
     paused: false,
     hasParticipated: options.participated?.() ?? false,
   })[functionName])
@@ -31,8 +32,17 @@ async function connectAndAgree() {
 }
 
 describe('participation transaction feedback', () => {
+  it('shows the actual earlier chain deadline while an extension is awaiting the owner', async () => {
+    vi.mocked(Date.now).mockReturnValue(1_788_969_599_000 - 3600_000)
+    const setup = clients({ endTime: 1_788_969_599n })
+    render(<Presale copy={siteContent.en.presale} contractAddress={contract} publicClient={setup.publicClient} walletClient={setup.walletClient} />)
+    expect(await screen.findByText(/Deadline extension awaits on-chain confirmation/)).toHaveTextContent('2026/09/09 23:59:59')
+    await connectAndAgree()
+    expect(setup.writeContract).not.toHaveBeenCalled()
+  })
+
   it('ends website participation at the earlier cutoff even while the contract remains open', async () => {
-    vi.mocked(Date.now).mockReturnValue(1_788_908_399_000)
+    vi.mocked(Date.now).mockReturnValue(projectConfig.presale.websiteDeadline * 1000)
     const setup = clients()
     render(<Presale copy={siteContent.en.presale} contractAddress={contract} publicClient={setup.publicClient} walletClient={setup.walletClient} />)
     expect(await screen.findByText('00:00:00:00')).toBeInTheDocument()
