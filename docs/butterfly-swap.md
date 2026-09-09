@@ -34,3 +34,14 @@ No paid quote API, API secret, third-party swap wrapper or additional deployed c
 `VITE_SWAP_READONLY_SMOKE=1 npm test -- --run src/swap/live.test.ts` is an opt-in read-only BSC smoke check of router identity, token decimals and real quotes. If the shell requires its configured network proxy, use Node's `NODE_USE_ENV_PROXY=1` option. No transactions are broadcast by tests.
 
 Preview trading uses actual BSC assets if a user confirms in their wallet. A successful build and simulated transaction tests are not a claim of completed mainnet trading or a security audit.
+
+## Stock catalog preview — 2026-09-09
+
+- Source of the 10 initial contract identities: https://www.binance.com/en/support/announcement/detail/fd3c0f17a7504eb5be1cb1911c6da0cd
+- Each token's decimals was read from `decimals()` over BSC public RPC (all 18).
+- Official display images: Binance public asset metadata endpoint `/bapi/asset/v2/public/asset/asset/get-all-asset`, resolved by the official announcement's asset code. The resolved HTTPS URLs are stored per contract in `src/swap/stock-tokens.json`. Images load from Binance's CDN; no rights to redistribute them are assumed. Image failures retain the symbol fallback.
+- Initial catalog: AAPLB, AMATB, AMZNB, BEB, DELLB, FLNCB, GSB, PYPLB, SMHB, SOXSB. ETF and leveraged inverse ETF labels are explicit.
+- Contract identity, listing, and tradability are separate. No claim of token safety or V2 liquidity is implied by inclusion. Quotes retain the existing live V2 route and price-impact checks. V3/Infinity execution has not been added.
+- Market-page AAPL and AMZN entries link to the corresponding contract in the swap. Deep links accept catalog contracts only, never router/account/approval overrides.
+- New transactions persist optional input/output keys for icons; old transaction records remain readable.
+- No wallet transaction is needed to inspect or validate the catalog.

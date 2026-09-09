@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './market-dashboard.css'
 import { WatchlistTransfer } from './WatchlistTransfer'
-import { swapHref } from '../swap/config'
+import { swapHref, STOCK_TOKENS, stockSwapHref } from '../swap/config'
 
 const stocks = [
   { symbol: 'NASDAQ:AAPL', name: '苹果 Apple' },
@@ -123,6 +123,7 @@ export function MarketDashboard() {
   const [tab, setTab] = useState<'overview' | 'movers'>('overview')
   const results = (query.trim() ? instruments : stocks).filter(s => (s.symbol + ' ' + s.name).toLowerCase().includes(query.trim().toLowerCase()))
   const name = instruments.find(s => s.symbol === selected)?.name ?? selected
+  const linkedTokens = STOCK_TOKENS.filter(t => t.stockSymbol === selected.split(':')[1])
   const isSaved = saved.includes(selected)
   const updateSaved = (next: string[]) => {
     setSaved(next)
@@ -175,6 +176,7 @@ export function MarketDashboard() {
           <div className="market-stock-buttons">{results.map(s => <button type="button" key={s.symbol} aria-pressed={selected === s.symbol} onClick={() => choose(s.symbol)} title={s.name}>{s.symbol.split(':')[1]}<small>{s.name.split(' ')[0]}</small></button>)}</div>
           {query && results.length === 0 && <p className="market-help">未匹配常用列表？可输入 NASDAQ:代码、NYSE:代码或 AMEX:代码查询，是否支持以图表结果为准。</p>}
           <div className="market-selected"><div><strong>{name}</strong><small>{selected}</small></div><button type="button" disabled={!isSaved && saved.length >= 30} aria-pressed={isSaved} onClick={() => updateSaved(isSaved ? saved.filter(s => s !== selected) : [...saved, selected])}>{isSaved ? '★ 移出自选' : '☆ 加入自选'}</button></div>
+          {linkedTokens.length > 0 && <div className="market-chain-links"><strong>对应链上代币 · BNB Chain</strong>{linkedTokens.map(t => <a key={t.address} href={stockSwapHref(t)}><img src={t.logoURI} alt="" />{t.symbol} · 在蝴蝶swap查看 ↗</a>)}<small>美股行情与链上兑换报价不同，代币不等同于直接持有股票。</small></div>}
           <div className="market-share-row"><button type="button" onClick={shareStock}>分享这只股票 ↗</button><p className="market-feedback" role="status">{message}</p></div>
           {shareUrl && <label className="market-share-link">股票分享链接<input readOnly value={shareUrl} onFocus={e => e.currentTarget.select()} /></label>}
           <Widget title="股票价格走势图" kind="advanced-chart" config={{ autosize: true, symbol: selected, interval: 'D', timezone: 'America/New_York', theme: 'light', style: '1', locale: 'zh_CN', allow_symbol_change: false, withdateranges: true, hide_side_toolbar: true, save_image: false, calendar: false, support_host: 'https://www.tradingview.com' }} />
