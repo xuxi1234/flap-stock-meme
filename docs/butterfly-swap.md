@@ -1,17 +1,17 @@
-# Butterfly Swap preview
+# Butterfly Swap
 
-This feature is on `feature/butterfly-swap-preview`; it must not be merged just to obtain a preview URL.
+The user approved production release on 2026-09-09 after desktop and mobile preview review. Release through the reviewed pull request into `main`, then verify the production domains and read-only market / quote endpoints.
 
 ## Routes and hosting
 
 - Preview: `/?view=swap` on the Vercel preview deployment.
 - `app.gupiao.sh` and `app.hudiegupiao.com` select the swap page at `/`.
 - Production homepage navigation maps each parent domain to its corresponding app subdomain. Preview navigation stays on the preview deployment.
-- Attach the app subdomains to this Vercel project and the preview branch (until release) using the DNS targets Vercel supplies. Do not guess DNS values or change the parent-domain aliases.
+- Attach the app subdomains to this Vercel project's Production environment using the DNS targets Vercel supplies. Do not guess DNS values or change the parent-domain aliases.
 
 ## Implemented
 
-BNB Chain (56), PancakeSwap V2 exact-input swaps, direct and single-intermediate routes through WBNB / USDT / USDC, native BNB wrapping, ERC-20 balances, token import, exact-amount approvals, configurable 0.1–5% slippage, recipient-bound review, 30-second quotes and two-minute swap deadline. The wallet remains the signer; there is no custodial address or platform fee.
+BNB Chain (56), PancakeSwap V2 exact-input swaps, direct and up to two-intermediate routes through WBNB / USDT / USDC, native BNB wrapping, ERC-20 balances, token import, exact-amount approvals, configurable 0.1–5% slippage, recipient-bound review, 30-second quotes and two-minute swap deadline. The wallet remains the signer; there is no custodial address or platform fee.
 
 The V2 supporting-fee-on-transfer entry points protect the recipient's minimum received amount. The initial quote does not include token-specific taxes. No claim of honeypot detection, audited custom-token safety or whole-market optimal routing is made. V3, Infinity, limit orders, bridges and fiat are outside this preview's supported scope.
 

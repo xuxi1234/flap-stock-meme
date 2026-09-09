@@ -196,7 +196,7 @@ export function SwapPage() {
       <div className="swap-header-actions"><span className="swap-chain"><i /> BNB Chain</span><button className="swap-primary" onClick={() => setWalletOpen(true)}>{account ? short(account) : '连接钱包'}</button></div>
     </header>
     <main className="swap-main">
-      <div className="swap-topline"><span><i /> PANCAKESWAP V2 · BNB CHAIN</span><span className="swap-preview-label">预览版</span></div>
+      <div className="swap-topline"><span><i /> PANCAKESWAP V2 · BNB CHAIN</span><span className="swap-preview-label">BSC 主网</span></div>
       <div className="swap-layout">
         <section className="swap-intro">
           <p className="swap-eyebrow">BUTTERFLY SWAP / 01</p><h1>美股灵感，<br /><span>链上轻松换。</span></h1>
