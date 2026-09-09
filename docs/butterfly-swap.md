@@ -45,3 +45,14 @@ Preview trading uses actual BSC assets if a user confirms in their wallet. A suc
 - Market-page AAPL and AMZN entries link to the corresponding contract in the swap. Deep links accept catalog contracts only, never router/account/approval overrides.
 - New transactions persist optional input/output keys for icons; old transaction records remain readable.
 - No wallet transaction is needed to inspect or validate the catalog.
+
+## Magnificent Seven completion — 2026-09-09
+
+Added MSFTB, NVDAB, GOOGLB, METAB and TSLAB; retained AAPLB and AMZNB. All seven appear first in the catalog and have a dedicated selection filter. Market links use each stock's exact ticker (GOOGL Class A, not GOOG Class C). Contract symbol and decimals read directly from BSC. Images resolved from Binance asset metadata.
+
+Official contract sources:
+- Microsoft / Meta: https://www.binance.com/en/support/announcement/detail/03b264b679a646119d1a2415b9097bd6
+- NVIDIA / Tesla: https://www.binance.com/en/support/announcement/detail/5646e3f9ea6b4c989cb76aa18bd99245
+- Alphabet: https://www.binance.com/en/support/announcement/detail/6a55706a042c4a7ebedc2a0899744088
+
+Catalog inclusion does not promise a V2 route; route checks remain live.

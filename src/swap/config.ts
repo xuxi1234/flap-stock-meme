@@ -7,6 +7,7 @@ export const FACTORY = '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73' as const
 export const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c' as const
 export type SwapToken = { address: Address; symbol: string; name: string; decimals: number; native?: boolean; custom?: boolean; color: string; logoURI?: string; stockSymbol?: string; issuer?: string; source?: string; category?: string; verifiedAt?: string }
 export const STOCK_TOKENS = stockTokens as SwapToken[]
+export const MAG7_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA']
 export const TOKENS: SwapToken[] = [
   { address: WBNB, symbol: 'BNB', name: 'BNB · 原生资产', decimals: 18, native: true, color: '#f0b90b' },
   { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Binance-Peg BSC-USD', decimals: 18, color: '#219b83' },
