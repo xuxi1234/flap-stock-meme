@@ -1,0 +1,7 @@
+{
+  "chainId": 56,
+  "adminAddress": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "platformRevenueRecipient": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "executionBudgetWei": "100000000000000000",
+  "onchainConfigured": false
+}
