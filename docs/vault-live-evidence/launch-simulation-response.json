@@ -1,0 +1,32 @@
+[
+  {
+    "method": "eth_call",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "0x00000000000000000000000062706fb71796c0bf762c4f31eaaf49e665017777"
+  },
+  {
+    "method": "eth_estimateGas",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "0x606eb4"
+  },
+  {
+    "method": "eth_getBalance",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "0x10849d684d7a789"
+  },
+  {
+    "method": "eth_gasPrice",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "0x2faf080"
+  },
+  {
+    "method": "eth_blockNumber",
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "0x73bb59f"
+  }
+]

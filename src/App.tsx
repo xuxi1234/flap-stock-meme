@@ -4,6 +4,7 @@ const PresaleDeadlineAdmin = lazy(() => import('./components/PresaleDeadlineAdmi
 const HomePage = lazy(() => import('./HomePage'))
 const MarketDashboard = lazy(() => import('./components/MarketDashboard').then(module => ({ default: module.MarketDashboard })))
 const SwapPage = lazy(() => import('./swap/SwapPage').then(module => ({ default: module.SwapPage })))
+const VaultPage = lazy(() => import('./vault/VaultPage').then(module => ({ default: module.VaultPage })))
 
 class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -15,6 +16,7 @@ class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 }
 export default function App() {
   const params = new URLSearchParams(window.location.search)
+  if (params.get('view') === 'vault-live') return <PageBoundary><Suspense fallback={<main>正在打开链上金库…</main>}><VaultPage /></Suspense></PageBoundary>
   if (params.get('view') === 'vault') return <iframe src="/vault/index.html" title="蝴蝶股票金库" style={{position:'fixed',inset:0,width:'100%',height:'100%',border:0,zIndex:100,background:'#050504'}} />
   const admin = params.get('view') === 'presale-admin'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
