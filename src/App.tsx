@@ -15,6 +15,7 @@ class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 }
 export default function App() {
   const params = new URLSearchParams(window.location.search)
+  if (params.get('view') === 'vault') return <iframe src="/vault/index.html" title="蝴蝶股票金库" style={{position:'fixed',inset:0,width:'100%',height:'100%',border:0,zIndex:100,background:'#050504'}} />
   const admin = params.get('view') === 'presale-admin'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
   const swap = params.get('view') === 'swap' || ['app.gupiao.sh', 'app.hudiegupiao.com'].includes(window.location.hostname)
