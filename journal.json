@@ -174,6 +174,20 @@
       "hash": "0x2612db355257ca8eb40c80697a557e8b611c27f694b5d3a8bf3d76bf9a07e641",
       "success": true,
       "feeWei": "631697580000000"
+    },
+    {
+      "kind": "send",
+      "batch": 9,
+      "transaction": {
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "value": "0",
+        "nonce": 15,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "13820126",
+        "gasPrice": "60000000"
+      },
+      "settled": false
     }
   ],
   "rawSpentWei": "110809356782635913",
