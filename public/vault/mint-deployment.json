@@ -1,0 +1,10 @@
+{
+  "transactionHash": "0x6e048b3aecb8c376162960bc0074f200a6dbab8810f0b3bbf6451144d032d7a2",
+  "factory": "0xA64186DB66bAed9fDC13678c4Cfb89B1e1E9cCa9",
+  "implementation": "0x904C9E436299A65Fc25f32c48F3f908534F0e988",
+  "block": 121375692,
+  "actualFeeBNB": "0.000166011782766863",
+  "owner": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "commissionReceiver": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "deploymentInputKeccak256": "0xa59fd8a065441b738365cb3eb25e7b3824bf0d7f07e8f37a02443d0fd4f0b198"
+}

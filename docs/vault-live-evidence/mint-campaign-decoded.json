@@ -1,0 +1,32 @@
+{
+  "hash": "0x01a55b25cb4904f734b0f02f26c4d1e4a1ea716914d91db1096d32a2eca6111c",
+  "campaign": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+  "factory": "0xA64186DB66bAed9fDC13678c4Cfb89B1e1E9cCa9",
+  "creator": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "status": "success",
+  "block": 121376728,
+  "confirmations": 94,
+  "feeBNB": "0.000028476960474616",
+  "valueBNB": "0",
+  "deadlineBeijing": "2026/9/19 10:49:15",
+  "config": {
+    "name": "Butterfly Mint Check",
+    "symbol": "MINTCHK",
+    "meta": "bafkreihoo25ud3y4yt5mr3zlddtdclt4v3mxibc3kmhznxz5dkid3ube4u",
+    "targetShares": 2,
+    "deadline": "1789786155",
+    "minimumTokensOut": "100000000000000000000000",
+    "vaultFactory": "0xfd2437DFFB8EBe9F96125b30c85Be22f99Fdddf3",
+    "vaultData": "0x000000000000000000000000000000000000000000000000000000000000003c00000000000000000000000000000000000000000000000000000000000003e8",
+    "buyTaxRate": 300,
+    "sellTaxRate": 300,
+    "taxDuration": "3153600000",
+    "antiFarmerDuration": "2592000",
+    "mktBps": 10000,
+    "deflationBps": 0,
+    "dividendBps": 0,
+    "lpBps": 0,
+    "minimumShareBalance": "0",
+    "dividendToken": "0x0000000000000000000000000000000000000000"
+  }
+}

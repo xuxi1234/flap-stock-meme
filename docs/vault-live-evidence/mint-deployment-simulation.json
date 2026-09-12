@@ -1,0 +1,31 @@
+{
+  "chainId": 56,
+  "deploymentDataKeccak256": "0xa59fd8a065441b738365cb3eb25e7b3824bf0d7f07e8f37a02443d0fd4f0b198",
+  "broadcast": false,
+  "results": [
+    {
+      "httpStatus": 200,
+      "jsonrpc": "2.0",
+      "id": 1,
+      "runtimeBytes": 2257
+    },
+    {
+      "httpStatus": 200,
+      "jsonrpc": "2.0",
+      "id": 2,
+      "result": "0x2a9265"
+    },
+    {
+      "httpStatus": 200,
+      "jsonrpc": "2.0",
+      "id": 3,
+      "result": "0x2faf080"
+    },
+    {
+      "httpStatus": 200,
+      "jsonrpc": "2.0",
+      "id": 4,
+      "result": "0x1075ac8de78d6da"
+    }
+  ]
+}

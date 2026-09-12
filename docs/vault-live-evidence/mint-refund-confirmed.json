@@ -1,0 +1,17 @@
+{
+  "hash": "0x6e882e7a2609a4fec102948dcfbd08247355603fda66a0a9f11091d7cceaca5d",
+  "campaign": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+  "participant": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "receiver": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "sharesRefunded": 1,
+  "principalBNB": "0.01",
+  "feeBNB": "0.000002479320041322",
+  "feeWei": "2479320041322",
+  "block": 121380372,
+  "confirmations": 119,
+  "status": "success",
+  "currentUserShares": 0,
+  "currentTotalShares": 0,
+  "campaignBalanceWei": "0",
+  "historicalWalletDelta": "Historical balance reads returned missing trie node. Refund verified by successful receipt, matching Refunded event, immutable send-before-event logic and cleared shares/balance."
+}

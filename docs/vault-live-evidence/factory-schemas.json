@@ -1,0 +1,843 @@
+[
+  {
+    "templateId": "vault-half-perpetual",
+    "factory": "0xbb88A8b1BA70e1D72Fc87E6e01f40e92A393dBfC",
+    "schema": {
+      "description": "Virus Vault / Virus 金库 · 税路 99%回购 · 1%裂变",
+      "fields": [
+        {
+          "name": "marketingWallet",
+          "fieldType": "address",
+          "description": "Wallet / 钱包",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-dual-buyback",
+    "factory": "0xeB05208ccbe3583a402fd3BF43f162b9b65F1D08",
+    "schema": {
+      "description": "⚠️【严厉警告】函数入参必须严格按规则填写！填错/填反/超限/乱写后果自负。顺序固定：①间隔秒数 ②回购金额 ③外币销毁地址（初始化后不可改）。 / ⚠️ WARNING: Inputs MUST follow the rules. Order: (1) interval (2) amount (3) otherToken (immutable). 【双销毁裂变金库】固定79%烧本币+20%烧外币+1%本币裂变。创建后沉淀10分钟。①间隔0～600秒 ②金额0.001～1 BNB ③外币【必须是蝴蝶/Flap已发射代币合约】且≠本币、非0；链上会校验Portal登记，非蝴蝶代币直接revert。 / [Dual Burn Fission] Fixed 79/20/1. (1) interval 0…600s (2) amount 0.001…1 BNB (3) otherToken MUST be an existing Flap/Butterfly token (Portal-registered); non-Flap reverts.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "⚠️【①触发间隔·秒】0～600；超过→600。勿填金额/地址！ / (1) Interval 0…600s.",
+          "decimals": 0
+        },
+        {
+          "name": "amountPerBuyback",
+          "fieldType": "uint256",
+          "description": "⚠️【②触发门槛=每次回购·BNB】0.001～1；钳制同上下限。推荐0.01。 / (2) Amount 0.001…1 BNB.",
+          "decimals": 18
+        },
+        {
+          "name": "otherToken",
+          "fieldType": "address",
+          "description": "⚠️【③外币·必须选蝴蝶代币合约】须为Flap/蝴蝶已发射代币（Portal有登记）；不可填0、不可等于本币、不可填普通ERC20/Pancake任意币。发射后锁定不可改；填错则创建失败。20%税路买此后销毁。 / (3) MUST be Flap/Butterfly token contract (Portal-registered). Immutable. Non-Flap reverts.",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-dual-buyback-tax-adjustable",
+    "factory": "0x17d261AE5D0af06851Cd58FF96706916273Db33f",
+    "schema": {
+      "description": "⚠️【严厉警告】函数入参必须严格按规则填写！填错/填反/超限/乱写后果自负。顺序固定：①间隔秒数 ②回购金额 ③外币销毁地址 ④本币销毁bps ⑤外币销毁bps ⑥裂变bps（初始化后均不可改）。 / ⚠️ WARNING: Inputs MUST follow the rules. Order: (1) interval (2) amount (3) otherToken (4) selfBurnBps (5) otherBurnBps (6) fissionBps (all immutable after launch). 【双发可调分账金库 daf-v1】机制同双发回购：双路径烧本币/外币 + 本币裂变；分账由 vaultData 配置（默认7900/2000/100）。各字段夹紧；夹紧后三者之和须=10000，否则整组回退默认（不revert）。双路径主推进由 FlapTrigger 催发（各车道独立预约；仅当该池≥该腿门槛+fee才扣预约费；公开 process* 为兜底）。①间隔0～600秒 ②金额0.001～1 BNB ③外币【必须是蝴蝶/Flap已发射代币合约】且≠本币、非0；链上会校验Portal登记，非蝴蝶代币直接revert。④本币销毁bps 0～9900（夹紧）⑤外币销毁bps 0～9900（夹紧）⑥裂变bps 0～1000（夹紧）。 / [Dual Adjustable Fission daf-v1] Same dual-lane engine as ddf; launch-time BPS split (default 7900/2000/100). Clamp each field; if sum!=10000 after clamp → fall back to defaults (no revert). Dual lanes paced by FlapTrigger (own-pool fee only if pool≥laneCap+fee; public process* fallback). (1) interval 0…600s (2) amount 0.001…1 BNB (3) otherToken MUST be Flap/Butterfly token (Portal-registered); non-Flap reverts. (4) selfBurnBps 0…9900 (5) otherBurnBps 0…9900 (6) fissionBps 0…1000.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "⚠️【①触发间隔·秒】0～600；超过→600。勿填金额/地址！ / (1) Interval 0…600s.",
+          "decimals": 0
+        },
+        {
+          "name": "amountPerBuyback",
+          "fieldType": "uint256",
+          "description": "⚠️【②触发门槛=每次回购·BNB】0.001～1；钳制同上下限。推荐0.01。 / (2) Amount 0.001…1 BNB.",
+          "decimals": 18
+        },
+        {
+          "name": "otherToken",
+          "fieldType": "address",
+          "description": "⚠️【③外币·必须选蝴蝶代币合约】须为Flap/蝴蝶已发射代币（Portal有登记）；不可填0、不可等于本币。发射后锁定。外币销毁腿买此后销毁。 / (3) MUST be Flap/Butterfly token. Immutable. Non-Flap reverts.",
+          "decimals": 0
+        },
+        {
+          "name": "selfBurnBps",
+          "fieldType": "uint16",
+          "description": "⚠️【④本币销毁bps】默认7900；范围0～9900夹紧。与⑤⑥之和须=10000否则整组回退7900/2000/100。 / (4) Self-burn bps default 7900; clamp 0…9900; sum must be 10000 else defaults.",
+          "decimals": 0
+        },
+        {
+          "name": "otherBurnBps",
+          "fieldType": "uint16",
+          "description": "⚠️【⑤外币销毁bps】默认2000；范围0～9900夹紧。 / (5) Other-burn bps default 2000; clamp 0…9900.",
+          "decimals": 0
+        },
+        {
+          "name": "fissionBps",
+          "fieldType": "uint16",
+          "description": "⚠️【⑥裂变bps】默认100；范围0～1000夹紧。 / (6) Fission bps default 100; clamp 0…1000.",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-minute-buyback",
+    "factory": "0x4CBb7e6433641826a64670675cCcCe0cBB313C44",
+    "schema": {
+      "description": "⚠️【严厉警告】函数入参必须严格按规则填写！填错/填反/超限/乱写会导致回购节奏异常或资金排队卡住，后果自负。顺序固定不可颠倒：①间隔秒数 ②回购金额。 / ⚠️ WARNING: Inputs MUST follow the rules exactly. Wrong order or values may stall buybacks — at your own risk. 【回购裂变金库】税点固定销毁99%+裂变1%。创建后固定沉淀10分钟才开始首次销毁回购。①间隔0～600秒（超→600）②金额0.01～1 BNB（超→1）。 / [Buyback Fission] Fixed 99%/1%. Initial 10min settle. (1) interval 0…600s (2) amount 0.01…1 BNB.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "⚠️必须按规则填！【①触发间隔·秒·第1项】0～600；超过600按600。勿填金额栏！勿把两项填反！ / ⚠️ MUST follow rules! (1) Interval seconds 0…600 (>→600). Do NOT put BNB amount here.",
+          "decimals": 0
+        },
+        {
+          "name": "amountPerBuyback",
+          "fieldType": "uint256",
+          "description": "⚠️必须按规则填！【②触发门槛=每次回购·BNB·第2项】0.01～1；低于→0.01，高于→1。推荐0.01。勿填间隔秒数！ / ⚠️ MUST follow rules! (2) Amount 0.01…1 BNB. Do NOT put interval seconds here.",
+          "decimals": 18
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-percent-buyback",
+    "factory": "0xfd2437DFFB8EBe9F96125b30c85Be22f99Fdddf3",
+    "schema": {
+      "description": "⚠️【严厉警告】入参顺序固定：①间隔秒数 ②回购百分比bps。填反/超限会夹紧，后果自负。 / ⚠️ WARNING: Order fixed (1) interval (2) spendBps. Clamp no revert. 【百分比回购金库 pbb-v1】税点固定销毁99%+裂变1%。创建后固定沉淀10分钟。每次 Trigger 烧掉销毁池的 spendBps%。主路径 FlapTrigger；预约费从销毁池扣；公开 processBurnBuyback 兜底。①间隔0～600秒（超→600，默认600）②百分比bps 100～10000（1%～100%；空/过低→1000=10%，超→10000）。 / [Percent Buyback pbb-v1] Fixed 99%/1%. Initial 10min settle. Each Trigger spends spendBps% of burn pool. (1) interval 0…600s def 600 (2) spendBps 100…10000 def 1000.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "①触发间隔·秒 0～600；超过→600；默认600。语义=至少间隔。勿填百分比！ / (1) Interval 0…600s. Prefer 600. Do NOT put bps here.",
+          "decimals": 0
+        },
+        {
+          "name": "spendBps",
+          "fieldType": "uint256",
+          "description": "②每次回购占销毁池 bps：100～10000（1%～100%）；空/过低→1000(10%)；超→10000。勿填秒数！ / (2) spendBps 100…10000. Do NOT put seconds here.",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-hold-dividend-buyback",
+    "factory": "0x55CeB6C7Db75bd0d1f04bF8025E976AafB3f5132",
+    "schema": {
+      "description": "⚠️ [hdiv-v4.3] 税分账固定：裂变1% + Trigger回购销毁29% + 持币分红70%。Trigger 仅在销毁池≥单次额度时预约（H-1）；单次回调最多销毁1笔。vaultData = { dividendToken, minHoldAmount, intervalSeconds, amountPerBuyback }。回购：创建后沉淀10分钟；间隔0～600秒；金额0.01～1 BNB（夹紧不revert）。dividendBps MUST be 0。 / ⚠️ [hdiv-v4.3] Fixed split 1%/29%/70%. Burn paced by FlapTrigger (10min settle). Trigger schedules only when pool>=amountPerBuyback (H-1); one burn per callback. Fill dividend token HERE. dividendBps=0. Portal MAGIC → vaultData.dividendToken.",
+      "fields": [
+        {
+          "name": "dividendToken",
+          "fieldType": "address",
+          "description": "⚠️【①分红币·锁定】持仓人领取的奖励 ERC20（在此填写）。 / ⚠️ (1) reward ERC20 for holders — fill HERE.",
+          "decimals": 0
+        },
+        {
+          "name": "minHoldAmount",
+          "fieldType": "uint256",
+          "description": "⚠️【②金库领取门槛·锁定】税币余额≥此值才允许 claim；0=不限制；100枚→100e18。 / ⚠️ (2) vault claim gate; 0=none; 100 tokens => 100e18.",
+          "decimals": 0
+        },
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "⚠️【③回购间隔·秒】0～600（超→600）；创建后另有固定10分钟沉淀。 / ⚠️ (3) burn interval 0…600s (clamp); plus fixed 10min initial settle.",
+          "decimals": 0
+        },
+        {
+          "name": "amountPerBuyback",
+          "fieldType": "uint256",
+          "description": "⚠️【④单次回购金额·BNB】0.01～1（低→0.01，高→1）；亦为 Trigger 阈值。 / ⚠️ (4) amount per burn 0.01…1 BNB (clamp); also Trigger threshold.",
+          "decimals": 18
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-hold-dividend-tax-adjustable",
+    "factory": "0x6e701AF815546F55920690BD2FCbc1eC308cE041",
+    "schema": {
+      "description": "持币达标领分红。默认 1%裂变 / 29%销毁 / 70%分红（可改）。买分红每次固定 0.05 BNB。【必填对齐】官方发射页「最低持仓」= 本页②门槛（②填0=100万枚）。顶层税点分红填0。 / Hold to claim. Default 1/29/70. Div buy 0.05 BNB each. Portal min-hold MUST = field② (0→1e6 tokens). Portal dividendBps=0.",
+      "fields": [
+        {
+          "name": "dividendToken",
+          "fieldType": "address",
+          "description": "① 分红币（如 USDT）— 在本页填写。 / (1) Reward token — fill here.",
+          "decimals": 0
+        },
+        {
+          "name": "minHoldAmount",
+          "fieldType": "uint256",
+          "description": "② 领取门槛。须与官方页「最低持仓」相同；填0=默认100万枚。不一致会拒发。 / (2) Min hold. Same as Portal min-hold; 0→1e6 tokens.",
+          "decimals": 0
+        },
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "③ 销毁/买分红的间隔（秒），0～600。 / (3) Pace interval 0…600s.",
+          "decimals": 0
+        },
+        {
+          "name": "amountPerBuyback",
+          "fieldType": "uint256",
+          "description": "④ 每次销毁用多少 BNB（0.01～1）。买分红固定0.05，不用这项。 / (4) Burn size only; div buy fixed 0.05.",
+          "decimals": 18
+        },
+        {
+          "name": "fissionBps",
+          "fieldType": "uint256",
+          "description": "⑤ 裂变比例（万分比）。⑤⑥⑦都填0 → 默认1%。 / (5) Fission bps; all0→100.",
+          "decimals": 0
+        },
+        {
+          "name": "burnBps",
+          "fieldType": "uint256",
+          "description": "⑥ 销毁比例（万分比）。都填0 → 默认29%。 / (6) Burn bps; all0→2900.",
+          "decimals": 0
+        },
+        {
+          "name": "dividendBps",
+          "fieldType": "uint256",
+          "description": "⑦ 分红比例（万分比，不是官方顶层税点）。都填0 → 默认70%。 / (7) Div lane bps; all0→7000.",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-x314-prize-pool",
+    "factory": "0x51d551dEDdDE678dd61330269001824c7Bb822aB",
+    "schema": {
+      "description": "接力奖池：转恰好 0.07777777 BNB 参与。税分账 90%奖池 / 1%裂变 / 9%销毁。最后接力人满 30 分钟自动获奖池 30%。无需填写 vaultData。 / Relay jackpot: send exactly 0.07777777 BNB. Tax 90/1/9. Last relay wins 30% after 30m. vaultData unused.",
+      "fields": [],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-floor-protocol",
+    "factory": "0xdA3798027cddB2c2aB7d7f5b6947488d630a694D",
+    "schema": {
+      "description": "vaultData = abi.encode(VaultConfig({ communityWallet }))。税固定：托底50%·分红35%·社区5%·销毁9%·裂变1%。池深倍率：0.01BNB启动1×，每+0.5BNB+1×封顶500×。回购固定：每10分钟·单次50%回购池；共振BUFF时单次100%。scripts/encode-vault-data.ps1",
+      "fields": [
+        {
+          "name": "communityWallet",
+          "fieldType": "address",
+          "description": "Community wallet (required) · 5% tax BNB / 社区钱包（必填）· 税BNB 5%直发",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-niu-floor",
+    "factory": "0x603B326c6584eE04a3c3f419e36577590cb5f230",
+    "schema": {
+      "description": "vaultData = abi.encode(VaultConfig({ communityWallet, buybackIntervalMinutes, buybackRatioBps }))。税固定：托底60%·裂变1%·回购6%·社区3%·分红30%。回购：每N分钟按设定比例消耗回购池(无0.01BNB闸值)。例：interval=10,ratio=1000 → 每10分钟回购池10%。scripts/encode-vault-data.ps1",
+      "fields": [
+        {
+          "name": "communityWallet",
+          "fieldType": "address",
+          "description": "Community wallet (required) · 3% tax BNB / 社区钱包（必填）· 税BNB 3%直发",
+          "decimals": 0
+        },
+        {
+          "name": "buybackIntervalMinutes",
+          "fieldType": "uint256",
+          "description": "Buyback interval minutes (1=1min, 10=10min) / 回购间隔分钟(1=1分钟)",
+          "decimals": 0
+        },
+        {
+          "name": "buybackRatioBps",
+          "fieldType": "uint16",
+          "description": "Buyback pool spend % per tick bps (1000=10%) / 每次回购消耗池比例bps",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-gold-burn",
+    "factory": "0xb100bc44f7f9Ab2a227B74AaFc6FF29C0a51Ae21",
+    "schema": {
+      "description": "【蝴蝶守护】发射无需填写任何参数。金本位烧本币挖税BNB；无营销钱包；链上固定直推5%、间推3%（Guardian可事后调整）。 / Butterfly Guard: no vaultData fields. Fixed invite 5% / invite2 3% on-chain (Guardian may change later).",
+      "fields": [],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-viral-reserve",
+    "factory": "0x249Ba6875B211df6Fb26565a4fb8bD7c48880965",
+    "schema": {
+      "description": "[Required] vaultData = abi.encode(VaultConfig({ communityWallet: address })). / 【必填】发币 vaultData = abi.encode(VaultConfig({ communityWallet: 地址 }))。communityWallet receives 10% tax BNB and early-unstake community fee; must not be 0. / communityWallet 接收 10% 税 BNB 直发与早期撤出社区扣减，不可为 0。Early unstake fixed: 1 day · 30% burn · 5% community. After 6% dev commission: 10% fission + 10% burn + 70% reserve + 10% community. / 早期撤出固定：1 天 · 销毁 30% · 社区 5%。比例固定：先扣 6% 开发佣金，再 10%裂变+10%销毁+70%储备+10%社区。See docs/DEPLOY.md or scripts/encode-vault-data.ps1 for encoding examples. / 编码示例见 docs/DEPLOY.md 或 scripts/encode-vault-data.ps1。",
+      "fields": [
+        {
+          "name": "communityWallet",
+          "fieldType": "address",
+          "description": "Community wallet (required) · 10% tax BNB + 5% early-unstake fee · VaultConfig.communityWallet / 社区钱包（必填）· 税 BNB 10% 直发 + 早期撤出 5% 扣减 · 对应 VaultConfig.communityWallet",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-nifeng-fanpan",
+    "factory": "0x9b58f7fAc768F426C6c292074Cb0c459Da494804",
+    "schema": {
+      "description": "[Required] vaultData = abi.encode(VaultConfig({ communityWallet, dividendToken })). dividendToken: ONLY 0-tax tokens or Butterfly/Flap tokens. Non-Butterfly tokens with fission/reflection may FAIL buyback or claim. blv-v1: TaxProcessor 100% tax BNB → vault. First 1 minute after initialize: after Flap fee, 100% net BNB → COMMISSION_RECEIVER. Then: 1% fission(≤5 addrs) + 9% burn + 10% foundation + 80% two pools. invite pool 30% pays all referrers by activeInviteCount (MasterChef O(1)); stake pool 70%; spread board display-only. / 【必填】vaultData = abi.encode(VaultConfig({ communityWallet, dividendToken }))。【分红币限制】仅支持 0税币 或 蝴蝶平台币；带裂变/反射税的非蝴蝶代币可能导致买入或 claim 失败。【建设人生V1 / blv-v1】金库创建起1分钟内：扣佣后净税BNB全给佣金地址；之后1%裂变+9%销毁+10%基金会+80%两池。传播邀请池30%按全员有效上级人数加权(MasterChef)+质押池70%；传播榜仅展示；首次可绑上级；claim 为分红币。",
+      "fields": [
+        {
+          "name": "communityWallet",
+          "fieldType": "address",
+          "description": "Foundation/community wallet (required) · 10% tax BNB / 基金会/社区钱包（必填）· 税10% BNB 直转",
+          "decimals": 0
+        },
+        {
+          "name": "dividendToken",
+          "fieldType": "address",
+          "description": "Dividend token: 0-tax or Butterfly/Flap only; non-Butterfly fission tokens may fail / 分红币：仅0税币或蝴蝶币；带裂变的非蝴蝶币可能失败",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-build-vault-aster",
+    "factory": "0xEd8c7eF6e73F9F1B9fF1a590e503a5EEA4e5B663",
+    "schema": {
+      "description": "[Required] vaultData = abi.encode(VaultConfig({ communityWallet, dividendToken })). 9inf-v5: TaxProcessor 100% tax BNB → vault; after fee 1% fission(≤5 addrs) + 9% burn + 10% foundation + 80% two pools; invite pool 30% pays all referrers by activeInviteCount (MasterChef O(1)); stake pool 70%; spread board display-only. / 【必填】vaultData = abi.encode(VaultConfig({ communityWallet, dividendToken }))。9∞-v5：TaxProcessor 100% 税 BNB 进金库；扣佣后 1%裂变(最多5地址)+9%销毁+10%基金会+80%两池；传播邀请池30%按全员有效上级人数加权(MasterChef)+质押池70%；传播榜仅展示；首次可绑上级；claim 为分红币。",
+      "fields": [
+        {
+          "name": "communityWallet",
+          "fieldType": "address",
+          "description": "Foundation/community wallet (required) · 10% tax BNB / 基金会/社区钱包（必填）· 税10% BNB 直转",
+          "decimals": 0
+        },
+        {
+          "name": "dividendToken",
+          "fieldType": "address",
+          "description": "The token you want to dividend (required) / 你想分红的代币（必填）",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-stake-realtime-dividend",
+    "factory": "0x009e4998c136EeDA7C6b23CB64f56fd0D96122F8",
+    "schema": {
+      "description": "Required: vaultData=abi.encode(VaultConfig({communityWallet,dividendToken})). dividendToken: 0-tax or Butterfly only; MUST != taxToken. sic-v1: author=COMMISSION_RECEIVER; min stake 510k (remain>=500k); 1m net tax->commission; then 1/9/10/80; Trigger 0.02 instant credit; empty/0.1%->commission.",
+      "fields": [
+        {
+          "name": "communityWallet",
+          "fieldType": "address",
+          "description": "Foundation wallet (10% tax BNB)",
+          "decimals": 0
+        },
+        {
+          "name": "dividendToken",
+          "fieldType": "address",
+          "description": "Dividend token (0-tax or Butterfly; != taxToken)",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-pinksale-dividend",
+    "factory": "0x652159Ded01D33EeE8b603C9D51F3cd110bAcF75",
+    "schema": {
+      "description": "pink-v1.4: no vaultData. Lock tax via vault->PinkLock 365d cliff; 0.1% fission+30% premium@110% burn (max 20% pool/tx)+69.9% BNB to lockers; quote=GuardBurn; empty->commission; 1m bootstrap->commission. / 粉红金库v1.4：经金库锁税币进粉红365天cliff；扣佣后0.1%裂变+30%溢价回收(同守护燃烧报价×110%收币销毁,单笔最多池子20%)+69.9%BNB给锁仓权重；空仓与启动1分钟给佣金地址。",
+      "fields": [],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-pinksale-dividend-lock-days",
+    "factory": "0x92C5334a440485986F733490c0B5CF0ec19fD833",
+    "schema": {
+      "description": "pink-v1.5: vaultData = abi.encode(uint256 lockDays). Clamp 7-1095 days (default 365 if empty/invalid); immutable after launch; PinkLock cliff; 0.1% fission+30% premium@110% burn (max 20% pool/tx)+69.9% BNB to lockers; quote=GuardBurn; empty weight->premium; bootstrap 1m->commission. / 粉红金库v1.5：vaultData=abi.encode(uint256 lockDays)；夹紧7～1095天（空/非法默认365），发射后不可改；经金库锁税币进粉红cliff；扣佣后0.1%裂变+30%溢价回收+69.9%BNB给锁仓权重；无人锁仓时分红份额进溢价池；启动1分钟给佣金地址。",
+      "fields": [
+        {
+          "name": "lockDays",
+          "fieldType": "uint256",
+          "description": "Cliff days / 锁仓天数 (7-1095, default 365, clamp no revert)",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-alpha-points",
+    "factory": "0x29E3fe047DeE221E538989853c973DeDBe68e8e1",
+    "schema": {
+      "description": "【阿尔法 asp-v2 双模式】VaultBaseV3 · quote=BNB 或任意 ERC20（含股票）。税四路：积分40%/交易对50%/销毁9.9%/裂变0.1%；运营只吃交易对买入2%。vaultData=abi.encode(address opsWallet)；零地址 revert。 / [Alpha asp-v2 dual] V3 quote=BNB or any ERC20 (incl. stock). Split 40/50/9.9/0.1; ops only gets pair buy 2%. vaultData=abi.encode(opsWallet).",
+      "fields": [
+        {
+          "name": "opsWallet",
+          "fieldType": "address",
+          "description": "Ops wallet / 运营收款地址 (required, zero reverts)",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-rgalpha-v1",
+    "factory": "0x687274A8b0e914F44dA602a0BD60234F94cE300E",
+    "schema": {
+      "description": "alpha-v1: vaultData = abi.encode(address opsWallet). opsWallet required (zero reverts); dual-tier 7/30 PinkLock cliff; 0.1% fission + 15% 7d + 35% 30d + 10% buyClaim + 10% pairSeed + 10% burn + 10% premium@110%(need vault lock>=500k) + 9.9% ops; VaultPair buy@95%+3% + proof (buy no burn; sell 50/50; trade points 1pt/1M tax); points redeem inventory; GuardBurn quote; bootstrap 1m->commission. / 阿尔法金库v1：vaultData=abi.encode(address opsWallet)；运营地址必填（零地址 revert）；7/30双档粉红cliff；扣佣后0.1%裂变+15%七天+35%三十天+10%入库+10%交易对注资+10%销毁+10%溢价@110%(须金库锁仓≥50万)+9.9%运营；金库交易对买入市价95%+3%+proof（买卖按100万税币=1积分）；积分领库存；启动1分钟给佣金地址。",
+      "fields": [
+        {
+          "name": "opsWallet",
+          "fieldType": "address",
+          "description": "Ops wallet / 运营收款地址 (required, zero reverts)",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-stock-stake-dividend",
+    "factory": "0xc01c6491d3497bF2A55F3bfd93B0AdFAe5a23548",
+    "schema": {
+      "description": "【股票质押分红 ssd-v1】VaultBaseV3 · 任意 ERC20 股票底池 · 质押税币按权重领股票。vaultData：minStake（0=不限制）。夹紧不 revert。 / [Stock Stake Dividend ssd-v1] Any ERC20 stock quote. Stake tax, earn quote. minStake (0=none).",
+      "fields": [
+        {
+          "name": "minStake",
+          "fieldType": "uint256",
+          "description": "最小质押量（税币最小单位）；0=不限制 / Min stake (tax base units); 0=none",
+          "decimals": 18
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-stock-percent-buyback",
+    "factory": "0x62bD1e39Cf54E8280d7cEC93382D17569bFdeE28",
+    "schema": {
+      "description": "【股票回购金库 sbk-v1】VaultBaseV3 · 税进股票 · 固定销毁99%+裂变1%。入参顺序：①间隔秒数 ②回购百分比bps。夹紧不 revert。①间隔0～600秒（超→600，默认600）②spendBps 100～10000（空/过低→1000=10%，超→10000）。 / [Stock Buyback sbk-v1] V3 stock quote. Fixed 99%/1%. (1) interval 0…600s def 600 (2) spendBps 100…10000 def 1000.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "①触发间隔·秒 0～600；超过→600；默认600。 / (1) Interval 0…600s.",
+          "decimals": 0
+        },
+        {
+          "name": "spendBps",
+          "fieldType": "uint256",
+          "description": "②每次回购占销毁池 bps：100～10000；空/过低→1000；超→10000。 / (2) spendBps 100…10000.",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-battle-royale-3d",
+    "factory": "0x8B43a3F5ca2df250269d69C2f20707372550955B",
+    "schema": {
+      "description": "【股票大逃杀 sbr-v1】VaultBaseV3 · 创建起1分钟内：扣佣后净税股票全给佣金地址；之后进奖池 · 四房选房。失败房退税币；胜利房税币1%给作者、99%销毁，并平分奖池 rewardBps（默认5%）。满房 join 自动调 FlapTrigger：优先金库BNB，不足则奖池股票兑BNB付费；仍可 tip / requestSettle。主路径 Trigger；超时仅 Guardian settle。receive 只记账；sync/join/settle 打出佣金与启动税。vaultData：rewardBps, settleDelaySeconds（无 roomCap；房容恒为流通*10bps=0.1% 动态）。夹紧不 revert。 / [Stock Royale sbr-v1] First 1m: net stock→commission; then prize pool. 4 rooms; lose refund / win tax 1% author + 99% burn + share prize. On last fill auto FlapTrigger: vault BNB first, else sell prize-pool quote→BNB; tip/requestSettle fallback. receive accounts only; sync/join/settle payout. Stale PENDING (+5m) Guardian settle. vaultData: rewardBps, settleDelaySeconds (no roomCap; always dynamic circ*10bps=0.1%).",
+      "fields": [
+        {
+          "name": "rewardBps",
+          "fieldType": "uint256",
+          "description": "每局奖池划出bps（默认500=5%；0或>10000→500） / Reward bps of prize pool per round",
+          "decimals": 0
+        },
+        {
+          "name": "settleDelaySeconds",
+          "fieldType": "uint256",
+          "description": "开奖延迟秒（默认180；0→180；上限600） / Settle delay seconds (default 180, max 600)",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-stock-hold-dual-dividend",
+    "factory": "0x15050930792A018bc3ac53cBbF0CC1C9C5723EF8",
+    "schema": {
+      "description": "rwa-v1: enter TWO dividend ERC20s (asset0, asset1). Stock tokens OK. Each MUST have a Pancake TOKEN/WBNB pool. Guardian may replace both legs while Basket supply is zero. Buy interval fixed 30s; pool 50/50; each buy 0.025 BNB. Portal dividendToken=MAGIC -> CREATE2 Basket. 创建时填两枚分红代币（股票也可）。每枚必须有 Pancake「该币/WBNB」底池。Guardian 可在 Basket 空仓时紧急更换两腿（地址不变）。买入间隔固定30秒；对半分；每次兑0.025BNB再买。",
+      "fields": [
+        {
+          "name": "asset0",
+          "fieldType": "address",
+          "description": "Dividend token A / 分红代币①（股票也可；必须有该币/WBNB底池）",
+          "decimals": 0
+        },
+        {
+          "name": "asset1",
+          "fieldType": "address",
+          "description": "Dividend token B / 分红代币②（股票也可；必须有该币/WBNB底池）",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-coin-stock-nft-bbk-v3",
+    "factory": "0xe524D478a55F2159bD81145c24BDDC93Dbe89def",
+    "schema": {
+      "description": "【蝴蝶币股NFT bbk-v3】销毁税币铸造币股NFT；税收按比例拆持有奖励(买最多10股均摊·每腿0.025BNB·按NFT领取)与地板池(quote卖回销毁)。图像：空/零地址=默认FLAPixel；Schema地址=自订SVG；URL=外部JSON。 / [bbk-v3] Burn tax to mint Coin-Stock NFT; tax split rewards(up to 10 stocks) + floor; artSource 3 modes.",
+      "fields": [
+        {
+          "name": "nftName",
+          "fieldType": "string",
+          "description": "币股NFT名称 / Coin-Stock NFT name",
+          "decimals": 0
+        },
+        {
+          "name": "nftSymbol",
+          "fieldType": "string",
+          "description": "币股NFT符号 / Coin-Stock NFT symbol",
+          "decimals": 0
+        },
+        {
+          "name": "maxNFTSupply",
+          "fieldType": "uint256",
+          "description": "币股NFT最大供应量(可铸造上限) / Max Coin-Stock NFT supply",
+          "decimals": 0
+        },
+        {
+          "name": "initialFloorNFTs",
+          "fieldType": "uint256",
+          "description": "初始托底币股NFT数量(1~最大供应) / Initial floor NFT denom",
+          "decimals": 0
+        },
+        {
+          "name": "tokenCostPerNFT",
+          "fieldType": "uint256",
+          "description": "每个币股NFT销毁税币数量(按税币精度,常见18位:填10000即10000枚) / Tax burned per Coin-Stock NFT (token decimals)",
+          "decimals": 18
+        },
+        {
+          "name": "dividendSharePercent",
+          "fieldType": "uint256",
+          "description": "持有奖励比例0-100(与地板之和=100) / Holding reward %",
+          "decimals": 0
+        },
+        {
+          "name": "floorSharePercent",
+          "fieldType": "uint256",
+          "description": "地板池比例0-100(与奖励之和=100) / Floor pool %",
+          "decimals": 0
+        },
+        {
+          "name": "artSource",
+          "fieldType": "string",
+          "description": "NFT图像：空 或粘贴 0x0000000000000000000000000000000000000000 =默认FLAPixel；Schema合约地址=链上图；JSON URL=外部metadata / empty or 0x0000000000000000000000000000000000000000=default FLAPixel",
+          "decimals": 0
+        },
+        {
+          "name": "asset0",
+          "fieldType": "address",
+          "description": "分红股0(必填) / Dividend stock 0 required",
+          "decimals": 0
+        },
+        {
+          "name": "asset1",
+          "fieldType": "address",
+          "description": "分红股1 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset2",
+          "fieldType": "address",
+          "description": "分红股2 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset3",
+          "fieldType": "address",
+          "description": "分红股3 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset4",
+          "fieldType": "address",
+          "description": "分红股4 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset5",
+          "fieldType": "address",
+          "description": "分红股5 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset6",
+          "fieldType": "address",
+          "description": "分红股6 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset7",
+          "fieldType": "address",
+          "description": "分红股7 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset8",
+          "fieldType": "address",
+          "description": "分红股8 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        },
+        {
+          "name": "asset9",
+          "fieldType": "address",
+          "description": "分红股9 · 未用腿粘贴 0x0000000000000000000000000000000000000000 / unused: paste 0x0000000000000000000000000000000000000000",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-stock-lp-reslp",
+    "factory": "0x7ADcDb399D1eC28bA460D537BCE412aa375A9199",
+    "schema": {
+      "description": "【持币分红LP】股票税三池。内盘49.9%销毁+0.1%裂变+50%囤LP；外盘19.9%+0.1%+80%加池分LP。下面③填「人类数量」：0.1 = 每次 0.1 个股票加池；范围 0.01～1（0 或过小→0.01）。 / Field③: 0.1 = 0.1 quote per LP add; clamp 0.01…1.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "①回购触发间隔（秒）。0～600，默认600。 / Interval seconds 0…600, default 600.",
+          "decimals": 0
+        },
+        {
+          "name": "spendBps",
+          "fieldType": "uint256",
+          "description": "②每次花掉销毁池的比例（万分比）。100～10000，默认1000=10%。 / spendBps 100…10000, default 1000.",
+          "decimals": 0
+        },
+        {
+          "name": "lpQuotePerAdd",
+          "fieldType": "uint256",
+          "description": "③每次加池用多少股票（直接填数量）。例：填 0.1 = 每次 0.1 个 quote；填 0 或过小 → 最少 0.01；最大 1。 / Type 0.1 = 0.1 quote; min 0.01 (0→0.01); max 1.",
+          "decimals": 18
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-tmlp-multi-stock-lp",
+    "factory": "0x3E87EE15BA49eE9564591ea4d8DF77C2B72586c3",
+    "schema": {
+      "description": "【多股毁LP tmlp-v1】支持BNB/任意ERC20底池·扣佣后1%作者税·99%加池→ERC20底池时等税币外盘再加池（佣金/作者税内盘照常）；公开建池领LP≈0.002BNB；Trigger每路≈0.01BNB加tax/stock LP→销毁。填最多20股。process仅Guardian。 / [tmlp-v1] Quote: native BNB or any ERC20; after Flap fee: 1% author+99% LP; with ERC20 quote, await tax on DEX before LP (other legs OK on internal); public seed ~0.002 BNB; burn lane ~0.01 BNB; up to 20 stocks. Guardian-only process.",
+      "fields": [
+        {
+          "name": "stock0",
+          "fieldType": "address",
+          "description": "股1 / S1",
+          "decimals": 0
+        },
+        {
+          "name": "stock1",
+          "fieldType": "address",
+          "description": "股2 / S2",
+          "decimals": 0
+        },
+        {
+          "name": "stock2",
+          "fieldType": "address",
+          "description": "股3 / S3",
+          "decimals": 0
+        },
+        {
+          "name": "stock3",
+          "fieldType": "address",
+          "description": "股4 / S4",
+          "decimals": 0
+        },
+        {
+          "name": "stock4",
+          "fieldType": "address",
+          "description": "股5 / S5",
+          "decimals": 0
+        },
+        {
+          "name": "stock5",
+          "fieldType": "address",
+          "description": "股6 / S6",
+          "decimals": 0
+        },
+        {
+          "name": "stock6",
+          "fieldType": "address",
+          "description": "股7 / S7",
+          "decimals": 0
+        },
+        {
+          "name": "stock7",
+          "fieldType": "address",
+          "description": "股8 / S8",
+          "decimals": 0
+        },
+        {
+          "name": "stock8",
+          "fieldType": "address",
+          "description": "股9 / S9",
+          "decimals": 0
+        },
+        {
+          "name": "stock9",
+          "fieldType": "address",
+          "description": "股10 / S10",
+          "decimals": 0
+        },
+        {
+          "name": "stock10",
+          "fieldType": "address",
+          "description": "股11 / S11",
+          "decimals": 0
+        },
+        {
+          "name": "stock11",
+          "fieldType": "address",
+          "description": "股12 / S12",
+          "decimals": 0
+        },
+        {
+          "name": "stock12",
+          "fieldType": "address",
+          "description": "股13 / S13",
+          "decimals": 0
+        },
+        {
+          "name": "stock13",
+          "fieldType": "address",
+          "description": "股14 / S14",
+          "decimals": 0
+        },
+        {
+          "name": "stock14",
+          "fieldType": "address",
+          "description": "股15 / S15",
+          "decimals": 0
+        },
+        {
+          "name": "stock15",
+          "fieldType": "address",
+          "description": "股16 / S16",
+          "decimals": 0
+        },
+        {
+          "name": "stock16",
+          "fieldType": "address",
+          "description": "股17 / S17",
+          "decimals": 0
+        },
+        {
+          "name": "stock17",
+          "fieldType": "address",
+          "description": "股18 / S18",
+          "decimals": 0
+        },
+        {
+          "name": "stock18",
+          "fieldType": "address",
+          "description": "股19 / S19",
+          "decimals": 0
+        },
+        {
+          "name": "stock19",
+          "fieldType": "address",
+          "description": "股20 / S20",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-floor-mult-unlimited",
+    "factory": "0xcDE4E0a5F29C14A1D361Cf6A9FB4C274fEDddAD2",
+    "schema": {
+      "description": "vaultData 可为空。90托底·9回购·1%作者。BNB/ERC20底池；0.01 BNB开1×，每+0.3 BNB +1×无上限；回购1分钟50%。",
+      "fields": [],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-pure-fission",
+    "factory": "0xa05A6f2d1e8783320e72F4ab199D1330eA19Bf34",
+    "schema": {
+      "description": "【病毒裂变金库 vfis-v1】VaultBaseV3 · BNB 或任意 ERC20 底池（股票/U 等）。固定 1% 来税即裂(5址)+99% 队列(10址)。入参：①间隔秒 ②队列 spendBps。夹紧不 revert。①间隔0～60秒（含0；超→60；vaultData空→默认60）②spendBps 100～10000（空/过低→1000，超→10000）。 / [Virus Fission vfis-v1] V3 BNB or ERC20 quote. Fixed 1%/99%. (1) interval 0…60s incl.0; empty→def 60 (2) queue spendBps 100…10000 def 1000.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "①Trigger 间隔·秒 0～60（含0）；超过→60；vaultData 空→默认60。 / (1) Interval 0…60s.",
+          "decimals": 0
+        },
+        {
+          "name": "spendBps",
+          "fieldType": "uint256",
+          "description": "②队列池每次裂变 bps：100～10000；空/过低→1000；超→10000。 / (2) Queue spendBps.",
+          "decimals": 0
+        }
+      ],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-stock-gold-burn-dividend",
+    "factory": "0x926fa7791f5EA5E70d8582ED32953e617301e5Eb",
+    "schema": {
+      "description": "【金本位燃烧分红】发射无需填写。全底池支持。 / Gold Burn Dividend: no vaultData. All quote pools supported.",
+      "fields": [],
+      "isArray": false
+    }
+  },
+  {
+    "templateId": "vault-bbb-buyback",
+    "factory": "0x201385C8bd0Bf6445147e343EAF8B7B925bB4029",
+    "schema": {
+      "description": "【BBB 回购金库 bbb-v1】VaultBaseV3 · BNB 或 ERC20 quote · 98%销毁+1%裂变+1%作者税。入参顺序：①间隔秒数 ②每次回购金额（直接填 0.001～1 个，18 位小数）。夹紧不 revert。①间隔0～600秒（超→600，默认600）②spendAmount 直接 0.001～1（空/过低→0.1，超→1）。 / [BBB Buyback bbb-v1] V3 open quote. Fixed 98%/1%/1% author. (1) interval 0…600s def 600 (2) spendAmount enter 0.001…1 units (1e18) def 0.1.",
+      "fields": [
+        {
+          "name": "intervalSeconds",
+          "fieldType": "uint256",
+          "description": "①触发间隔·秒 0～600；超过→600；默认600。 / (1) Interval 0…600s.",
+          "decimals": 0
+        },
+        {
+          "name": "spendAmount",
+          "fieldType": "uint256",
+          "description": "②每次回购个数：直接填 0.001～1（与底池小数无关）；空/过低→0.1；超→1。 / (2) Enter 0.001…1 quote units.",
+          "decimals": 18
+        }
+      ],
+      "isArray": false
+    }
+  }
+]

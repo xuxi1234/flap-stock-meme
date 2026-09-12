@@ -1,0 +1,256 @@
+[
+  {
+    "templateId": "vault-half-perpetual",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-dual-buyback",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-dual-buyback-tax-adjustable",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-minute-buyback",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-percent-buyback",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-hold-dividend-buyback",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-hold-dividend-tax-adjustable",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-x314-prize-pool",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-floor-protocol",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "BNB-native only / 仅 BNB 本位"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-niu-floor",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "BNB-native only / 仅 BNB 本位"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-gold-burn",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch (quoteToken must be address(0)). / 仅支持 BNB 本位发射。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-flap-mint",
+    "unavailable": true
+  },
+  {
+    "templateId": "vault-viral-reserve",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "BNB-native launch only (quoteToken must be address(0)). / 仅支持 BNB 本位发射（quoteToken 须为 address(0)）。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-nifeng-fanpan",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch (quoteToken must be address(0)). / 仅支持 BNB 本位发射（quoteToken 须为 address(0)）。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-build-vault-aster",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch (quoteToken must be address(0)). / 仅支持 BNB 本位发射（quoteToken 须为 address(0)）。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-stake-realtime-dividend",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-pinksale-dividend",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch / 仅支持 BNB 本位发射"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-pinksale-dividend-lock-days",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch / 仅支持 BNB 本位发射"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-alpha-points",
+    "policies": []
+  },
+  {
+    "templateId": "vault-rgalpha-v1",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Only native BNB launch / 仅支持 BNB 本位发射"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-stock-stake-dividend",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "neq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Any ERC20 stock quote (not native BNB). / 任意股票 ERC20 底池（非 BNB）。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-stock-percent-buyback",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "neq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Quote must be an allowlisted stock ERC20 (not native BNB). / 底池必须是白名单股票 ERC20。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-battle-royale-3d",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "neq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Deployed ERC20 stock quote (not native BNB; code.length>0). / 已部署股票 ERC20 底池（非 BNB）。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-stock-hold-dual-dividend",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "neq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Any ERC20 quote with code / 任意有代码的 ERC20 底池"
+      },
+      {
+        "target": "dividendBps",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "dividendBps=0 - vault injects Basket / 须0，金库注假Token"
+      },
+      {
+        "target": "dividendToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��������������������",
+        "description": "Portal MAGIC → CREATE2 Basket / 顶层 MAGIC→预测假Token"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-coin-stock-nft-bbk-v3",
+    "policies": [
+      {
+        "target": "quoteToken",
+        "operator": "neq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Quote must be ERC20 (not native BNB). / 底池须为 ERC20。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-stock-lp-reslp",
+    "policies": [
+      {
+        "target": "dividendToken",
+        "operator": "eq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000��������������������",
+        "description": "Portal dividendToken=MAGIC → tax/quote Pancake LP. / 顶层须 MAGIC→税币/股票 LP。"
+      },
+      {
+        "target": "quoteToken",
+        "operator": "neq",
+        "value": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "description": "Quote must be an allowlisted stock ERC20 (not native BNB). / 底池必须是白名单股票 ERC20。"
+      }
+    ]
+  },
+  {
+    "templateId": "vault-tmlp-multi-stock-lp",
+    "policies": []
+  },
+  {
+    "templateId": "vault-floor-mult-unlimited",
+    "policies": []
+  },
+  {
+    "templateId": "vault-pure-fission",
+    "policies": []
+  },
+  {
+    "templateId": "vault-stock-gold-burn-dividend",
+    "policies": []
+  },
+  {
+    "templateId": "vault-bbb-buyback",
+    "policies": []
+  }
+]

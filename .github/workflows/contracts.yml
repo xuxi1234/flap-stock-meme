@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - "contracts/**"
+      - "src/vault/mint-artifacts.json"
+      - "scripts/build-mint-artifacts.mjs"
       - ".github/workflows/contracts.yml"
   push:
     branches:
       - main
     paths:
       - "contracts/**"
+      - "src/vault/mint-artifacts.json"
+      - "scripts/build-mint-artifacts.mjs"
       - ".github/workflows/contracts.yml"
 
 permissions:
@@ -25,11 +29,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: v1.7.1
       - name: Check formatting
         run: forge fmt --check
       - name: Compile and report contract sizes
         run: forge build --sizes
+      - name: Check committed Mint ABI and bytecode
+        working-directory: .
+        run: node scripts/build-mint-artifacts.mjs --check
       - name: Run contract tests and gas report
         run: forge test --gas-report -vvv
 

@@ -1,0 +1,53 @@
+{
+  "broadcast": false,
+  "shares": 2,
+  "valueBNB": "0.02",
+  "transaction": {
+    "from": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+    "to": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+    "data": "0xa0712d680000000000000000000000000000000000000000000000000000000000000002",
+    "value": "0x470de4df820000"
+  },
+  "readAndSimulationResults": [
+    {
+      "jsonrpc": "2.0",
+      "id": "totalShares",
+      "result": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "sharesOf",
+      "result": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "launched",
+      "result": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "aborted",
+      "result": "0x0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "balance",
+      "result": "0x0"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "fund",
+      "result": "0x"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "gas",
+      "result": "0x14982"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "gasPrice",
+      "result": "0x2faf080"
+    }
+  ]
+}

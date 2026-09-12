@@ -1,0 +1,111 @@
+{
+  "methods": [
+    [
+      "feeRecipient()",
+      "0x46904840"
+    ],
+    [
+      "feeReceiver()",
+      "0xb3f00674"
+    ],
+    [
+      "treasury()",
+      "0x61d027b3"
+    ],
+    [
+      "admin()",
+      "0xf851a440"
+    ],
+    [
+      "platformFeeRecipient()",
+      "0xeb13554f"
+    ],
+    [
+      "platformFeeReceiver()",
+      "0x2d656ad7"
+    ],
+    [
+      "vaults(uint256)",
+      "0x8c64ea4a0000000000000000000000000000000000000000000000000000000000000000"
+    ],
+    [
+      "upgradeTo(address)",
+      "0x3659cfe6000000000000000000000000f5e128f3bc81fed7cc4358e82d272a5caca02ffe"
+    ]
+  ],
+  "rpc": [
+    {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x",
+        "data": "0x"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x",
+        "data": "0x"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x",
+        "data": "0x"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x",
+        "data": "0x"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x",
+        "data": "0x"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 5,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x",
+        "data": "0x"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 6,
+      "result": "0x000000000000000000000000159066860b00d75c71004d97e6b98ff8d10a8306"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 7,
+      "error": {
+        "code": 3,
+        "message": "execution reverted: 0x5fc483c5",
+        "data": "0x5fc483c5"
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 100,
+      "result": "0x"
+    }
+  ]
+}

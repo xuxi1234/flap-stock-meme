@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["api/vault-metadata.ts"],
+  "compilerOptions": { "types": ["node"] }
+}
