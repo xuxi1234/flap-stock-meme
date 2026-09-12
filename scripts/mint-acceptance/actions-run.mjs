@@ -12,7 +12,7 @@ export function actionsOptions(env) {
   requireThat(env.GITHUB_REF === 'refs/heads/main', '请选择 main 分支运行；预览或 PR 分支不能执行主网。');
   const mode = env.FLAP_MINT_MODE || 'check';
   requireThat(['check', 'execute'].includes(mode), '此入口只接受 check 或 execute。');
-  if (mode === 'execute') requireThat(env.FLAP_MINT_CONFIRMATION === 'EXECUTE 0.1 BNB', '请在手动运行页面填写准确确认文字 EXECUTE 0.1 BNB。');
+  if (mode === 'execute') requireThat(env.FLAP_MINT_CONFIRMATION === 'EXECUTE 0.1 BNB', '请在手动运行页面勾选“我确认执行”预算确认框。');
   const imports = (env.FLAP_MINT_IMPORT_HASHES || '').split(/[\s,]+/).filter(Boolean).map(h => h.toLowerCase());
   requireThat(imports.length <= 100 && imports.every(h => /^0x[0-9a-f]{64}$/.test(h)), '补录哈希格式无效（可用空格或换行分隔，最多 100 笔）。');
   return { execute: mode === 'execute', retry: env.FLAP_MINT_RETRY_FAILED === 'true', imports };

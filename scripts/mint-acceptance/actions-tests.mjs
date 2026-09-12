@@ -93,3 +93,15 @@ test('workflow scopes the wallet Secret to the manual execute step and never int
   assert.ok(!/^\s+(push|pull_request|schedule):/m.test(yaml));
   assert.ok(!/run:.*\$\{\{\s*inputs\./.test(yaml));
 });
+
+test('Chinese manual form requires an unchecked budget checkbox and maps only explicit execution', () => {
+  const yaml = fs.readFileSync(new URL('../../.github/workflows/mint-acceptance.yml', import.meta.url), 'utf8');
+  assert.match(yaml, /options: \[只读检查, 离线模拟, 执行主网\]/);
+  assert.match(yaml, /default: 只读检查/);
+  assert.match(yaml, /confirm_budget:[\s\S]*?default: false\s+type: boolean/);
+  assert.match(yaml, /inputs.mode == '执行主网' && inputs.confirm_budget == true/);
+  assert.equal((yaml.match(/inputs.confirm_budget && 'EXECUTE 0.1 BNB' \|\| ''/g) || []).length, 2);
+  assert.match(yaml, /inputs.mode == '执行主网' && 'execute' \|\| inputs.mode == '只读检查' && 'check' \|\| 'invalid'/);
+  assert.throws(() => actionsOptions({ ...context(), FLAP_MINT_CONFIRMATION: '' }), /勾选/);
+  assert.throws(() => actionsOptions({ ...context(), FLAP_MINT_MODE: 'invalid' }));
+});
