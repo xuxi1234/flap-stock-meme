@@ -1,8 +1,9 @@
 import {useEffect,useState} from 'react'
-import {encodeAbiParameters,formatEther,getAddress,isAddress,keccak256,parseEther,type Address,type Hex} from 'viem'
-import {OWNER,REVENUE,ZERO,mineSalt} from './protocol'
-import {client,prepare,prepareDeployment,records,type Prepared} from './service'
-import {mintDeployData,mintFactoryData,mintCampaignData,mintFactoryAbi,verifyMintDeployment,readCampaign} from './mint'
+import {encodeAbiParameters,formatEther,getAddress,isAddress,parseEther,type Address,type Hex} from 'viem'
+import {REVENUE,ZERO,mineSalt} from './protocol'
+import {client,prepare,records,type Prepared} from './service'
+import {mintFactoryData,mintCampaignData,mintFactoryAbi,verifyMintDeployment,readCampaign} from './mint'
+import deployedMint from '../../public/vault/mint-deployment.json'
 import {acceptanceInput} from './acceptance'
 
 type Props={account:Address|null;busy:boolean;run:(action:()=>Promise<void>)=>Promise<void>;status:(s:string)=>void;review:(p:Prepared|null)=>void;connect:()=>void}
@@ -10,7 +11,7 @@ const key='butterfly-mint-factory-tx-v1'
 const explorer=(address:string)=>`https://bscscan.com/${address.length===66?'tx':'address'}/${address}`
 export function MintPanel({account,busy,run,status,review,connect}:Props){
  const query=new URLSearchParams(location.search)
- const [hash,setHash]=useState(()=>query.get('factoryTx')||localStorage.getItem(key)||'')
+ const [hash,setHash]=useState(()=>query.get('factoryTx')||deployedMint.transactionHash)
  const [verified,setVerified]=useState<Awaited<ReturnType<typeof verifyMintDeployment>>|null>(null)
  const [campaignInput,setCampaignInput]=useState(query.get('campaign')||'')
  const [campaign,setCampaign]=useState<Awaited<ReturnType<typeof readCampaign>>|null>(null)
@@ -18,10 +19,10 @@ export function MintPanel({account,busy,run,status,review,connect}:Props){
  const [name,setName]=useState('Butterfly Mint Check'),[symbol,setSymbol]=useState('MINTCHK'),[meta,setMeta]=useState(acceptanceInput.meta)
  const [target,setTarget]=useState('2'),[days,setDays]=useState('7'),[minimum,setMinimum]=useState('100000'),[shares,setShares]=useState('1')
  useEffect(()=>{setCampaign(null);review(null)},[account])
+ useEffect(()=>{void run(verify)},[])
  const invalidate=()=>review(null)
  async function verify(){review(null);setVerified(null);setCampaign(null);if(!/^0x[0-9a-fA-F]{64}$/.test(hash))throw Error('请输入部署工厂的交易哈希');status('正在核对部署字节码、管理员与收益地址…');const v=await verifyMintDeployment(client,hash as Hex);setVerified(v);localStorage.setItem(key,hash);await list(v.address);status('Mint 工厂代码和权限已核对，可以创建与管理项目')}
  async function list(address:Address){const count=await client.readContract({address,abi:mintFactoryAbi,functionName:'campaignCount'}) as bigint;const start=count>20n?count-20n:0n;const found=await Promise.all(Array.from({length:Number(count-start)},(_,i)=>client.readContract({address,abi:mintFactoryAbi,functionName:'campaigns',args:[start+BigInt(i)]}))) as Address[];setCampaigns(found.reverse())}
- async function deploy(){if(!account)throw Error('请先连接钱包');if(account.toLowerCase()!==OWNER.toLowerCase())throw Error('请切换到管理员钱包 '+OWNER);if(records().some(r=>r.label==='部署蝴蝶 Mint 工厂'&&r.status!=='reverted'))throw Error('本浏览器已有工厂部署记录，请用记录中的哈希核验，不要重复部署');review(null);status('正在模拟工厂部署并估算网络费…');const p=await prepareDeployment(client,account,mintDeployData,'部署蝴蝶 Mint 工厂');if(p.maximumCost>2_000_000_000_000_000n)throw Error('最大网络费超过本次工厂部署上限 0.002 BNB');review(p);status('工厂部署模拟通过，请核对下方交易。部署完成后用交易哈希核验工厂。')}
  async function create(){if(!account||!verified)throw Error('请先连接钱包并核验工厂');review(null);const shares=Number(target),duration=Number(days);if(!Number.isInteger(shares)||shares<1||shares>1600||!Number.isInteger(duration)||duration<1||duration>89)throw Error('目标为 1–1600 份，募集期为 1–89 天');if(!name.trim()||new TextEncoder().encode(name.trim()).length>64||!symbol.trim()||new TextEncoder().encode(symbol.trim()).length>16)throw Error('请填写有效名称与符号');if(!/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{20,})$/.test(meta))throw Error('请输入 Flap / IPFS 资料 CID');const min=parseEther(minimum);if(min<=0n)throw Error('最低代币输出须大于 0');const block=await client.getBlock();const terms={name:name.trim(),symbol:symbol.trim(),meta,targetShares:shares,deadline:block.timestamp+BigInt(duration)*86400n,minimumTokensOut:min,vaultFactory:getAddress('0xfd2437DFFB8EBe9F96125b30c85Be22f99Fdddf3'),vaultData:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[60n,1000n]),buyTaxRate:300,sellTaxRate:300,taxDuration:3153600000n,antiFarmerDuration:2592000n,mktBps:10000,deflationBps:0,dividendBps:0,lpBps:0,minimumShareBalance:0n,dividendToken:ZERO};status('正在模拟创建 Mint 项目…');review(await prepare(client,account,verified.address,mintFactoryData('createCampaign',[terms]),0n,`创建 Mint：${terms.name}，目标 ${shares} 份 / ${formatEther(BigInt(shares)*10n**16n)} BNB，截止 ${new Date(Number(terms.deadline)*1000).toLocaleString()}，最低输出 ${minimum} 枚`));status('创建项目不存入募集资金，请核对下方交易。成功后刷新项目列表。')}
  async function load(address=campaignInput){review(null);setCampaign(null);if(!verified||!isAddress(address))throw Error('请核验工厂并填写项目地址');const s=await readCampaign(client,verified.address,getAddress(address),account||ZERO);setCampaignInput(address);setCampaign(s);status('已从同一区块读取 Mint 项目和你的份额')}
  async function action(method:'mint'|'refund'|'launch'|'claim'|'abort'|'claimCreatorDust'){
@@ -37,7 +38,7 @@ export function MintPanel({account,busy,run,status,review,connect}:Props){
  const field=(label:string,value:string,set:(s:string)=>void)=><label><span>{label}</span><input disabled={busy} value={value} onChange={e=>{invalidate();set(e.target.value)}}/></label>
  return <>
  <section className="vl-card"><h2>蝴蝶 Mint · 独立合约</h2><p>每份 0.01 BNB；发射前可自行退款，满额后调用 Flap 创建代币与百分比回购金库，参与者按份额领币。募集条款创建后固定，工厂不可升级。</p><p>管理员与平台佣金接收人：<code>{REVENUE}</code>。管理员只能暂停新项目创建，不能提取参与者的募集资金。</p><p>目前进行小额主网验收。分叉测试不等于主网验收，也不代表独立审计。回购金库仍使用第三方模板，其作者费用按模板执行。</p><a href="https://github.com/xuxi1234/flap-stock-meme/blob/preview/butterfly-vault-20260911/contracts/src/ButterflyMint.sol" target="_blank" rel="noreferrer">查看完整合约源码</a>{!account&&<p><button onClick={connect}>连接钱包</button></p>}</section>
- {!verified&&<section className="vl-card"><h2>1 部署你的 Mint 工厂</h2><p>本次只创建工厂与 Mint 实现合约，转入金额 0 BNB，网络费上限 0.002 BNB。没有发起募集或首购。</p><p>部署数据校验值：<code>{keccak256(mintDeployData)}</code></p><button disabled={busy} className="vl-primary" onClick={()=>void run(deploy)}>检查 Mint 工厂部署</button></section>}
+ <section className="vl-card"><h2>1 Mint 工厂已部署</h2><p>工厂：<a href={explorer(deployedMint.factory)} target="_blank" rel="noreferrer">{deployedMint.factory}</a></p><p>实际网络费 {deployedMint.actualFeeBNB} BNB · 转入金额 0 BNB。无需再次部署。</p><a href={explorer(deployedMint.transactionHash)} target="_blank" rel="noreferrer">查看成功部署交易</a><p>{verified?'实时核验已通过，下一步创建 Mint 项目。':'正在核验链上代码和权限；若读取失败，可点击下方「核验工厂」重试。'}</p></section>
  <section className="vl-card"><h2>2 核验工厂部署回执</h2>{field('部署工厂的交易哈希',hash,s=>{setHash(s);setVerified(null);setCampaign(null)})}<button disabled={busy} onClick={()=>void run(verify)}>核验工厂</button>{records().filter(r=>r.label==='部署蝴蝶 Mint 工厂').map(r=><p key={r.hash}><button disabled={busy} onClick={()=>{invalidate();setHash(r.hash);setVerified(null)}}>填入本次部署哈希</button> <a href={explorer(r.hash)} target="_blank" rel="noreferrer">{r.hash}</a></p>)}{verified&&<p>已核验工厂：<a href={explorer(verified.address)} target="_blank" rel="noreferrer">{verified.address}</a></p>}<small>手机和电脑使用相同交易哈希即可核验同一个工厂，资产与份额直接读取 BSC。</small></section>
  {verified&&<><section className="vl-card"><h2>3 创建 Mint 项目</h2><p>默认资料为验收测试资料。每份 0.01 BNB；买卖税各 3%，税收金库份额 100%，回购间隔 60 秒、单次支出比例 10%。</p><div className="vl-fields">{field('名称',name,setName)}{field('符号',symbol,setSymbol)}{field('目标份额',target,setTarget)}{field('募集天数',days,setDays)}{field('发射最低代币输出（18 位精度）',minimum,setMinimum)}{field('Flap 资料 CID',meta,setMeta)}</div><p>最低输出是发射交易的保护阈值，并非收益承诺；设置过高可能无法发射，届时仍可退款。</p><button disabled={busy} onClick={()=>void run(create)}>检查创建 Mint 项目</button></section>
  <section className="vl-card"><h2>4 认购、退款与领币</h2><button disabled={busy} onClick={()=>void run(async()=>{await list(verified.address);status('项目列表已更新')})}>刷新我的工厂项目</button>{campaigns.map(a=><p key={a}><button disabled={busy} onClick={()=>void run(()=>load(a))}>{a}</button></p>)}{field('Mint 项目合约地址',campaignInput,s=>{setCampaignInput(s);setCampaign(null)})}<button disabled={busy} onClick={()=>void run(()=>load())}>读取 / 刷新项目状态</button>

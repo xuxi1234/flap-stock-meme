@@ -30,7 +30,7 @@ Factory provenance requires an exact matching deployment input, sender, zero val
 
 ## Mainnet acceptance still required
 
-The factory is not yet deployed on mainnet. The user must sign its specific deployment from the preview and provide the hash. Then verify the receipt and immutable addresses. Next, use separate reviewed signatures for one small campaign, contribution/refund, funding, launch and claim. This is not an audited or fully mainnet-accepted fundraising product yet.
+Update: factory deployment succeeded in user-signed transaction `0x6e048b3aecb8c376162960bc0074f200a6dbab8810f0b3bbf6451144d032d7a2`, block 121375692. Factory `0xA64186DB66bAed9fDC13678c4Cfb89B1e1E9cCa9`, implementation `0x904C9E436299A65Fc25f32c48F3f908534F0e988`. Exact creation input, code presence, owner, commission receiver and VaultPortal were checked. The new preview auto-verifies this deployment and removes repeat factory deployment. Next, use separate reviewed signatures for one small campaign, contribution/refund, funding, launch and claim. This is not an audited or fully mainnet-accepted fundraising product yet.
 
 The default Mint form uses acceptance-test metadata, 2 shares, seven days, buy/sell tax 3%, 100% tax allocation to the third-party percent-buyback vault, 60-second interval and 10% spend fraction. Its minimum output is editable and frozen on creation. Thresholds do not guarantee prices or profits. Third-party Flap/underlying vault upgrade and fee rules remain external dependencies.
 
