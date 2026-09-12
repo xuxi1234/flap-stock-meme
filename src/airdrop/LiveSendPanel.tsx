@@ -1,0 +1,39 @@
+import { useEffect, useState } from 'react'
+import { formatEther, formatUnits, type Address, type EIP1193Provider, type Hex } from 'viem'
+import { BATCH_SIZE, cancelUnsent, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, validateTask, type Ready, type Task } from './live'
+import { csvText } from './math'
+type PlanInput={token:string;decimals:number;rows:{address:string;amount:string}[];mode:string}
+function file(name:string,body:string,mime='application/json'){const u=URL.createObjectURL(new Blob([body],{type:mime}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}
+export default function LiveSendPanel({wallet,provider,plan,verified}:{wallet:string;provider?:EIP1193Provider;plan:PlanInput|null;verified:boolean}){
+ const [task,setTask]=useState<Task|null>(null)
+ const [ready,setReady]=useState<Ready|null>(null)
+ const [busy,setBusy]=useState(false)
+ const [error,setError]=useState('')
+ const [confirm,setConfirm]=useState(false)
+ const [budget,setBudget]=useState('0.02')
+ const [restoreHash,setRestoreHash]=useState('')
+ useEffect(()=>{setTask(null);setReady(null);setConfirm(false);try{if(wallet)setTask(loadTask(wallet))}catch(e){setError((e as Error).message)}},[wallet])
+ const refresh=()=>{if(wallet)setTask(loadTask(wallet))}
+ async function check(){setBusy(true);setError('');setConfirm(false);setReady(null);try{const t=loadTask(wallet);if(!t)throw Error('请先锁定清单。');setReady(await prepare(t));setTask({...t})}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+ function lock(){setError('');setReady(null);setConfirm(false);try{if(!wallet||!provider)throw Error('请先连接发币钱包。');if(!verified||!plan)throw Error('请读取代币信息并生成有效清单。');setTask(newTask(wallet as Address,plan.token as Address,plan.decimals,plan.rows,plan.mode,budget))}catch(e){setError((e as Error).message)}}
+ async function execute(){if(!task||!provider)return;setBusy(true);setError('');setReady(null);setConfirm(false);try{const t=await runStep(wallet as Address,provider,task.id,ready??undefined,restoreHash?restoreHash as Hex:undefined);setTask({...t});setRestoreHash('')}catch(e){setError((e as Error).message)}finally{try{refresh()}catch{}setBusy(false)}}
+ async function restore(f:File|undefined){if(!f)return;setError('');try{if(f.size>2000000)throw Error('备份超过 2 MB。');const t=validateTask(JSON.parse(await f.text()));if(t.wallet.toLowerCase()!==wallet.toLowerCase())throw Error('请连接备份对应的原发币钱包。');const old=loadTask(wallet);if(old&&(old.id!==t.id||old.records.length>t.records.length||old.intent))throw Error('本机已有不同或更新的任务，请使用原任务继续。');saveTask(t);setTask(t);setReady(null);setConfirm(false)}catch(e){setError((e as Error).message)}}
+ function exportResults(){if(!task)return;file('蝴蝶股票_真实发币记录.csv',csvText([['交易哈希','交易状态','批次','地址','计划数量','实际到账','Gas(BNB)'],...task.records.flatMap(r=>r.received?.length?r.received.map(a=>[r.hash,r.status,(r.batch??0)+1,a.address,formatUnits(BigInt(a.requested),task.decimals),formatUnits(BigInt(a.received),task.decimals),formatEther(BigInt(r.gasWei))]):[[r.hash,r.status,'',r.kind,'','',formatEther(BigInt(r.gasWei))]])]),'text/csv;charset=utf-8;')}
+ return <section className="ad-card ad-live" id="ad-live"><div className="ad-results-heading"><div><span className="ad-eyebrow">ON-CHAIN DISTRIBUTION · BSC</span><h2>真实链上发放</h2><p>代币从你的钱包直接到接收地址。工具费 0，仅支付网络 Gas。</p></div><span className="ad-status">钱包确认发送</span></div>
+ {!wallet?<div className="ad-notice">先点击顶部“连接钱包”，再生成并锁定发放清单。</div>:<>
+ {!task&&<><label htmlFor="ad-gas-budget">本任务累计 Gas 预算（BNB，包含首次部署、授权和发放）</label><input id="ad-gas-budget" inputMode="decimal" value={budget} onChange={e=>setBudget(e.target.value)}/><button className="ad-export" disabled={!plan||!verified||busy} onClick={lock}>锁定当前清单，准备真实发送</button></>}
+ {task&&<>{!task.intent&&!task.records.length&&<button className="ad-export ad-secondary" onClick={()=>{try{cancelUnsent(wallet);setTask(null);setReady(null);setConfirm(false)}catch(e){setError((e as Error).message)}}}>解锁未发送的清单，重新配置</button>}<div className="ad-token-details"><div><span>发币钱包</span><strong className="ad-address">{task.wallet}</strong></div><div><span>代币合约</span><strong className="ad-address">{task.token}</strong></div><div><span>已锁定名单</span><strong>{task.rows.length} 个地址 · {formatUnits(task.rows.reduce((a,r)=>a+BigInt(r.amount),0n),task.decimals)} 枚</strong></div><div><span>确认进度</span><strong>{completedCount(task)} / {Math.ceil(task.rows.length/BATCH_SIZE)} 批</strong></div><div><span>累计 Gas / 预算</span><strong>{formatEther(spent(task))} / {formatEther(BigInt(task.budget))} BNB</strong></div><div><span>批量工具</span>{task.distributor?<a target="_blank" rel="noreferrer" href={`https://bscscan.com/address/${task.distributor}`}>{task.distributor} ↗</a>:<strong>首次使用由钱包部署</strong>}</div></div>
+ <div className="ad-notice">{task.mode==='random'?'本任务将把真实代币发送到随机地址。这些地址不代表真实用户，代币可能无人控制且无法收回。':'数量为发送数量；若代币收取转账税，实际到账可能减少，以每笔链上记录为准。'} 已锁定的名单不会随上方输入变化；跨档同一地址已合并数量。</div>
+ <details className="ad-list-details"><summary>查看已锁定的完整接收名单</summary><div className="ad-table-scroll" style={{maxHeight:280}}><table><thead><tr><th>地址</th><th>发送数量</th></tr></thead><tbody>{task.rows.map(r=><tr key={r.address}><td className="ad-address">{r.address}</td><td>{formatUnits(BigInt(r.amount),task.decimals)}</td></tr>)}</tbody></table></div></details>
+ <div className="ad-live-actions"><button className="ad-export" disabled={busy} onClick={()=>void check()}>检查下一步与网络费</button><button className="ad-export ad-secondary" onClick={()=>file('蝴蝶股票_发币任务备份.json',JSON.stringify(task,null,2))}>下载任务备份</button><button className="ad-export ad-secondary" onClick={exportResults}>导出真实记录 CSV</button></div>
+ {task.intent&&<div className="ad-notice"><div>有一笔交易待核对，已停止重复发送。{task.intent.hash&&<p><a href={`https://bscscan.com/tx/${task.intent.hash}`} target="_blank" rel="noreferrer">查看待确认交易 ↗</a></p>}<label htmlFor="ad-restore-hash">恢复交易哈希（钱包未返回哈希时填写）</label><input id="ad-restore-hash" value={restoreHash} onChange={e=>setRestoreHash(e.target.value)} placeholder="0x…"/><button className="ad-export" disabled={busy||!provider} onClick={()=>void execute()}>重新核对链上结果</button></div></div>}
+ {ready&&ready.kind!=='pending'&&<div className="ad-live-confirm"><strong>{ready.description}</strong>{ready.fee!==undefined&&<p>本笔最高手续费：{formatEther(ready.fee)} BNB</p>}{ready.kind==='approve'&&<p>授权数量：{formatUnits(ready.remaining??0n,task.decimals)} 枚，仅授权当前工具。</p>}{ready.kind!=='complete'&&<><label className="ad-confirm-label"><input type="checkbox" checked={confirm} onChange={e=>setConfirm(e.target.checked)}/>我已核对锁定名单、数量、合约和费用，确认这是真实链上操作。</label><button className="ad-primary" disabled={!confirm||busy||!provider} onClick={()=>void execute()}>在钱包中确认此步 →</button></>}</div>}
+ {completedCount(task)===Math.ceil(task.rows.length/BATCH_SIZE)&&!task.intent&&<p className="ad-notice">全部发放批次已确认。可导出真实到账记录；点击“检查下一步”核对是否还有授权需要撤销。</p>}
+ {!!task.records.length&&<div className="ad-table-scroll"><table><thead><tr><th>操作</th><th>状态</th><th>真实交易哈希</th></tr></thead><tbody>{task.records.map(r=><tr key={r.hash}><td>{r.kind==='send'?`发放第 ${(r.batch??0)+1} 批`:r.kind==='deploy'?'部署工具':r.kind==='approve'?'授权':'清零授权'}</td><td>{r.status==='success'?'已确认':'链上失败'}</td><td><a href={`https://bscscan.com/tx/${r.hash}`} target="_blank" rel="noreferrer">{r.hash.slice(0,14)}…{r.hash.slice(-8)} ↗</a></td></tr>)}</tbody></table></div>}
+ {completedCount(task)===Math.ceil(task.rows.length/BATCH_SIZE)&&!task.intent&&<button className="ad-export ad-secondary" disabled={busy||!plan||!verified} onClick={lock}>用上方新清单建立下一任务</button>}
+ </>}
+ <label className="ad-upload" style={{marginTop:20}}>从本机导入任务备份（跨设备续发）<input type="file" accept=".json" onChange={e=>{void restore(e.target.files?.[0]);e.target.value=''}}/></label>
+ </>}
+ {busy&&<p className="ad-notice" role="status">正在检查或等待钱包、链上确认，请保持页面打开。不会在后台自动发起下一笔。</p>}{error&&<p className="ad-error" role="alert">{error}</p>}
+ </section>
+}

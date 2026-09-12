@@ -21,3 +21,9 @@ it('rejects oversized batches without forwarding', async () => {
   await handler({ method: 'POST', body: Array(11).fill({ jsonrpc: '2.0', id: 1, method: 'eth_chainId', params: [] }) }, res)
   expect(res.status).toHaveBeenCalledWith(400); expect(fetch).not.toHaveBeenCalled()
 })
+it('normalizes viem no-argument reads without enabling write methods', async () => {
+  const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ result: '0x1' }) }); vi.stubGlobal('fetch', fetch)
+  const res = response(); await handler({ method: 'POST', body: { jsonrpc: '2.0', id: 1, method: 'eth_gasPrice' } }, res)
+  expect(JSON.parse(fetch.mock.calls[0][1].body).params).toEqual([])
+  expect(res.status).toHaveBeenCalledWith(200)
+})
