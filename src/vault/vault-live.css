@@ -4,3 +4,5 @@
 .vl-header nav{position:static;inset:auto;margin:0;padding:0;border:0;box-shadow:none;border-radius:0;background:transparent}.vl-main h1{letter-spacing:-.025em}
 
 .vl-review{scroll-margin-top:155px}
+
+.vl-facts{display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px}.vl-facts dt{color:#b6ac90}.vl-facts dd{margin:0;overflow-wrap:anywhere}.vl-action{display:inline-block;padding:12px 16px;background:#ffe066;color:#151004!important;border-radius:8px;font-weight:700}@media(max-width:650px){.vl-facts{grid-template-columns:1fr;gap:4px}.vl-facts dd{margin-bottom:12px}}

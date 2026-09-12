@@ -65,3 +65,9 @@ The relay now normalizes omitted parameters to `[]` only for `eth_chainId`, `eth
 - Portal.getVault confirms the receipt vault/factory; vault.taxToken confirms the token. vaultConfigView returns [9900,100,1000,60,1].
 - Token owner() returns Flap Portal, not the user's EOA. Direct token commissionReceiver/commissionBps/taxSplitter getters revert; recipient verification here is from the successful decoded creation call, not an invented getter. External factory/guardian privileges have not been transferred.
 - This validates one actual creation and its read interfaces. It does not validate all template mechanisms, prove paid-out earnings, complete independent Mint, or deploy the site's production branch. No further transaction was sent during verification.
+
+## Live revenue recipient and completed-creation entry
+
+The deployed fee processor `0x2f3ec0015ffd814f8fdeab254d9d6814d09d1312` returns the acceptance token from taxToken() and the configured user address from commissionReceiver(). This supersedes the earlier limitation to calldata-only recipient verification; the failed getters had targeted the token rather than its processor. commissionBps() returned 200; this is recorded without assuming the fee basis or claiming any paid-out revenue.
+
+The completed-vault page reads registry mapping, token relationships, recipient, vault BNB balance and totalReceivedBnb at one block. It labels vault funds separately from platform earnings, and a changed recipient produces a mismatch notice. The acceptance setup route now opens the completed vault and blocks duplicate acceptance creation.
