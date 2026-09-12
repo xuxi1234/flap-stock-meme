@@ -65,8 +65,9 @@
         "gas": "8825805",
         "gasPrice": "60000000"
       },
-      "settled": false,
-      "hash": "0xe4295c38a3717f6e73133817c0e10a94ae915b9d81c73e3f7dec0ebdc3bbcf94"
+      "settled": true,
+      "hash": "0xe4295c38a3717f6e73133817c0e10a94ae915b9d81c73e3f7dec0ebdc3bbcf94",
+      "success": true
     }
   ],
   "results": [
@@ -216,7 +217,34 @@
           }
         }
       ]
+    },
+    {
+      "hash": "0xe4295c38a3717f6e73133817c0e10a94ae915b9d81c73e3f7dec0ebdc3bbcf94",
+      "from": "0x74a7d3198905c3b4ba53574c2dffef3aa4e569aa",
+      "contractAddress": null,
+      "nonce": 3,
+      "to": "0xf395e8008fd1730d2acb53ed2df42d18820fbe78",
+      "data": "0xc433ec6f9f5307b4bed631b1fb352971c7fdedbb69000c9b5e5b28f9ddb7557bae7afbfd",
+      "valueWei": "0",
+      "gas": "8825805",
+      "gasPrice": "60000000",
+      "success": true,
+      "feeWei": "377375460000000",
+      "block": "121425173",
+      "blockHash": "0xe372b62fdd9c0516484020ed6c3d94a1ca65d5d1a1b2cd6c171368e582a14064",
+      "events": [
+        {
+          "name": "Launched",
+          "args": {
+            "token": "0xEfc800C9AFA89AC73eb7c7Ab2bFA3b0cd4B77777",
+            "shares": "2",
+            "spent": "20000000000000000",
+            "tokens": "3450952337706195609819457",
+            "returnedBnb": "0"
+          }
+        }
+      ]
     }
   ],
-  "spentWei": "30747640629141262"
+  "spentWei": "31125016089141262"
 }
