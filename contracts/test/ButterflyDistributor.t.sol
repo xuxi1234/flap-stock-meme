@@ -153,8 +153,8 @@ contract ButterflyDistributorTest {
     function testRejectEOATokenAndOversizedBatch() public {
         vm.expectRevert(ButterflyDistributor.InvalidBatch.selector);
         d.distribute(address(33), bytes32(uint256(1)), r, a);
-        address[] memory x = new address[](51);
-        uint256[] memory y = new uint256[](51);
+        address[] memory x = new address[](201);
+        uint256[] memory y = new uint256[](201);
         vm.expectRevert(ButterflyDistributor.InvalidBatch.selector);
         d.distribute(address(t), bytes32(uint256(1)), x, y);
     }
@@ -163,6 +163,39 @@ contract ButterflyDistributorTest {
         t.setReentry(d);
         d.distribute(address(t), bytes32(uint256(1)), r, a);
         require(t.reentryBlocked());
+    }
+
+    function testSend200AddressesInOneTransaction() public {
+        address[] memory recipients = new address[](200);
+        uint256[] memory amounts = new uint256[](200);
+        for (uint256 i; i < 200; ++i) {
+            recipients[i] = address(uint160(1000 + i));
+            amounts[i] = 7;
+        }
+        uint256 beforeGas = gasleft();
+        d.distribute(address(t), bytes32(uint256(200)), recipients, amounts);
+        uint256 used = beforeGas - gasleft();
+        require(used < 16000000, "200-recipient gas ceiling");
+        for (uint256 i; i < 200; ++i) {
+            require(t.balanceOf(recipients[i]) == 7);
+        }
+        require(t.balanceOf(address(this)) == 8600);
+        require(d.completed(address(this), bytes32(uint256(200))));
+    }
+
+    function testLastRecipientFailureRollsBackAll200() public {
+        address[] memory recipients = new address[](200);
+        uint256[] memory amounts = new uint256[](200);
+        for (uint256 i; i < 200; ++i) {
+            recipients[i] = address(uint160(1000 + i));
+            amounts[i] = 7;
+        }
+        t.configure(recipients[199], 0, false, false);
+        vm.expectRevert(ButterflyDistributor.TransferFailed.selector);
+        d.distribute(address(t), bytes32(uint256(200)), recipients, amounts);
+        require(t.balanceOf(recipients[0]) == 0 && t.balanceOf(recipients[198]) == 0);
+        require(t.balanceOf(address(this)) == 10000);
+        require(!d.completed(address(this), bytes32(uint256(200))));
     }
 
     function testFuzzNoOverTransfer(uint96 n) public {

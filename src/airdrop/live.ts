@@ -1,6 +1,7 @@
 import { createPublicClient, createWalletClient, custom, encodeAbiParameters, encodeFunctionData, erc20Abi, fallback, formatEther, getContractAddress, http, isAddress, keccak256, parseAbi, parseAbiParameters, parseEventLogs, zeroAddress, type Address, type EIP1193Provider, type Hex } from 'viem'
 import { bsc } from 'viem/chains'
 import artifact from './distributor.json'
+import legacyArtifact from './distributor-v1.json'
 import { units } from './math'
 
 export const abi = parseAbi([
@@ -13,9 +14,12 @@ export const rpc = createPublicClient({chain:bsc,transport:fallback([http('/api/
 export type Recipient = {address:Address; amount:string}
 export type Intent = {kind:'deploy'|'reset'|'approve'|'send'|'revoke';to?:Address;data:Hex;nonce:number;gas:string;gasPrice:string;hash?:Hex;batch?:number;createdAt:string}
 export type RecordRow = {kind:Intent['kind'];hash:Hex;status:'success'|'reverted';gasWei:string;batch?:number;received?:{address:Address;requested:string;received:string}[]}
-export type Task = {version:1;chainId:56;id:Hex;wallet:Address;token:Address;decimals:number;rows:Recipient[];mode:string;budget:string;distributor?:Address;intent?:Intent;records:RecordRow[]}
+export type Task = {version:1;toolVersion?:2;retiredDistributor?:Address;chainId:56;id:Hex;wallet:Address;token:Address;decimals:number;rows:Recipient[];mode:string;budget:string;distributor?:Address;intent?:Intent;records:RecordRow[]}
 const key = (wallet:string) => 'butterfly-airdrop-live-v1:56:'+wallet.toLowerCase()
-export const BATCH_SIZE=25
+export const BATCH_SIZE=200
+export const batchSize=(t:Task)=>t.toolVersion===2?BATCH_SIZE:25
+const taskArtifact=(t:Task)=>t.toolVersion===2?artifact:legacyArtifact
+const cacheKey=(t:Task)=>`butterfly-distributor${t.toolVersion===2?'-v2':''}:56:${t.wallet.toLowerCase()}`
 export function cancelUnsent(wallet:string){const t=loadTask(wallet);if(t?.intent||t?.records.length)throw Error('已有交易记录，不能清除任务。');localStorage.removeItem(key(wallet))}
 export function canonicalRows(rows:{address:string;amount:string}[],decimals:number):Recipient[] {
  const map=new Map<string,bigint>()
@@ -32,6 +36,8 @@ export function validateTask(t:Task):Task {
  if(new Set(t.rows.map(r=>r.address.toLowerCase())).size!==t.rows.length)throw Error('任务含重复地址。')
  if(taskId(t.wallet,t.token,t.rows)!==t.id)throw Error('任务摘要与名单不一致。')
  if(!/^\d+$/.test(t.budget)||BigInt(t.budget)<=0n)throw Error('任务 Gas 预算无效。')
+ if(t.toolVersion!==undefined&&t.toolVersion!==2)throw Error('任务工具版本无效。')
+ if(t.retiredDistributor&&(!isAddress(t.retiredDistributor)||t.toolVersion!==2))throw Error('旧工具记录无效。')
  if(t.distributor&&!isAddress(t.distributor))throw Error('工具合约无效。')
  return t
 }
@@ -40,19 +46,19 @@ export function saveTask(t:Task){validateTask(t);const data=JSON.stringify(t);lo
 export function newTask(wallet:Address,token:Address,decimals:number,rows:{address:string;amount:string}[],mode:string,budget:string):Task {
  const normalized=canonicalRows(rows,decimals)
  if(normalized.some(r=>r.address.toLowerCase()===wallet.toLowerCase()))throw Error('接收名单包含发送钱包自身，请先核对并移除该地址。')
- const task:Task={version:1,chainId:56,id:taskId(wallet,token,normalized),wallet,token,decimals,rows:normalized,mode,budget:units(budget,18).toString(),records:[]}
+ const task:Task={version:1,toolVersion:2,chainId:56,id:taskId(wallet,token,normalized),wallet,token,decimals,rows:normalized,mode,budget:units(budget,18).toString(),records:[]}
  const previous=loadTask(wallet)
  if(previous?.intent)throw Error('上一任务仍有待确认交易，请先恢复处理。')
  if(previous?.id===task.id)return previous
- if(previous&&completedCount(previous)<Math.ceil(previous.rows.length/BATCH_SIZE))throw Error('已有未完成任务，请完成后再新建。')
- if(previous?.distributor)task.distributor=previous.distributor
+ if(previous&&completedCount(previous)<Math.ceil(previous.rows.length/batchSize(previous)))throw Error('已有未完成任务，请完成后再新建。')
+ if(previous?.distributor&&previous.toolVersion===2)task.distributor=previous.distributor
  saveTask(task);return task
 }
 export const spent=(t:Task)=>t.records.reduce((a,r)=>a+BigInt(r.gasWei),0n)
 export const completedCount=(t:Task)=>new Set(t.records.filter(r=>r.kind==='send'&&r.status==='success').map(r=>r.batch)).size
-export function batch(t:Task,index:number){const rows=t.rows.slice(index*BATCH_SIZE,(index+1)*BATCH_SIZE);return {rows,id:keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256'),[t.id,BigInt(index)]))}}
+export function batch(t:Task,index:number){const rows=t.rows.slice(index*batchSize(t),(index+1)*batchSize(t));return {rows,id:t.toolVersion===2?keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256,uint256'),[t.id,2n,BigInt(index)])):keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256'),[t.id,BigInt(index)]))}}
 export async function assertWallet(t:Task,provider:EIP1193Provider){const accounts=await provider.request({method:'eth_accounts'});const chain=await provider.request({method:'eth_chainId'});if(Number(chain)!==56||accounts[0]?.toLowerCase()!==t.wallet.toLowerCase())throw Error('请连接该任务的原发送钱包，并切换 BSC 主网。')}
-export async function verifyDistributor(address:Address){const code=await rpc.getCode({address});if(code?.toLowerCase()!==artifact.runtime.toLowerCase())throw Error('工具合约代码不匹配，已停止授权和发送。')}
+export async function verifyDistributor(address:Address,t:Task){const code=await rpc.getCode({address});if(code?.toLowerCase()!==taskArtifact(t).runtime.toLowerCase())throw Error('工具合约代码不匹配，已停止授权和发送。')}
 function sendData(t:Task,index:number){const b=batch(t,index);return encodeFunctionData({abi,functionName:'distribute',args:[t.token,b.id,b.rows.map(r=>r.address),b.rows.map(r=>BigInt(r.amount))]})}
 async function reconcile(t:Task,hash?:Hex):Promise<Task>{
  if(!t.intent)return t
@@ -68,7 +74,7 @@ async function reconcile(t:Task,hash?:Hex):Promise<Task>{
  if(receipt.status==='success'){
   if(i.kind==='deploy'){
    if(!receipt.contractAddress)throw Error('未找到部署地址。')
-   await verifyDistributor(receipt.contractAddress);t.distributor=receipt.contractAddress
+   await verifyDistributor(receipt.contractAddress,t);t.distributor=receipt.contractAddress
   }
   if(i.kind==='send'){
    if(!t.distributor||i.batch===undefined)throw Error('缺少批次资料。')
@@ -101,22 +107,27 @@ export async function prepare(t:Task):Promise<Ready>{
  }
  if(t.intent)return {kind:'pending',description:'恢复待确认交易'}
  if(spent(t)>BigInt(t.budget))throw Error('累计 Gas 已超过本任务预算。')
- const outstanding=t.rows.slice(completedCount(t)*BATCH_SIZE).reduce((n,r)=>n+BigInt(r.amount),0n)
+ const outstanding=t.rows.slice(completedCount(t)*batchSize(t)).reduce((n,r)=>n+BigInt(r.amount),0n)
  const [precision,tokenBalance]=await Promise.all([rpc.readContract({address:t.token,abi:erc20Abi,functionName:'decimals'}),rpc.readContract({address:t.token,abi:erc20Abi,functionName:'balanceOf',args:[t.wallet]})])
  if(precision!==t.decimals)throw Error('代币精度不匹配，停止执行。')
  if(tokenBalance<outstanding)throw Error('钱包代币余额不足以完成剩余发放；未部署工具或请求授权。')
+ if(t.retiredDistributor){
+  await verifyDistributor(t.retiredDistributor,{...t,toolVersion:undefined})
+  const oldAllowance=await rpc.readContract({address:t.token,abi:erc20Abi,functionName:'allowance',args:[t.wallet,t.retiredDistributor]})
+  if(oldAllowance>0n)return estimate(t,{kind:'revoke',description:'升级前：撤销旧工具授权',to:t.token,data:encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[t.retiredDistributor,0n]})})
+ }
  if(!t.distributor){
-  const cached=localStorage.getItem('butterfly-distributor:56:'+t.wallet.toLowerCase())
-  if(cached&&isAddress(cached)){await verifyDistributor(cached);t.distributor=cached;saveTask(t)}
+  const cached=localStorage.getItem(cacheKey(t))
+  if(cached&&isAddress(cached)){await verifyDistributor(cached,t);t.distributor=cached;saveTask(t)}
  }
  let ready:Ready
- if(!t.distributor){ready={kind:'deploy',data:artifact.bytecode as Hex,description:'首次启用：部署批量发币工具'}}
+ if(!t.distributor){ready={kind:'deploy',data:taskArtifact(t).bytecode as Hex,description:t.toolVersion===2?'启用单笔 200 地址工具（仅首次部署）':'首次启用：部署旧版批量工具'}}
  else {
-  await verifyDistributor(t.distributor)
+  await verifyDistributor(t.distributor,t)
   if(await rpc.readContract({address:t.token,abi:erc20Abi,functionName:'decimals'})!==t.decimals)throw Error('代币精度发生变化，停止执行。')
   let index=0
   while(t.records.some(r=>r.kind==='send'&&r.status==='success'&&r.batch===index))index++
-  const remaining=t.rows.slice(index*BATCH_SIZE).reduce((n,r)=>n+BigInt(r.amount),0n)
+  const remaining=t.rows.slice(index*batchSize(t)).reduce((n,r)=>n+BigInt(r.amount),0n)
   const allowance=await rpc.readContract({address:t.token,abi:erc20Abi,functionName:'allowance',args:[t.wallet,t.distributor]})
   if(!remaining)return allowance>0n?await estimate(t,{kind:'revoke',description:'发放完成：撤销剩余授权',to:t.token,data:encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[t.distributor,0n]})}):{kind:'complete',description:'全部批次已确认到账'}
   if(t.rows.some(r=>r.address.toLowerCase()===t.distributor!.toLowerCase()))throw Error('收款名单不能包含工具合约。')
@@ -125,13 +136,14 @@ export async function prepare(t:Task):Promise<Ready>{
    ready={kind:allowance>0n?'reset':'approve',description:allowance>0n?'先清零已有授权，再设置本次所需数量':'授权本次剩余发放数量',to:t.token,data:encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[t.distributor,allowance>0n?0n:remaining]}),remaining}
   } else {
    if(await rpc.readContract({address:t.distributor,abi,functionName:'completed',args:[t.wallet,batch(t,index).id]}))throw Error('本批链上已完成，但本地缺少记录。请恢复原任务备份，禁止重复创建工具绕过。')
-   ready={kind:'send',description:`发送第 ${index+1} / ${Math.ceil(t.rows.length/BATCH_SIZE)} 批（${batch(t,index).rows.length} 个地址）`,to:t.distributor,data:sendData(t,index),batch:index,remaining}
+   ready={kind:'send',description:`一笔交易发送第 ${index+1} / ${Math.ceil(t.rows.length/batchSize(t))} 批（${batch(t,index).rows.length} 个地址）`,to:t.distributor,data:sendData(t,index),batch:index,remaining}
   }
  }
  return estimate(t,ready)
 }
 async function estimate(t:Task,ready:Ready):Promise<Ready>{
  const gas=(await rpc.estimateGas({account:t.wallet,to:ready.to,data:ready.data,value:0n}))*130n/100n+10000n
+ if(gas>16000000n)throw Error('本笔交易模拟所需 Gas 超过工具单笔上限，已停止。不会自动拆成多笔发送。')
  const gasPrice=(await rpc.getGasPrice())*120n/100n
  const fee=gas*gasPrice
  if(spent(t)+fee>BigInt(t.budget))throw Error('本次交易的最高手续费将超出任务 Gas 预算，已停止。')
@@ -166,8 +178,35 @@ export async function runStep(wallet:Address,provider:EIP1193Provider,expectedId
    throw Error('钱包请求未完成确认。任务已锁定，请查看钱包活动记录并恢复交易哈希。')
   }
   const result=await reconcile(t)
-  if(result.distributor)localStorage.setItem('butterfly-distributor:56:'+wallet.toLowerCase(),result.distributor)
+  if(result.distributor)localStorage.setItem(cacheKey(result),result.distributor)
   return result
  })
 }
 export function predictedDeployment(t:Task){return t.intent?.kind==='deploy'?getContractAddress({from:t.wallet,nonce:BigInt(t.intent.nonce)}):undefined}
+
+export async function upgradeToSingleTransaction(wallet:Address,provider:EIP1193Provider):Promise<Task>{
+ if(!navigator.locks)throw Error('浏览器不支持任务锁。')
+ return navigator.locks.request(key(wallet),{ifAvailable:true},async lock=>{
+  if(!lock)throw Error('另一个标签页正在处理此任务。')
+  const t=loadTask(wallet)
+  if(!t)throw Error('请先恢复原任务。')
+  await assertWallet(t,provider)
+  if(t.toolVersion===2)return t
+  if(t.intent)throw Error('请先重新核对上一笔链上结果，再升级。')
+  if(t.records.some(r=>r.kind==='send'))throw Error('已有发放记录，须按原批次继续，不能重新合并发送。')
+  // Validates all previous receipts and cumulative Gas without sending anything.
+  await prepare(t)
+  if(t.distributor){
+   for(let index=0;index<Math.ceil(t.rows.length/batchSize(t));index++){
+    if(await rpc.readContract({address:t.distributor,abi,functionName:'completed',args:[t.wallet,batch(t,index).id]}))throw Error('旧工具已有发放，停止升级以避免重复。')
+   }
+  }
+  await assertWallet(t,provider)
+  const current=loadTask(wallet)
+  if(JSON.stringify(current)!==JSON.stringify(t))throw Error('任务已变化，请重新检查。')
+  localStorage.setItem(key(wallet)+':before-single',JSON.stringify(t))
+  const upgraded:Task={...t,toolVersion:2,retiredDistributor:t.distributor,distributor:undefined}
+  saveTask(upgraded)
+  return upgraded
+ })
+}
