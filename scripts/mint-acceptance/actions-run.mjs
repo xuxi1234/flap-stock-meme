@@ -24,7 +24,7 @@ export function accountFromSecret(env, convert = privateKeyToAccount) {
   key = key.trim(); if (key && !key.startsWith('0x')) key = '0x' + key;
   requireThat(/^0x[0-9a-fA-F]{64}$/.test(key), '请在 Actions Secrets 添加 FLAP_MINT_PRIVATE_KEY；不要放进运行输入框。');
   const account = convert(key); key = '';
-  requireThat(equal(account.address, ACCOUNT), 'FLAP_MINT_PRIVATE_KEY 对应地址不匹配；只能使用已确认的 0x79F8…264072 验收钱包。');
+  requireThat(equal(account.address, ACCOUNT), 'FLAP_MINT_PRIVATE_KEY 对应地址不匹配；只能使用已确认的 0x74a7…69aA 验收钱包。');
   return account;
 }
 

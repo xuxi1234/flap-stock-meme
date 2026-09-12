@@ -9,7 +9,7 @@ import * as C from './config.mjs';
 import { calculateBudget, assertReservation, nextAction, checkNonce, prepare, sendEntry, reconcile, freshJournal, receiptRecord, inspect, verifyEntry, transactionForSigning } from './core.mjs';
 import { openStore, hiddenKeyPrompt } from './storage.mjs';
 
-import { initial, row, fakeClient } from './fixtures.mjs';
+import { initial, row, legacyRow, fakeClient } from './fixtures.mjs';
 
 test('gross budget counts refunded principal and historical/reverted gas', () => {
   assert.equal(calculateBudget([row(0, C.SHARE_PRICE), row(1, 0n), row(2, C.SHARE_PRICE, false)]), C.SHARE_PRICE + 300n);
@@ -97,13 +97,13 @@ test('missing checkpoint or RPC error cannot be treated as an unsent transaction
   f.rpcError = true; await assert.rejects(reconcile(f, freshJournal(), () => {}), /HTTP failure/);
 });
 test('reconcile rechecks all five checkpoints and recovers confirmed transaction after crash', async () => {
-  const f = fakeClient(); C.CHECKPOINTS.forEach((hash, n) => f.receiptRows.set(hash, row(n, n === 3 ? C.SHARE_PRICE : 0n)));
+  const f = fakeClient(); C.CHECKPOINTS.forEach((hash, n) => f.receiptRows.set(hash, legacyRow(n, n === 3 ? C.SHARE_PRICE : 0n)));
   const journal = freshJournal(), ledger = await reconcile(f, journal, () => {});
-  assert.equal(ledger.nonce, 5); assert.equal(ledger.spent, C.SHARE_PRICE + 500n);
-  const hash = '0x' + 'ab'.repeat(32), entry = { action: 'mint', hash, settled: false, transaction: { nonce: 5, to: C.CAMPAIGN, data: '0x12', value: '0', gas: '100', gasPrice: '10' } };
-  journal.entries.push(entry); f.receiptRows.set(hash, { ...row(5, 0n, false), data: '0x12' });
+  assert.equal(ledger.nonce, 0); assert.equal(ledger.spent, C.SHARE_PRICE + 500n);
+  const hash = '0x' + 'ab'.repeat(32), entry = { action: 'mint', hash, settled: false, transaction: { nonce: 0, to: C.CAMPAIGN, data: '0x12', value: '0', gas: '100', gasPrice: '10' } };
+  journal.entries.push(entry); f.receiptRows.set(hash, { ...row(0, 0n, false), data: '0x12' });
   const recovered = await reconcile(f, journal, () => {});
-  assert.equal(recovered.nonce, 6); assert.equal(entry.settled, true); assert.equal(entry.success, false); assert.equal(recovered.spent, C.SHARE_PRICE + 600n);
+  assert.equal(recovered.nonce, 1); assert.equal(entry.settled, true); assert.equal(entry.success, false); assert.equal(recovered.spent, C.SHARE_PRICE + 600n);
 });
 test('successful receipt needs matching event, target and payment', () => {
   const entry = { action: 'claim', transaction: { nonce: 5, to: C.CAMPAIGN, data: '0x12', value: '0', gas: '100', gasPrice: '10' } };

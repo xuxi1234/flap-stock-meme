@@ -81,8 +81,8 @@ test('GitHub API errors redact server bodies and network error text', async () =
   await assert.rejects(failed('GET', '/contents/journal.json'), e => !e.message.includes('DO NOT'));
 });
 test('offline full sequence recovers response loss without duplicate operations', async () => {
-  const result = await simulate({ loseBroadcastResponse: true }); assert.deepEqual(result.operations, ['mint', 'launch', 'claim']);
-  assert.equal(result.networkBroadcasts, 0); assert.equal(result.privateKeysUsed, 0); assert.equal(result.journal.entries.length, 3);
+  const result = await simulate({ loseBroadcastResponse: true }); assert.deepEqual(result.operations, ['deployFactory', 'createCampaign', 'mint', 'launch', 'claim']);
+  assert.equal(result.networkBroadcasts, 0); assert.equal(result.privateKeysUsed, 0); assert.equal(result.journal.entries.length, 5);
   assert.ok(BigInt(result.simulatedSpentWei) < C.BUDGET);
 });
 test('workflow scopes the wallet Secret to the manual execute step and never interpolates raw inputs in shell', () => {

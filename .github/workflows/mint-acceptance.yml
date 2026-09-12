@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: flap-mint-acceptance-bsc56-79f8
+  group: flap-mint-acceptance-bsc56-79f8 # Retain the shared lock across wallet migration.
   cancel-in-progress: false
 
 jobs:
@@ -74,7 +74,7 @@ jobs:
     needs: preflight
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == 'execute' && inputs.confirmation == 'EXECUTE 0.1 BNB'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     permissions:
       contents: write # Only the fixed orphan checkpoint branch is written by the script.
     steps:

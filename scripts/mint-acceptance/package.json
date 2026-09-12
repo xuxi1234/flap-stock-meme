@@ -3,7 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.12" },
-  "scripts": { "test": "node --test tests.mjs actions-tests.mjs", "simulate": "node simulate.mjs" },
-  "dependencies": { "viem": "2.56.3" }
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "test": "node --test tests.mjs actions-tests.mjs migration-tests.mjs",
+    "simulate": "node simulate.mjs"
+  },
+  "dependencies": {
+    "viem": "2.56.3"
+  },
+  "devDependencies": {
+    "solc": "0.8.24"
+  }
 }

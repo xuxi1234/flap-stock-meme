@@ -15,7 +15,7 @@ const help = `蝴蝶 Mint 本机验收（Node.js 22+）
   node scripts/mint-acceptance/run.mjs --execute --retry-failed
 
 默认 --check：只读链上并更新本机记录，不接收私钥、不签名。
---execute：一次本机确认后依次完成缺少份额认购、满额发射、领取。
+--execute：一次本机确认后依次完成部署新工厂、创建项目、缺少份额认购、满额发射、领取。
 --retry-failed：你核对失败原因后才可使用；失败 Gas 仍累计计费。
 总上限 0.1 BNB，含此前全部 Gas 和成功转出金额；退款不抵扣。
 只支持固定钱包 ${ACCOUNT}，固定项目 ${CAMPAIGN}。
@@ -37,7 +37,7 @@ function options(args) {
 
 async function confirmLocally() {
   requireThat(process.stdin.isTTY && process.stdout.isTTY && !process.env.CI && !process.env.VERCEL && !process.env.GITHUB_ACTIONS, '执行模式仅支持你自己电脑的交互终端。');
-  console.log(`固定钱包/领取/平台佣金地址：${ACCOUNT}\n固定项目：${CAMPAIGN}\n将依次认购剩余份额（最多 0.02 BNB）、用项目资金发射，然后领取。累计 0.1 BNB 含全部 Gas；退款不恢复预算。发射后认购款不能按原退款流程退回。`);
+  console.log(`固定钱包/领取/平台佣金地址：${ACCOUNT}\n固定项目：${CAMPAIGN}\n将依次部署新工厂和项目、认购剩余份额（最多 0.02 BNB）、用项目资金发射，然后领取。累计 0.1 BNB 含全部 Gas；退款不恢复预算。发射后认购款不能按原退款流程退回。`);
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   let answer; try { answer = await rl.question('确认条款后输入 EXECUTE 0.1 BNB（本次进程只确认一次）：'); } finally { rl.close(); }
   requireThat(answer === 'EXECUTE 0.1 BNB', '未确认，已停止。');
@@ -45,7 +45,7 @@ async function confirmLocally() {
   if (!key.startsWith('0x')) key = '0x' + key;
   requireThat(/^0x[0-9a-fA-F]{64}$/.test(key), '私钥格式无效。');
   const account = privateKeyToAccount(key); key = ''; // JS cannot guarantee memory erasure; never persist it.
-  requireThat(equal(account.address, ACCOUNT), '私钥对应钱包不匹配；未发送交易。请使用此前验收的钱包。');
+  requireThat(equal(account.address, ACCOUNT), '私钥对应钱包不匹配；未发送交易。请使用新确认的 0x74a7…69aA 钱包。');
   return account;
 }
 
@@ -67,7 +67,7 @@ export async function runAcceptance({ client, store, opts, accountProvider = con
     }
     await save(journal);
     let account;
-    for (let count = 0; count < 5; count++) {
+    for (let count = 0; count < 7; count++) {
       const ledger = await reconcile(client, journal, save), state = await inspect(client);
       const pending = journal.entries.find(e => !e.settled);
       await checkNonce(client, ledger.nonce, Boolean(pending?.hash));
