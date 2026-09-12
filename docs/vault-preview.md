@@ -1,3 +1,5 @@
+> Historical frontend preview. Current wallet/chain integration and remaining limits: [vault-live.md](vault-live.md).
+
 # Butterfly vault preview
 
 The existing homepage now links to 金库 between swap and presale. `/?view=vault` opens an isolated same-origin document so the reference black/gold CSS cannot change the existing homepage or swap styles.

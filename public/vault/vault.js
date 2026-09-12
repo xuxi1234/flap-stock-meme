@@ -16,7 +16,7 @@ function clean(){
   $$('.lp-token-list').forEach(e=>{e.innerHTML='<p class="preview-empty">通过链上交易记录与金库地址查询真实状态。</p><a class="preview-action" href="#panel=monitor">打开链上金库</a>'});
   $$('.fx-builder-tabs').forEach(e=>e.remove());
   $$('.fx-builder-panel').forEach(e=>{e.innerHTML='<div style="grid-column:1/-1"><h3>金库链上工具</h3><p>选择模板，读取合约参数，模拟后由钱包签名。创建结果以成功回执为准。</p><a class="preview-action" href="#configure=percent-buyback">一键部署</a> <a href="#panel=monitor">管理已有金库</a></div>'});
-  $$('.lp-feed-tabs,.feed-rail,.deploy-sidebar,.gain-sidebar').forEach(e=>e.remove());
+  $$('.lp-feed-tabs,.feed-rail,.deploy-sidebar,.gain-sidebar,.fx-builder-stats,.lp-mint-stats').forEach(e=>e.remove());
   $$('[title]').filter(e=>/样例|快照/.test(e.title)).forEach(e=>e.removeAttribute('title'));
 }
 main.innerHTML=$('#home-template').innerHTML;clean();$$('.category-block').forEach((b,i)=>category(b,i===0));guide();

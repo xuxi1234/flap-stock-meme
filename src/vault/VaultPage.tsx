@@ -18,7 +18,7 @@ function Fields({fields,rows,onChange,array,disabled=false}:{fields:readonly Fie
 }
 export function VaultPage(){
   const query=new URLSearchParams(location.search),requested=(query.get('template')||'percent-buyback').replace(/^vault-/,'')
-  const [mode,setMode]=useState(query.get('panel')||'launch')
+  const [mode,setMode]=useState(['launch','manage','history','mint'].includes(query.get('panel')||'')?query.get('panel')!:'launch')
   const [template,setTemplate]=useState(catalog.find(t=>t.id==='vault-'+requested)||catalog.find(t=>t.id==='vault-percent-buyback')!)
   const [factory,setFactory]=useState<Awaited<ReturnType<typeof readFactory>>|null>(null)
   const [rows,setRows]=useState<Row[]>([{}]),[input,setInput]=useState(initial),[file,setFile]=useState<File|null>(null)
@@ -50,7 +50,7 @@ export function VaultPage(){
     setPredicted(salt.address);setReview(checked);setStatus('模拟通过，请核对交易后在钱包签名')
   })}
   async function sign(){await run(async()=>{if(!review||!wallet||!ack)throw Error('请先核对交易详情');const p=review;setReview(null);setAck(false);setStatus('请在钱包确认交易…');const r=await submit(client,createWalletClient({chain:bsc,transport:custom(wallet.provider)}),p,hash=>{setHistory(records());setStatus(`已提交交易 ${hash}，正在等待确认。请勿重复发送。`)});setStatus(r.status==='success'?'链上交易成功，已确认回执':'交易已回滚，请查看链上原因');if(r.vault){setVaultInput(r.vault);setMode('manage')}if(account)setBalance(formatEther(await client.getBalance({address:account})))})}
-  async function loadVault(){await run(async()=>{invalidate();setVault(null);setMethods([]);if(!isAddress(vaultInput))throw Error('请输入完整金库合约地址');const a=getAddress(vaultInput);if(!await client.getCode({address:a}))throw Error('此地址没有合约');const [rawSchema,description]=await Promise.all([client.readContract({address:a,abi:uiAbi,functionName:'vaultUISchema'}),client.readContract({address:a,abi:uiAbi,functionName:'description'})]);const schema=rawSchema as {methods:readonly Method[]};if(!Array.isArray(schema.methods)||schema.methods.length>100)throw Error('合约接口数量异常');setVault(a);setMethods(schema.methods);setVaultDescription(description);setMethodRows(Object.fromEntries(schema.methods.map(m=>[m.name,[defaults(m.inputs)]])));setResult({});setStatus('已读取金库的实时接口和状态')})}
+  async function loadVault(){await run(async()=>{invalidate();setVault(null);setMethods([]);if(!isAddress(vaultInput))throw Error('请输入完整金库合约地址');const a=getAddress(vaultInput);const code=await client.getCode({address:a});if(!code||code==='0x')throw Error('此地址没有合约');const [rawSchema,description]=await Promise.all([client.readContract({address:a,abi:uiAbi,functionName:'vaultUISchema'}),client.readContract({address:a,abi:uiAbi,functionName:'description'})]);const schema=rawSchema as {methods:readonly Method[]};if(!Array.isArray(schema.methods)||schema.methods.length>100)throw Error('合约接口数量异常');setVault(a);setMethods(schema.methods);setVaultDescription(description);setMethodRows(Object.fromEntries(schema.methods.map(m=>[m.name,[defaults(m.inputs)]])));setResult({});setStatus('已读取金库的实时接口和状态')})}
   async function callMethod(m:Method){await run(async()=>{invalidate();if(!vault)throw Error('请先读取金库');const rs=methodRows[m.name]||[{}];const fields=components(m.inputs),outputs=components(m.outputs)
     const args=rs.map(r=>m.inputs.map(f=>fieldValue(f,r[f.name]??'')))
     const abi=[{type:'function',name:m.name,stateMutability:m.isWriteMethod?'nonpayable':'view',inputs:m.isInputArray?[{type:'tuple[]',components:fields}]:fields,outputs:m.isOutputArray?[{type:'tuple[]',components:outputs}]:outputs}] as const

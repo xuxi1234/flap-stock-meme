@@ -18,7 +18,7 @@ Project administrator and commission receiver: `0x79F8b832DE72e81Ad34fd66EcbbF67
 - The independent Mint factory is not deployed. Reference factory `0x42eA4D729181E9e8dE1A85eDcCfa172F87c00DE3` is owned by `0x5c7aff98e20cc49362ff51f374a79354eba3c366` and can upgrade vault implementations. User address cannot exercise its upgrade permission. Verified implementation source was not obtained; do not route new fundraises through it as a user-owned factory. Evidence is in `vault-live-evidence/mint-research.md`.
 - Launches currently use zero initial purchase. ERC-20 bottom assets are still selected in the form and validated by the actual factory/Portal simulation. The existing stock directory is a discovery list, not proof every asset is accepted by every factory.
 - Contract management follows `vaultUISchema`. Unrecognized field types, unsupported approval types and array-input approval flows are rejected explicitly. Payable BNB deposit methods are not exposed by this generic nonpayable method adapter.
-- No full end-to-end mainnet receipt has been obtained. Wallet submission requires the user to review and sign the concrete transaction. Metadata upload is implemented but successful upload must be confirmed in the deployed environment.
+- No full end-to-end mainnet receipt has been obtained. Wallet submission requires the user to review and sign the concrete transaction. Metadata upload is implemented but not accepted as verified: a deployed endpoint upload probe was interrupted when network approval was cancelled. No successful upload result was obtained. An existing valid Flap metadata CID can be supplied explicitly.
 - Source factories' contract code has not received a new security audit. Schema retrieval or simulation is not an audit and not proof that all mechanisms will function after launch.
 
 ## Sources
@@ -29,3 +29,11 @@ Project administrator and commission receiver: `0x79F8b832DE72e81Ad34fd66EcbbF67
 - https://mxsj.space/ (reference directory and factory addresses; third-party source)
 
 Production, presale and existing swap funds were not modified. This supersedes the earlier frontend-only preview documentation only for functionality actually implemented above.
+
+## Deployed UI acceptance (2026-09-12)
+
+- Desktop live page loaded all 30 template choices and read percent-buyback schema through the deployed RPC endpoint.
+- Existing reference vault `0xD623Dfe99c58172ff39b78549BdC5B721F7F75A7` loaded its canonical management methods. Calling `vaultConfigView` returned `[9900,100,1000,30,1]` from BSC, not a fixture. This vault belongs to a reference token, not to the user.
+- A browser without a wallet extension displays the installation/DApp-browser instructions; no fake wallet fallback exists.
+- Catalog navigation reached the real management route. Obsolete preview counters and snapshot headings were removed in the follow-up.
+- Mobile verification uses the authored 390 × 844 iframe fixture at `/vault-layout-check.html`. See the final QA record for the observed result after deployment.
