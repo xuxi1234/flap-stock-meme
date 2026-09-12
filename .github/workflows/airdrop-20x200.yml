@@ -1,0 +1,86 @@
+name: 蝴蝶空投｜20轮·每轮200地址·每地址7枚
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '操作：先检查；执行会真实发送28000枚代币并支付Gas'
+        type: choice
+        default: 只读检查
+        options: [只读检查, 执行空投]
+        required: true
+      confirm:
+        description: '确认69aA钱包向4000个固定随机地址空投；累计0.1 BNB含此前支出和Gas；随机地址不代表真实用户'
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+
+# Shared with the existing Mint runner: the same signing wallet must never run concurrently.
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: 测试及只读检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node --test scripts/mint-acceptance/airdrop-tests.mjs
+      - name: 核对历史预算、余额、合约和已完成轮次
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AIRDROP_MODE: check
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/airdrop-check
+        run: node scripts/mint-acceptance/airdrop-run.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: airdrop-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/airdrop-check/
+          retention-days: 90
+          if-no-files-found: ignore
+
+  execute:
+    name: 执行或继续本次20轮空投
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == '执行空投' && inputs.confirm == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 依次发送，保存每笔交易哈希和实际到账
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AIRDROP_MODE: execute
+          AIRDROP_CONFIRM: ${{ inputs.confirm && '20x200x7' || '' }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/airdrop-results
+        run: node scripts/mint-acceptance/airdrop-run.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: airdrop-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/airdrop-results/
+          retention-days: 90
+          if-no-files-found: ignore

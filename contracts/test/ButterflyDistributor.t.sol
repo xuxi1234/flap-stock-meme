@@ -209,4 +209,27 @@ contract ButterflyDistributorTest {
         d.distribute(address(t), bytes32(uint256(2)), x, y);
         require(t.balanceOf(x[0]) == v && t.allowance(address(this), address(d)) == 0);
     }
+
+    function testTwentyRoundsFourThousandRecipientsAndReplayProtection() public {
+        t.mint(address(this), 28000 ether);
+        t.approve(address(d), 28000 ether);
+        address[] memory recipients = new address[](200);
+        uint256[] memory amounts = new uint256[](200);
+        for (uint256 batch; batch < 20; ++batch) {
+            for (uint256 i; i < 200; ++i) {
+                recipients[i] = address(uint160(10000 + batch * 200 + i));
+                amounts[i] = 7 ether;
+            }
+            bytes32 id = keccak256(abi.encode("twenty-rounds", batch));
+            d.distribute(address(t), id, recipients, amounts);
+            for (uint256 i; i < 200; ++i) {
+                require(t.balanceOf(recipients[i]) == 7 ether);
+            }
+            vm.expectRevert(ButterflyDistributor.AlreadyCompleted.selector);
+            d.distribute(address(t), id, recipients, amounts);
+        }
+        require(t.balanceOf(address(this)) == 10000);
+        require(t.allowance(address(this), address(d)) == 0);
+        require(t.balanceOf(address(d)) == 0);
+    }
 }
