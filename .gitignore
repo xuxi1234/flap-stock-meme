@@ -11,4 +11,5 @@ test-results/
 contracts/cache/
 contracts/out/
 contracts/broadcast/
-
+mint-acceptance-state/
+*.private-key

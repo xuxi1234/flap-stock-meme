@@ -1,0 +1,27 @@
+name: Local Mint runner (offline tests only)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/mint-acceptance/**'
+      - 'src/vault/mint-artifacts.json'
+      - 'docs/vault-live-evidence/mint-*.json'
+      - 'package-lock.json'
+      - '.github/workflows/local-mint-runner.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/mint-acceptance/tests.mjs
+
+# No private key, mainnet RPC, execute mode or broadcast in CI.

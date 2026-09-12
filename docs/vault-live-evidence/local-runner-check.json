@@ -1,0 +1,54 @@
+{
+  "mode": "read-only",
+  "broadcast": false,
+  "checkpointRecordedAtUtc": "2026-09-12T04:44:58.643871+00:00",
+  "chainId": 56,
+  "account": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "campaign": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+  "confirmedTransactionCount": 5,
+  "spentWei": "10548475729141262",
+  "budgetWei": "100000000000000000",
+  "refundsRestoreBudget": false,
+  "transactions": [
+    {
+      "hash": "0x6e56ed60da568446c36cf2890f9a52ed1c93105a68a6bca6bc171bfc86c43c5f",
+      "nonce": 0,
+      "success": true,
+      "feeWei": "346831505780525",
+      "valueWei": "0"
+    },
+    {
+      "hash": "0x6e048b3aecb8c376162960bc0074f200a6dbab8810f0b3bbf6451144d032d7a2",
+      "nonce": 1,
+      "success": true,
+      "feeWei": "166011782766863",
+      "valueWei": "0"
+    },
+    {
+      "hash": "0x01a55b25cb4904f734b0f02f26c4d1e4a1ea716914d91db1096d32a2eca6111c",
+      "nonce": 2,
+      "success": true,
+      "feeWei": "28476960474616",
+      "valueWei": "0"
+    },
+    {
+      "hash": "0x7c2570e4ff063dc1c90f0d9524f0b2523b0c3b96317a9a39559abffb91ac06dd",
+      "nonce": 3,
+      "success": true,
+      "feeWei": "4676160077936",
+      "valueWei": "10000000000000000"
+    },
+    {
+      "hash": "0x6e882e7a2609a4fec102948dcfbd08247355603fda66a0a9f11091d7cceaca5d",
+      "nonce": 4,
+      "success": true,
+      "feeWei": "2479320041322",
+      "valueWei": "0"
+    }
+  ],
+  "validation": {
+    "offlineRunnerTestsPassed": 18,
+    "vaultFrontendTestsPassed": 28,
+    "mainnetExecutionByScript": "Not executed; user will run locally"
+  }
+}
