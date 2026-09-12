@@ -119,7 +119,8 @@
         "gas": "13820063",
         "gasPrice": "60000000"
       },
-      "settled": false
+      "settled": false,
+      "hash": "0xff72ed273f1dc3f28d8d9b7c44c85ccff66ea30c509968b578911ed56750dbfc"
     }
   ],
   "rawSpentWei": "108282572942635913",
