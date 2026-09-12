@@ -81,8 +81,9 @@
         "gas": "230675",
         "gasPrice": "60000000"
       },
-      "settled": false,
-      "hash": "0xc5de112f239037bf89b5a51d45999a2c8fc96965c6f4db7db7698905f06e6954"
+      "settled": true,
+      "hash": "0xc5de112f239037bf89b5a51d45999a2c8fc96965c6f4db7db7698905f06e6954",
+      "success": true
     }
   ],
   "results": [
@@ -259,7 +260,34 @@
           }
         }
       ]
+    },
+    {
+      "hash": "0xc5de112f239037bf89b5a51d45999a2c8fc96965c6f4db7db7698905f06e6954",
+      "from": "0x74a7d3198905c3b4ba53574c2dffef3aa4e569aa",
+      "contractAddress": null,
+      "nonce": 4,
+      "to": "0xf395e8008fd1730d2acb53ed2df42d18820fbe78",
+      "data": "0x1e83409a00000000000000000000000074a7d3198905c3b4ba53574c2dffef3aa4e569aa",
+      "valueWei": "0",
+      "gas": "230675",
+      "gasPrice": "60000000",
+      "success": true,
+      "feeWei": "9561420000000",
+      "block": "121425194",
+      "blockHash": "0xa202cecd241893c11b2c0f86d78e611166eba91caef86bcf6de6a0f42aee3c26",
+      "events": [
+        {
+          "name": "Claimed",
+          "args": {
+            "participant": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+            "receiver": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+            "shares": "2",
+            "tokens": "3450952337706195609819457",
+            "bnb": "0"
+          }
+        }
+      ]
     }
   ],
-  "spentWei": "31125016089141262"
+  "spentWei": "31134577509141262"
 }
