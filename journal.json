@@ -50,6 +50,22 @@
       "settled": true,
       "hash": "0x423dc080f9a55fa1e58660cdf683236da9dbfe07d0aa11d4eb11dbbed7be2a1e",
       "success": true
+    },
+    {
+      "action": "launch",
+      "salt": "0x9f5307b4bed631b1fb352971c7fdedbb69000c9b5e5b28f9ddb7557bae7afbfd",
+      "predicted": "0xEfc800C9AFA89AC73eb7c7Ab2bFA3b0cd4B77777",
+      "transaction": {
+        "to": "0xF395E8008FD1730d2ACB53ed2Df42d18820fBe78",
+        "data": "0xc433ec6f9f5307b4bed631b1fb352971c7fdedbb69000c9b5e5b28f9ddb7557bae7afbfd",
+        "value": "0",
+        "type": "legacy",
+        "chainId": 56,
+        "nonce": 3,
+        "gas": "8825805",
+        "gasPrice": "60000000"
+      },
+      "settled": false
     }
   ],
   "results": [
