@@ -1,0 +1,28 @@
+{
+  "broadcast": false,
+  "shares": 1,
+  "valueBNB": "0.01",
+  "transaction": {
+    "from": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+    "to": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+    "data": "0xa0712d680000000000000000000000000000000000000000000000000000000000000001",
+    "value": "0x2386f26fc10000"
+  },
+  "results": [
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": "0x"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "result": "0x14982"
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "result": "0x2faf080"
+    }
+  ]
+}

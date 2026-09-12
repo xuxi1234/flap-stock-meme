@@ -1,0 +1,11 @@
+{
+  "transactionHash": "0x01a55b25cb4904f734b0f02f26c4d1e4a1ea716914d91db1096d32a2eca6111c",
+  "campaign": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+  "factory": "0xA64186DB66bAed9fDC13678c4Cfb89B1e1E9cCa9",
+  "creator": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "name": "Butterfly Mint Check",
+  "symbol": "MINTCHK",
+  "targetShares": 2,
+  "deadline": "1789786155",
+  "actualFeeBNB": "0.000028476960474616"
+}
