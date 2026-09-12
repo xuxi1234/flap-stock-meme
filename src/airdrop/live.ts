@@ -13,11 +13,13 @@ export const abi = parseAbi([
 export const rpc = createPublicClient({chain:bsc,transport:fallback([http('/api/swap-rpc',{timeout:16000,retryCount:0}),http('https://bsc-dataseed.bnbchain.org',{timeout:10000,retryCount:0})])})
 export type Recipient = {address:Address; amount:string}
 export type Intent = {kind:'deploy'|'reset'|'approve'|'send'|'revoke';to?:Address;data:Hex;nonce:number;gas:string;gasPrice:string;hash?:Hex;batch?:number;createdAt:string}
-export type RecordRow = {kind:Intent['kind'];hash:Hex;status:'success'|'reverted';gasWei:string;batch?:number;received?:{address:Address;requested:string;received:string}[]}
-export type Task = {version:1;toolVersion?:2;retiredDistributor?:Address;chainId:56;id:Hex;wallet:Address;token:Address;decimals:number;rows:Recipient[];mode:string;budget:string;distributor?:Address;intent?:Intent;records:RecordRow[]}
+export type RecordRow = {kind:Intent['kind'];layout?:'legacy';hash:Hex;status:'success'|'reverted';gasWei:string;batch?:number;received?:{address:Address;requested:string;received:string}[]}
+export type Task = {version:1;toolVersion?:2;legacySentRows?:number;retiredDistributor?:Address;chainId:56;id:Hex;wallet:Address;token:Address;decimals:number;rows:Recipient[];mode:string;budget:string;distributor?:Address;intent?:Intent;records:RecordRow[]}
 const key = (wallet:string) => 'butterfly-airdrop-live-v1:56:'+wallet.toLowerCase()
 export const BATCH_SIZE=200
 export const batchSize=(t:Task)=>t.toolVersion===2?BATCH_SIZE:25
+export const batchCount=(t:Task)=>Math.ceil((t.rows.length-(t.legacySentRows??0))/batchSize(t))
+export const confirmedRecipients=(t:Task)=>(t.legacySentRows??0)+Math.min(t.rows.length-(t.legacySentRows??0),completedCount(t)*batchSize(t))
 const taskArtifact=(t:Task)=>t.toolVersion===2?artifact:legacyArtifact
 const cacheKey=(t:Task)=>`butterfly-distributor${t.toolVersion===2?'-v2':''}:56:${t.wallet.toLowerCase()}`
 export function cancelUnsent(wallet:string){const t=loadTask(wallet);if(t?.intent||t?.records.length)throw Error('已有交易记录，不能清除任务。');localStorage.removeItem(key(wallet))}
@@ -38,6 +40,13 @@ export function validateTask(t:Task):Task {
  if(!/^\d+$/.test(t.budget)||BigInt(t.budget)<=0n)throw Error('任务 Gas 预算无效。')
  if(t.toolVersion!==undefined&&t.toolVersion!==2)throw Error('任务工具版本无效。')
  if(t.retiredDistributor&&(!isAddress(t.retiredDistributor)||t.toolVersion!==2))throw Error('旧工具记录无效。')
+ if(t.records.some(r=>r.layout!==undefined&&r.layout!=='legacy'))throw Error('交易记录版本无效。')
+ const legacy=t.records.filter(r=>r.layout==='legacy'&&r.kind==='send'&&r.status==='success')
+ if(t.legacySentRows!==undefined||legacy.length){
+  if(t.toolVersion!==2||!t.retiredDistributor||!Number.isInteger(t.legacySentRows)||(t.legacySentRows??0)<=0||(t.legacySentRows??0)>=t.rows.length)throw Error('旧版已发数量无效。')
+  const indices=legacy.map(r=>r.batch).sort((a,b)=>a!-b!)
+  if(indices.some((n,i)=>n!==i)||t.legacySentRows!==Math.min(t.rows.length,indices.length*25))throw Error('旧版发放记录与跳过数量不一致。')
+ }
  if(t.distributor&&!isAddress(t.distributor))throw Error('工具合约无效。')
  return t
 }
@@ -50,13 +59,20 @@ export function newTask(wallet:Address,token:Address,decimals:number,rows:{addre
  const previous=loadTask(wallet)
  if(previous?.intent)throw Error('上一任务仍有待确认交易，请先恢复处理。')
  if(previous?.id===task.id)return previous
- if(previous&&completedCount(previous)<Math.ceil(previous.rows.length/batchSize(previous)))throw Error('已有未完成任务，请完成后再新建。')
+ if(previous&&completedCount(previous)<batchCount(previous))throw Error('已有未完成任务，请完成后再新建。')
  if(previous?.distributor&&previous.toolVersion===2)task.distributor=previous.distributor
  saveTask(task);return task
 }
 export const spent=(t:Task)=>t.records.reduce((a,r)=>a+BigInt(r.gasWei),0n)
-export const completedCount=(t:Task)=>new Set(t.records.filter(r=>r.kind==='send'&&r.status==='success').map(r=>r.batch)).size
-export function batch(t:Task,index:number){const rows=t.rows.slice(index*batchSize(t),(index+1)*batchSize(t));return {rows,id:t.toolVersion===2?keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256,uint256'),[t.id,2n,BigInt(index)])):keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256'),[t.id,BigInt(index)]))}}
+export const completedCount=(t:Task)=>new Set(t.records.filter(r=>r.kind==='send'&&r.status==='success'&&r.layout!=='legacy').map(r=>r.batch)).size
+export function batch(t:Task,index:number){
+ const offset=t.legacySentRows??0
+ const rows=t.rows.slice(offset+index*batchSize(t),offset+(index+1)*batchSize(t))
+ const id=t.toolVersion!==2?keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256'),[t.id,BigInt(index)])):
+  offset>0?keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256,uint256,uint256'),[t.id,2n,BigInt(offset),BigInt(index)])):
+  keccak256(encodeAbiParameters(parseAbiParameters('bytes32,uint256,uint256'),[t.id,2n,BigInt(index)]))
+ return {rows,id}
+}
 export async function assertWallet(t:Task,provider:EIP1193Provider){const accounts=await provider.request({method:'eth_accounts'});const chain=await provider.request({method:'eth_chainId'});if(Number(chain)!==56||accounts[0]?.toLowerCase()!==t.wallet.toLowerCase())throw Error('请连接该任务的原发送钱包，并切换 BSC 主网。')}
 export async function verifyDistributor(address:Address,t:Task){const code=await rpc.getCode({address});if(code?.toLowerCase()!==taskArtifact(t).runtime.toLowerCase())throw Error('工具合约代码不匹配，已停止授权和发送。')}
 function sendData(t:Task,index:number){const b=batch(t,index);return encodeFunctionData({abi,functionName:'distribute',args:[t.token,b.id,b.rows.map(r=>r.address),b.rows.map(r=>BigInt(r.amount))]})}
@@ -92,27 +108,32 @@ async function reconcile(t:Task,hash?:Hex):Promise<Task>{
  return t
 }
 export type Ready = {kind:Intent['kind']|'complete'|'pending';description:string;gas?:bigint;gasPrice?:bigint;fee?:bigint;data?:Hex;to?:Address;batch?:number;remaining?:bigint}
-export async function prepare(t:Task):Promise<Ready>{
+async function verifyHistory(t:Task){
  validateTask(t)
  // Recheck imported/stored receipt facts before trusting progress or its cumulative gas accounting.
  for(const record of t.records){
   const receipt=await rpc.getTransactionReceipt({hash:record.hash})
   if(receipt.from.toLowerCase()!==t.wallet.toLowerCase()||receipt.status!==record.status||(receipt.gasUsed*receipt.effectiveGasPrice).toString()!==record.gasWei)throw Error('历史交易记录与链上不一致，请恢复正确备份。')
   if(record.kind==='send'&&record.status==='success'){
-   if(record.batch===undefined||!t.distributor)throw Error('缺少历史批次资料。')
-   const b=batch(t,record.batch)
-   const log=parseEventLogs({abi,logs:receipt.logs.filter(l=>l.address.toLowerCase()===t.distributor!.toLowerCase()),eventName:'BatchCompleted'}).find(l=>l.args.sender.toLowerCase()===t.wallet.toLowerCase()&&l.args.token.toLowerCase()===t.token.toLowerCase()&&l.args.batchId===b.id)
+   const distributor=record.layout==='legacy'?t.retiredDistributor:t.distributor
+   if(record.batch===undefined||!distributor)throw Error('缺少历史批次资料。')
+   const b=batch(record.layout==='legacy'?{...t,toolVersion:undefined,legacySentRows:undefined}:t,record.batch)
+   const log=parseEventLogs({abi,logs:receipt.logs.filter(l=>l.address.toLowerCase()===distributor.toLowerCase()),eventName:'BatchCompleted'}).find(l=>l.args.sender.toLowerCase()===t.wallet.toLowerCase()&&l.args.token.toLowerCase()===t.token.toLowerCase()&&l.args.batchId===b.id)
    if(!log||log.args.count!==BigInt(b.rows.length)||log.args.total!==b.rows.reduce((n,r)=>n+BigInt(r.amount),0n))throw Error('历史批次与当前名单不匹配。')
   }
  }
+}
+export async function prepare(t:Task):Promise<Ready>{
+ await verifyHistory(t)
  if(t.intent)return {kind:'pending',description:'恢复待确认交易'}
  if(spent(t)>BigInt(t.budget))throw Error('累计 Gas 已超过本任务预算。')
- const outstanding=t.rows.slice(completedCount(t)*batchSize(t)).reduce((n,r)=>n+BigInt(r.amount),0n)
+ const outstanding=t.rows.slice(confirmedRecipients(t)).reduce((n,r)=>n+BigInt(r.amount),0n)
  const [precision,tokenBalance]=await Promise.all([rpc.readContract({address:t.token,abi:erc20Abi,functionName:'decimals'}),rpc.readContract({address:t.token,abi:erc20Abi,functionName:'balanceOf',args:[t.wallet]})])
  if(precision!==t.decimals)throw Error('代币精度不匹配，停止执行。')
  if(tokenBalance<outstanding)throw Error('钱包代币余额不足以完成剩余发放；未部署工具或请求授权。')
  if(t.retiredDistributor){
   await verifyDistributor(t.retiredDistributor,{...t,toolVersion:undefined})
+  await verifyLegacyCompletion(t.retiredDistributor,{...t,toolVersion:undefined,legacySentRows:undefined},Math.ceil((t.legacySentRows??0)/25))
   const oldAllowance=await rpc.readContract({address:t.token,abi:erc20Abi,functionName:'allowance',args:[t.wallet,t.retiredDistributor]})
   if(oldAllowance>0n)return estimate(t,{kind:'revoke',description:'升级前：撤销旧工具授权',to:t.token,data:encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[t.retiredDistributor,0n]})})
  }
@@ -126,8 +147,8 @@ export async function prepare(t:Task):Promise<Ready>{
   await verifyDistributor(t.distributor,t)
   if(await rpc.readContract({address:t.token,abi:erc20Abi,functionName:'decimals'})!==t.decimals)throw Error('代币精度发生变化，停止执行。')
   let index=0
-  while(t.records.some(r=>r.kind==='send'&&r.status==='success'&&r.batch===index))index++
-  const remaining=t.rows.slice(index*batchSize(t)).reduce((n,r)=>n+BigInt(r.amount),0n)
+  while(t.records.some(r=>r.kind==='send'&&r.status==='success'&&r.layout!=='legacy'&&r.batch===index))index++
+  const remaining=t.rows.slice((t.legacySentRows??0)+index*batchSize(t)).reduce((n,r)=>n+BigInt(r.amount),0n)
   const allowance=await rpc.readContract({address:t.token,abi:erc20Abi,functionName:'allowance',args:[t.wallet,t.distributor]})
   if(!remaining)return allowance>0n?await estimate(t,{kind:'revoke',description:'发放完成：撤销剩余授权',to:t.token,data:encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[t.distributor,0n]})}):{kind:'complete',description:'全部批次已确认到账'}
   if(t.rows.some(r=>r.address.toLowerCase()===t.distributor!.toLowerCase()))throw Error('收款名单不能包含工具合约。')
@@ -136,7 +157,7 @@ export async function prepare(t:Task):Promise<Ready>{
    ready={kind:allowance>0n?'reset':'approve',description:allowance>0n?'先清零已有授权，再设置本次所需数量':'授权本次剩余发放数量',to:t.token,data:encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[t.distributor,allowance>0n?0n:remaining]}),remaining}
   } else {
    if(await rpc.readContract({address:t.distributor,abi,functionName:'completed',args:[t.wallet,batch(t,index).id]}))throw Error('本批链上已完成，但本地缺少记录。请恢复原任务备份，禁止重复创建工具绕过。')
-   ready={kind:'send',description:`一笔交易发送第 ${index+1} / ${Math.ceil(t.rows.length/batchSize(t))} 批（${batch(t,index).rows.length} 个地址）`,to:t.distributor,data:sendData(t,index),batch:index,remaining}
+   ready={kind:'send',description:`一笔交易发送第 ${index+1} / ${batchCount(t)} 批（${batch(t,index).rows.length} 个地址）`,to:t.distributor,data:sendData(t,index),batch:index,remaining}
   }
  }
  return estimate(t,ready)
@@ -184,28 +205,42 @@ export async function runStep(wallet:Address,provider:EIP1193Provider,expectedId
 }
 export function predictedDeployment(t:Task){return t.intent?.kind==='deploy'?getContractAddress({from:t.wallet,nonce:BigInt(t.intent.nonce)}):undefined}
 
-export async function upgradeToSingleTransaction(wallet:Address,provider:EIP1193Provider):Promise<Task>{
+async function verifyLegacyCompletion(distributor:Address,t:Task,expected:number){
+ for(let index=0;index<Math.ceil(t.rows.length/25);index++){
+  const done=await rpc.readContract({address:distributor,abi,functionName:'completed',args:[t.wallet,batch({...t,toolVersion:undefined,legacySentRows:undefined},index).id]})
+  if(done!==(index<expected))throw Error('旧工具链上发放与本机记录不一致，已停止重复发送。请先恢复遗漏的交易记录。')
+ }
+}
+export async function upgradeToSingleTransaction(wallet:Address,provider:EIP1193Provider,restoreHash?:Hex):Promise<Task>{
  if(!navigator.locks)throw Error('浏览器不支持任务锁。')
  return navigator.locks.request(key(wallet),{ifAvailable:true},async lock=>{
   if(!lock)throw Error('另一个标签页正在处理此任务。')
-  const t=loadTask(wallet)
+  let t=loadTask(wallet)
   if(!t)throw Error('请先恢复原任务。')
   await assertWallet(t,provider)
   if(t.toolVersion===2)return t
-  if(t.intent)throw Error('请先重新核对上一笔链上结果，再升级。')
-  if(t.records.some(r=>r.kind==='send'))throw Error('已有发放记录，须按原批次继续，不能重新合并发送。')
-  // Validates all previous receipts and cumulative Gas without sending anything.
-  await prepare(t)
-  if(t.distributor){
-   for(let index=0;index<Math.ceil(t.rows.length/batchSize(t));index++){
-    if(await rpc.readContract({address:t.distributor,abi,functionName:'completed',args:[t.wallet,batch(t,index).id]}))throw Error('旧工具已有发放，停止升级以避免重复。')
-   }
+  // Resolve an already broadcast transaction first; this does not request another signature.
+  if(t.intent)t=await reconcile(t,restoreHash)
+  await verifyHistory(t)
+  const succeeded=t.records.filter(r=>r.kind==='send'&&r.status==='success')
+  const indices=succeeded.map(r=>r.batch).sort((a,b)=>a!-b!)
+  if(indices.some((n,i)=>n!==i))throw Error('旧任务批次记录不连续，请先恢复缺失交易。')
+  const sent=Math.min(t.rows.length,indices.length*25)
+  if(sent===t.rows.length)throw Error('原名单已全部发放完成，无需再次发送。')
+  if(!t.distributor){
+   const cached=localStorage.getItem(cacheKey(t))
+   if(cached&&isAddress(cached)){await verifyDistributor(cached,t);t.distributor=cached;saveTask(t)}
   }
+  if(t.distributor){
+   await verifyDistributor(t.distributor,t)
+   await verifyLegacyCompletion(t.distributor,t,indices.length)
+  }else if(succeeded.length)throw Error('缺少已发放工具地址。')
   await assertWallet(t,provider)
   const current=loadTask(wallet)
   if(JSON.stringify(current)!==JSON.stringify(t))throw Error('任务已变化，请重新检查。')
   localStorage.setItem(key(wallet)+':before-single',JSON.stringify(t))
-  const upgraded:Task={...t,toolVersion:2,retiredDistributor:t.distributor,distributor:undefined}
+  const upgraded:Task={...t,toolVersion:2,legacySentRows:sent||undefined,retiredDistributor:t.distributor,distributor:undefined,
+   records:t.records.map(r=>r.kind==='send'?{...r,layout:'legacy' as const}:r)}
   saveTask(upgraded)
   return upgraded
  })
