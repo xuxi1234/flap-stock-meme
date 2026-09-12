@@ -8,5 +8,9 @@
   "active": true,
   "authorization": "30x200x0.1:budget0.1:gas0.02",
   "startedBy": "xuxi1234",
-  "startedRun": "34723158097"
+  "startedRun": "34723158097",
+  "rawSpentWei": "117757704722635913",
+  "spentWei": "43772162469141262",
+  "excludedPrincipalWei": "73985542253494651",
+  "campaignGasWei": "0"
 }
