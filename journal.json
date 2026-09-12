@@ -276,8 +276,8 @@
       "hash": "0x001fa8dd8675fe5e7c92242c90af545aede6a06619712cf096d3fb13d2beb5d2"
     }
   ],
-  "rawSpentWei": "111441057242635913",
-  "spentWei": "37455514989141262",
+  "rawSpentWei": "112072749062635913",
+  "spentWei": "38087206809141262",
   "excludedPrincipalWei": "73985542253494651",
-  "campaignGasWei": "6319887480000000"
+  "campaignGasWei": "6951579300000000"
 }
