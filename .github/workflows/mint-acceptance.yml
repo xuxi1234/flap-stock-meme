@@ -1,0 +1,108 @@
+name: 蝴蝶金库｜手动部署与验收
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '选择操作：检查不花钱；执行会使用钱包 BNB'
+        required: true
+        default: 只读检查
+        type: choice
+        options: [只读检查, 离线模拟, 执行主网]
+      confirm_budget:
+        description: '我确认执行：新钱包 0x74a7…69aA；累计不超过 0.1 BNB，包含此前支出与 Gas'
+        required: true
+        default: false
+        type: boolean
+      import_hashes:
+        description: '可选：补录已完成交易哈希，多个用空格分隔'
+        required: false
+        type: string
+      retry_failed:
+        description: '已核对失败原因后，允许在原累计预算内重试'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8 # Retain the shared lock across wallet migration.
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/mint-acceptance/package-lock.json
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 核对手动启动与预算确认
+        if: inputs.mode != '离线模拟'
+        env:
+          FLAP_MINT_MODE: ${{ inputs.mode == '执行主网' && 'execute' || inputs.mode == '只读检查' && 'check' || 'invalid' }}
+          FLAP_MINT_CONFIRMATION: ${{ inputs.confirm_budget && 'EXECUTE 0.1 BNB' || '' }}
+          FLAP_MINT_IMPORT_HASHES: ${{ inputs.import_hashes }}
+        run: node --input-type=module -e "import {actionsOptions} from './scripts/mint-acceptance/actions-run.mjs'; actionsOptions(process.env);"
+      - run: npm test --prefix scripts/mint-acceptance
+      - run: node scripts/mint-acceptance/simulate.mjs
+      - name: 只读检查主网记录（不读取私钥）
+        if: inputs.mode == '只读检查'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_MINT_MODE: check
+          FLAP_MINT_IMPORT_HASHES: ${{ inputs.import_hashes }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_REPORT_DIR: ${{ runner.temp }}/mint-report
+        run: node scripts/mint-acceptance/actions-run.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() && inputs.mode == '只读检查'
+        with:
+          name: mint-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mint-report/journal.json
+          if-no-files-found: ignore
+          retention-days: 90
+
+  execute:
+    needs: preflight
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == '执行主网' && inputs.confirm_budget == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write # Only the fixed orphan checkpoint branch is written by the script.
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/mint-acceptance/package-lock.json
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 执行已确认的部署、认购、发射和领取
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_MINT_MODE: execute
+          FLAP_MINT_CONFIRMATION: ${{ inputs.confirm_budget && 'EXECUTE 0.1 BNB' || '' }}
+          FLAP_MINT_IMPORT_HASHES: ${{ inputs.import_hashes }}
+          FLAP_MINT_RETRY_FAILED: ${{ inputs.retry_failed }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_MINT_REPORT_DIR: ${{ runner.temp }}/mint-report
+        run: node scripts/mint-acceptance/actions-run.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: mint-execution-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mint-report/journal.json
+          if-no-files-found: ignore
+          retention-days: 90
