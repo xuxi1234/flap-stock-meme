@@ -27,7 +27,8 @@ contract ButterflyDistributor {
         if (entered != 0) revert Reentrant();
         if (completed[msg.sender][batchId]) revert AlreadyCompleted();
         uint256 length = recipients.length;
-        if (token.code.length == 0 || batchId == bytes32(0) || length == 0 || length > 50 || amounts.length != length) {
+        if (token.code.length == 0 || batchId == bytes32(0) || length == 0 || length > 200 || amounts.length != length)
+        {
             revert InvalidBatch();
         }
         entered = 1;

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { encodeFunctionData, encodeEventTopics, encodeAbiParameters, parseAbiParameters, erc20Abi, type Address, type EIP1193Provider, type Hex } from 'viem'
+import { decodeFunctionData, encodeFunctionData, encodeEventTopics, encodeAbiParameters, parseAbiParameters, erc20Abi, type Address, type EIP1193Provider, type Hex } from 'viem'
 import artifact from './distributor.json'
+import legacyArtifact from './distributor-v1.json'
 const mock=vi.hoisted(()=>({rpc:{getCode:vi.fn(),readContract:vi.fn(),estimateGas:vi.fn(),getGasPrice:vi.fn(),getBalance:vi.fn(),getTransactionCount:vi.fn(),getTransaction:vi.fn(),getTransactionReceipt:vi.fn(),waitForTransactionReceipt:vi.fn()},send:vi.fn()}))
 vi.mock('viem',async original=>({...await original<typeof import('viem')>(),createPublicClient:()=>mock.rpc,createWalletClient:()=>({sendTransaction:mock.send})}))
-import { abi, batch, canonicalRows, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, taskId, validateTask, type Task } from './live'
+import { abi, batch, batchSize, upgradeToSingleTransaction, canonicalRows, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, taskId, validateTask, type Task } from './live'
 const wallet='0x1111111111111111111111111111111111111111' as Address
 const token='0x2222222222222222222222222222222222222222' as Address
 const to='0x3333333333333333333333333333333333333333' as Address
@@ -41,4 +42,61 @@ describe('live distribution safety and recovery',()=>{
   expect(completedCount(done)).toBe(1);expect(done.records[0].received?.[0].received).toBe((679n*10n**16n).toString());expect(done.intent).toBeUndefined();expect(mock.send).not.toHaveBeenCalled()
  })
  it('charges failed receipt gas without marking any batch complete',async()=>{const t=task();t.distributor=dist;const data=encodeFunctionData({abi,functionName:'distribute',args:[token,batch(t,0).id,[to],[7n*10n**18n]]});t.intent={kind:'send',to:dist,data,nonce:0,gas:'200000',gasPrice:'1',createdAt:'test',hash,batch:0};saveTask(t);mock.rpc.getTransaction.mockResolvedValue({from:wallet,to:dist,input:data,value:0n,nonce:0});mock.rpc.waitForTransactionReceipt.mockResolvedValue({status:'reverted',gasUsed:100n,effectiveGasPrice:2n,logs:[]});await expect(runStep(wallet,provider,t.id)).rejects.toThrow('链上失败');const saved=loadTask(wallet) as Task;expect(spent(saved)).toBe(200n);expect(completedCount(saved)).toBe(0);expect(saved.intent).toBeUndefined()})
+})
+
+describe('single-transaction 200 recipients and legacy task migration',()=>{
+ const recipients=()=>Array.from({length:200},(_,i)=>({address:('0x'+(1000+i).toString(16).padStart(40,'0')),amount:'7'}))
+ it('encodes all 200 recipients and 1400 tokens in exactly one send call',async()=>{
+  const t=newTask(wallet,token,18,recipients(),'random','0.02');t.distributor=dist;saveTask(t)
+  const total=1400n*10n**18n
+  mock.rpc.readContract.mockImplementation(async({functionName})=>functionName==='decimals'?18:functionName==='balanceOf'?total:functionName==='allowance'?total:false)
+  const ready=await prepare(t)
+  expect(ready.kind).toBe('send');expect(batchSize(t)).toBe(200);expect(ready.description).toContain('1 / 1')
+  const decoded=decodeFunctionData({abi,data:ready.data!})
+  expect(decoded.functionName).toBe('distribute')
+  if(decoded.functionName!=='distribute')throw Error('wrong call')
+  expect(decoded.args[2]).toHaveLength(200)
+  expect(decoded.args[3].every(n=>n===7n*10n**18n)).toBe(true)
+  expect(mock.send).not.toHaveBeenCalled()
+ })
+ it('keeps old 25-address batch ids while migrating only a never-sent task and preserving gas',async()=>{
+  const t=newTask(wallet,token,18,recipients(),'random','0.02');delete t.toolVersion;t.distributor=dist
+  t.records=[{kind:'deploy',hash,status:'success',gasWei:'200'}];saveTask(t)
+  mock.rpc.getCode.mockResolvedValue(legacyArtifact.runtime)
+  mock.rpc.getTransactionReceipt.mockResolvedValue({from:wallet,status:'success',gasUsed:100n,effectiveGasPrice:2n})
+  const oldId=batch(t,0).id;expect(batch(t,0).rows).toHaveLength(25)
+  const upgraded=await upgradeToSingleTransaction(wallet,provider)
+  expect(upgraded.rows).toEqual(t.rows);expect(spent(upgraded)).toBe(200n);expect(upgraded.id).toBe(t.id)
+  expect(upgraded.retiredDistributor).toBe(dist);expect(upgraded.distributor).toBeUndefined()
+  expect(batch(upgraded,0).rows).toHaveLength(200);expect(batch(upgraded,0).id).not.toBe(oldId)
+  expect(mock.rpc.readContract.mock.calls.filter(([x])=>x.functionName==='completed')).toHaveLength(8)
+  expect(mock.send).not.toHaveBeenCalled()
+ })
+ it('blocks migration with pending transactions, local sends, or unrecorded old on-chain sends',async()=>{
+  const t=task();delete t.toolVersion;t.distributor=dist
+  t.intent={kind:'deploy',data:legacyArtifact.bytecode as Hex,nonce:0,gas:'200000',gasPrice:'1',hash,createdAt:'test'};saveTask(t)
+  await expect(upgradeToSingleTransaction(wallet,provider)).rejects.toThrow('上一笔')
+  delete t.intent;t.records=[{kind:'send',hash,status:'success',gasWei:'1',batch:0}];saveTask(t)
+  await expect(upgradeToSingleTransaction(wallet,provider)).rejects.toThrow('已有发放记录')
+  t.records=[];saveTask(t);mock.rpc.getCode.mockResolvedValue(legacyArtifact.runtime)
+  mock.rpc.readContract.mockImplementation(async({functionName})=>functionName==='decimals'?18:functionName==='balanceOf'?10n**24n:functionName==='completed'?true:0n)
+  await expect(upgradeToSingleTransaction(wallet,provider)).rejects.toThrow('旧工具已有发放')
+  expect(loadTask(wallet)?.toolVersion).toBeUndefined();expect(mock.send).not.toHaveBeenCalled()
+ })
+ it('recovers the already-signed legacy deployment after the software upgrade',async()=>{
+  const t=task();delete t.toolVersion;t.intent={kind:'deploy',data:legacyArtifact.bytecode as Hex,nonce:0,gas:'200000',gasPrice:'1',createdAt:'test',hash};saveTask(t)
+  mock.rpc.getCode.mockResolvedValue(legacyArtifact.runtime)
+  mock.rpc.getTransaction.mockResolvedValue({from:wallet,to:null,input:legacyArtifact.bytecode,value:0n,nonce:0})
+  mock.rpc.waitForTransactionReceipt.mockResolvedValue({status:'success',contractAddress:dist,gasUsed:100n,effectiveGasPrice:2n,logs:[]})
+  const restored=await runStep(wallet,provider,t.id)
+  expect(restored.distributor).toBe(dist);expect(batchSize(restored)).toBe(25);expect(spent(restored)).toBe(200n)
+  expect(mock.send).not.toHaveBeenCalled()
+ })
+ it('revokes the old tool allowance before any replacement deployment',async()=>{
+  const t=task();t.retiredDistributor=dist;saveTask(t)
+  mock.rpc.getCode.mockResolvedValue(legacyArtifact.runtime)
+  mock.rpc.readContract.mockImplementation(async({functionName})=>functionName==='decimals'?18:functionName==='balanceOf'?10n**24n:functionName==='allowance'?1n:false)
+  const ready=await prepare(t)
+  expect(ready.kind).toBe('revoke');expect(ready.data).toBe(encodeFunctionData({abi:erc20Abi,functionName:'approve',args:[dist,0n]}))
+ })
 })
