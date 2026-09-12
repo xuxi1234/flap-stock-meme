@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, expect, it, vi } from 'vitest'
 import type { Address, EIP1193Provider, Hex } from 'viem'
 import LiveSendPanel from './LiveSendPanel'
+afterEach(cleanup)
 import { loadTask, newTask, saveTask, upgradeToSingleTransaction } from './live'
 vi.mock('./live', async original => ({ ...await original<typeof import('./live')>(), upgradeToSingleTransaction: vi.fn() }))
 it('offers migration for the screenshot state: one confirmed legacy batch and a pending transaction', async () => {
@@ -27,4 +28,20 @@ it('offers migration for the screenshot state: one confirmed legacy batch and a 
   expect(screen.getByText('175 个地址 · 1225 枚')).toBeInTheDocument()
   expect(loadTask(wallet)?.rows).toHaveLength(200)
   expect(loadTask(wallet)?.records).toHaveLength(1)
+})
+it('starts a fresh 200-address task from the visible new-task button',async()=>{
+  localStorage.clear()
+  Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async(_key:unknown,_options:unknown,fn:(lock:object)=>unknown)=>fn({})}})
+  const wallet='0x1111111111111111111111111111111111111111' as Address
+  const token='0x2222222222222222222222222222222222222222' as Address
+  const old=newTask(wallet,token,18,[{address:'0x3333333333333333333333333333333333333333',amount:'7'}],'random','0.02')
+  const onNewTask=vi.fn()
+  const provider={request:vi.fn(async({method})=>method==='eth_chainId'?'0x38':[wallet])} as unknown as EIP1193Provider
+  render(<LiveSendPanel wallet={wallet} provider={provider} plan={null} verified={false} asset={{address:token,decimals:18}} onNewTask={onNewTask}/>)
+  fireEvent.click(screen.getByRole('button',{name:'新建任务：200 个地址，每个 7 枚'}))
+  await waitFor(()=>expect(onNewTask).toHaveBeenCalledTimes(1))
+  expect(loadTask(wallet)?.id).not.toBe(old.id)
+  expect(loadTask(wallet)?.rows).toHaveLength(200)
+  expect(screen.getByText('0 / 1 批')).toBeInTheDocument()
+  expect(screen.getByText('历史任务（1）')).toBeInTheDocument()
 })

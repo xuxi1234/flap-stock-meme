@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { formatEther, formatUnits, type Address, type EIP1193Provider, type Hex } from 'viem'
-import { batchCount, confirmedRecipients, upgradeToSingleTransaction, cancelUnsent, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, validateTask, type Ready, type Task } from './live'
+import { archivedTasks, freshRandomTask, batchCount, confirmedRecipients, upgradeToSingleTransaction, cancelUnsent, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, validateTask, type Ready, type Task } from './live'
 import { csvText } from './math'
 type PlanInput={token:string;decimals:number;rows:{address:string;amount:string}[];mode:string}
 function file(name:string,body:string,mime='application/json'){const u=URL.createObjectURL(new Blob([body],{type:mime}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}
-export default function LiveSendPanel({wallet,provider,plan,verified}:{wallet:string;provider?:EIP1193Provider;plan:PlanInput|null;verified:boolean}){
+export default function LiveSendPanel({wallet,provider,plan,verified,asset,onNewTask}:{wallet:string;provider?:EIP1193Provider;plan:PlanInput|null;verified:boolean;asset?:{address:Address;decimals:number};onNewTask?:()=>void}){
  const [task,setTask]=useState<Task|null>(null)
  const [ready,setReady]=useState<Ready|null>(null)
  const [busy,setBusy]=useState(false)
@@ -12,8 +12,15 @@ export default function LiveSendPanel({wallet,provider,plan,verified}:{wallet:st
  const [confirm,setConfirm]=useState(false)
  const [budget,setBudget]=useState('0.02')
  const [restoreHash,setRestoreHash]=useState('')
- useEffect(()=>{setTask(null);setReady(null);setConfirm(false);try{if(wallet)setTask(loadTask(wallet))}catch(e){setError((e as Error).message)}},[wallet])
+ const [history,setHistory]=useState<Task[]>([])
+ useEffect(()=>{setTask(null);setReady(null);setConfirm(false);try{if(wallet){setTask(loadTask(wallet));setHistory(archivedTasks(wallet))}else setHistory([])}catch(e){setError((e as Error).message)}},[wallet])
  const refresh=()=>{if(wallet)setTask(loadTask(wallet))}
+ async function startFresh(){
+  if(!provider||!asset)return
+  setBusy(true);setError('');setReady(null);setConfirm(false)
+  try{const t=await freshRandomTask(wallet as Address,provider,asset.address,asset.decimals,budget);setTask(t);setHistory(archivedTasks(wallet));setRestoreHash('');onNewTask?.()}
+  catch(e){setError((e as Error).message)}finally{setBusy(false)}
+ }
  async function check(){setBusy(true);setError('');setConfirm(false);setReady(null);try{const t=loadTask(wallet);if(!t)throw Error('请先锁定清单。');setReady(await prepare(t));setTask({...t})}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
  async function upgrade(){if(!provider)return;setBusy(true);setError('');setReady(null);setConfirm(false);try{setTask(await upgradeToSingleTransaction(wallet as Address,provider,restoreHash?restoreHash as Hex:undefined))}catch(e){setError((e as Error).message)}finally{try{refresh()}catch{}setBusy(false)}}
  function lock(){setError('');setReady(null);setConfirm(false);try{if(!wallet||!provider)throw Error('请先连接发币钱包。');if(!verified||!plan)throw Error('请读取代币信息并生成有效清单。');setTask(newTask(wallet as Address,plan.token as Address,plan.decimals,plan.rows,plan.mode,budget))}catch(e){setError((e as Error).message)}}
@@ -21,6 +28,8 @@ export default function LiveSendPanel({wallet,provider,plan,verified}:{wallet:st
  async function restore(f:File|undefined){if(!f)return;setError('');try{if(f.size>2000000)throw Error('备份超过 2 MB。');const t=validateTask(JSON.parse(await f.text()));if(t.wallet.toLowerCase()!==wallet.toLowerCase())throw Error('请连接备份对应的原发币钱包。');const old=loadTask(wallet);if(old&&(old.id!==t.id||old.toolVersion!==t.toolVersion||old.records.length>t.records.length||old.intent))throw Error('本机已有不同或更新的任务，请使用原任务继续。');saveTask(t);setTask(t);setReady(null);setConfirm(false)}catch(e){setError((e as Error).message)}}
  function exportResults(){if(!task)return;file('蝴蝶股票_真实发币记录.csv',csvText([['交易哈希','交易状态','批次','地址','计划数量','实际到账','Gas(BNB)'],...task.records.flatMap(r=>r.received?.length?r.received.map(a=>[r.hash,r.status,(r.batch??0)+1,a.address,formatUnits(BigInt(a.requested),task.decimals),formatUnits(BigInt(a.received),task.decimals),formatEther(BigInt(r.gasWei))]):[[r.hash,r.status,'',r.kind,'','',formatEther(BigInt(r.gasWei))]])]),'text/csv;charset=utf-8;')}
  return <section className="ad-card ad-live" id="ad-live"><div className="ad-results-heading"><div><span className="ad-eyebrow">ON-CHAIN DISTRIBUTION · BSC</span><h2>真实链上发放</h2><p>代币从你的钱包直接到接收地址。工具费 0。最多 200 个地址合为一笔发币交易；首次部署、代币授权另需钱包确认及 Gas。</p></div><span className="ad-status">钱包确认发送</span></div>
+ <div className="ad-notice" id="ad-new-task"><div><strong>新建空投任务 · 200 个新地址 × 7 枚 = 1,400 枚</strong><p>生成全新随机地址，单笔发币。旧任务与交易哈希保存到历史记录。新建不发送交易、不扣 Gas。</p><label htmlFor="ad-new-budget">新任务 Gas 预算上限（BNB，含本任务部署、授权与发送）</label><input id="ad-new-budget" inputMode="decimal" value={budget} onChange={e=>setBudget(e.target.value)}/><button className="ad-export" disabled={busy||!wallet||!provider||!asset} onClick={()=>void startFresh()}>新建任务：200 个地址，每个 7 枚</button>{!wallet&&<p>请先连接发送钱包。</p>}{wallet&&!asset&&<p>请先在上方读取代币合约信息。</p>}<p>随机地址不代表真实用户，发出的代币可能无法收回。</p></div></div>
+ {!!history.length&&<details className="ad-list-details"><summary>历史任务（{history.length}）</summary>{history.map(t=><div className="ad-live-actions" key={t.id}><span>{t.rows.length} 个地址 · 已确认 {confirmedRecipients(t)} 个{t.intent?' · 仍有交易待核对':''}</span><button className="ad-export ad-secondary" onClick={()=>file(`蝴蝶股票_历史任务_${t.id.slice(2,10)}.json`,JSON.stringify(t,null,2))}>下载历史任务 {t.id.slice(2,10)}</button>{t.intent?.hash&&<a href={`https://bscscan.com/tx/${t.intent.hash}`} target="_blank" rel="noreferrer">查看原待确认交易 ↗</a>}</div>)}</details>}
  {!wallet?<div className="ad-notice">先点击顶部“连接钱包”。已有任务会自动恢复，已发部分地址可合并剩余；首次使用再生成并锁定清单。</div>:<>
  {!task&&<><label htmlFor="ad-gas-budget">本任务累计 Gas 预算（BNB，包含首次部署、授权和发放）</label><input id="ad-gas-budget" inputMode="decimal" value={budget} onChange={e=>setBudget(e.target.value)}/><button className="ad-export" disabled={!plan||!verified||busy} onClick={lock}>锁定当前清单，准备真实发送</button></>}
  {task&&<>{!task.intent&&!task.records.length&&<button className="ad-export ad-secondary" onClick={()=>{try{cancelUnsent(wallet);setTask(null);setReady(null);setConfirm(false)}catch(e){setError((e as Error).message)}}}>解锁未发送的清单，重新配置</button>}<div className="ad-token-details"><div><span>发币钱包</span><strong className="ad-address">{task.wallet}</strong></div><div><span>代币合约</span><strong className="ad-address">{task.token}</strong></div><div><span>已锁定名单</span><strong>{task.rows.length} 个地址 · {formatUnits(task.rows.reduce((a,r)=>a+BigInt(r.amount),0n),task.decimals)} 枚</strong></div><div><span>已确认接收地址</span><strong>{confirmedRecipients(task)} / {task.rows.length} 个</strong></div><div><span>剩余待发</span><strong>{task.rows.length-confirmedRecipients(task)} 个地址 · {formatUnits(task.rows.slice(confirmedRecipients(task)).reduce((a,r)=>a+BigInt(r.amount),0n),task.decimals)} 枚</strong></div><div><span>{task.legacySentRows?'合并后发币交易进度':'发币交易进度'}</span><strong>{completedCount(task)} / {batchCount(task)} 批</strong></div><div><span>累计 Gas / 预算</span><strong>{formatEther(spent(task))} / {formatEther(BigInt(task.budget))} BNB</strong></div><div><span>批量工具</span>{task.distributor?<a target="_blank" rel="noreferrer" href={`https://bscscan.com/address/${task.distributor}`}>{task.distributor} ↗</a>:<strong>首次使用由钱包部署</strong>}</div></div>
