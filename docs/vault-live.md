@@ -45,3 +45,9 @@ Mobile QA found the host site’s global mobile `nav` styles creating an absolut
 Open `/?view=vault-live&setup=acceptance`. This preloads Butterfly Vault Check / FLAPCHK, the successful metadata CID, percent-buyback factory, 60-second interval, 1000 spendBps, 3% buy/sell tax, BNB bottom asset, zero initial purchase, and the configured commission receiver. It requires wallet `0x79F8b832DE72e81Ad34fd66EcbbF673613264072` and caps the prepared maximum network fee at 0.002 BNB. The normal operator budget cap remains 0.1 BNB. Inputs and complete calldata remain reviewable. It is a separate acceptance token, not the Butterfly Stock presale token.
 
 The updated metadata/name/symbol calldata passed BSC eth_call and gas estimation (6,319,796 gas at observed 0.05 gwei; padded maximum ~0.000474 BNB). The tested prediction had no code. A fresh salt and gas estimate are generated after wallet connection; the eventual token address can differ from this read-only proof. No transaction has been broadcast. Successful receipt is the remaining acceptance prerequisite. Mint factory remains a separate unfinished deliverable.
+
+## RPC compatibility fix (2026-09-12)
+
+User acceptance exposed HTTP 400 during `prepare()`. Actual viem 2.56.3 serialization omits `params` for `eth_chainId` and `eth_gasPrice`. The read relay incorrectly required an array for every request, so balance and schema reads worked but preparation failed before simulation. A real viem → HTTP adapter → actual relay → RPC-fixture integration test reproduced the exact `HTTP request failed` / 400 error.
+
+The relay now normalizes omitted parameters to `[]` only for `eth_chainId`, `eth_blockNumber` and `eth_gasPrice`, preserving validation and the write-method deny list. The new integration test and mixed-batch regression failed before the fix and passed after it. All 15 targeted tests and source TypeScript checking pass. Previous direct-upstream simulation alone did not exercise this relay boundary.
