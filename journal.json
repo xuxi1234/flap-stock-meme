@@ -47,8 +47,9 @@
         "gas": "105443",
         "gasPrice": "60000000"
       },
-      "settled": false,
-      "hash": "0x423dc080f9a55fa1e58660cdf683236da9dbfe07d0aa11d4eb11dbbed7be2a1e"
+      "settled": true,
+      "hash": "0x423dc080f9a55fa1e58660cdf683236da9dbfe07d0aa11d4eb11dbbed7be2a1e",
+      "success": true
     }
   ],
   "results": [
@@ -173,7 +174,32 @@
           }
         }
       ]
+    },
+    {
+      "hash": "0x423dc080f9a55fa1e58660cdf683236da9dbfe07d0aa11d4eb11dbbed7be2a1e",
+      "from": "0x74a7d3198905c3b4ba53574c2dffef3aa4e569aa",
+      "contractAddress": null,
+      "nonce": 2,
+      "to": "0xf395e8008fd1730d2acb53ed2df42d18820fbe78",
+      "data": "0xa0712d680000000000000000000000000000000000000000000000000000000000000002",
+      "valueWei": "20000000000000000",
+      "gas": "105443",
+      "gasPrice": "60000000",
+      "success": true,
+      "feeWei": "4676160000000",
+      "block": "121425140",
+      "blockHash": "0xc8ac95d25c19cdd53c9026f72fe8f9c4fed973bb3fec0a9fe875a9d9fef72b54",
+      "events": [
+        {
+          "name": "Minted",
+          "args": {
+            "participant": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+            "shares": "2",
+            "amount": "20000000000000000"
+          }
+        }
+      ]
     }
   ],
-  "spentWei": "10742964469141262"
+  "spentWei": "30747640629141262"
 }
