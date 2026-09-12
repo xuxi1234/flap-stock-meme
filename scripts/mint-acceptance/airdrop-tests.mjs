@@ -1,14 +1,56 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { decodeFunctionData, parseAbi, encodeEventTopics, encodeAbiParameters, keccak256, toHex } from 'viem';
 import { plan, fresh, validate, callFor, reserve, next, persistThenBroadcast, ACCOUNT, TOKEN, DISTRIBUTOR, artifact, batchId, history, erc20 } from './airdrop-core.mjs';
 import { options, verifyDelivery, nonceCheck, run } from './airdrop-run.mjs';
 import { compact, hydrate } from './airdrop-store.mjs';
+import { accountBudget, reserveCampaign, OWNED_RETURN, CHARGED_BASELINE, RAW_BASELINE, CAMPAIGN_GAS_CAP } from './airdrop-budget.mjs';
+test('owned-return exception requires explicit approval and retains its gas',()=>{
+ const rows=history.map(r=>({...r,data:r.data||'0x'}));
+ assert.throws(()=>accountBudget(rows,false),/确认/);
+ const b=accountBudget(rows,true);
+ assert.equal(b.raw,RAW_BASELINE);assert.equal(b.spent,CHARGED_BASELINE);
+ assert.equal(b.raw-b.spent,BigInt(OWNED_RETURN.valueWei));
+ assert.equal(b.campaignGas,0n);
+ for(const field of ['hash','from','to','nonce','valueWei','feeWei','success','data']){
+  const bad=structuredClone(rows),r=bad.find(r=>r.hash===OWNED_RETURN.hash);
+  r[field]=typeof r[field]==='number'?99:typeof r[field]==='boolean'?false:'0x0';
+  assert.throws(()=>accountBudget(bad,true),field);
+ }
+ assert.equal(rows.find(r=>r.hash===OWNED_RETURN.hash).valueWei,OWNED_RETURN.valueWei);
+});
+test('new outgoing principal is never exempt and failed gas counts across resumes',()=>{
+ const rows=history.map(r=>({...r,data:r.data||'0x'}));
+ const extra={hash:'0x'+'a'.repeat(64),from:ACCOUNT,to:OWNED_RETURN.to,nonce:5,valueWei:'1000000000000000',feeWei:'1000000000000',success:true};
+ assert.equal(accountBudget([...rows,extra],true).spent,CHARGED_BASELINE+1001000000000000n);
+ extra.success=false;
+ assert.equal(accountBudget([...rows,extra],true).spent,CHARGED_BASELINE+1000000000000n);
+ extra.feeWei=(CAMPAIGN_GAS_CAP+1n).toString();
+ assert.throws(()=>accountBudget([...rows,extra],true),/0.02/);
+ assert.equal(reserveCampaign(CHARGED_BASELINE+CAMPAIGN_GAS_CAP-1n,1n,1n),1n);
+ assert.throws(()=>reserveCampaign(CHARGED_BASELINE+CAMPAIGN_GAS_CAP,1n,1n),/0.02/);
+});
 test('execution requires explicit manual main-branch confirmation; checks never need a key',()=>{
  assert.equal(options({}).execute,false);
  assert.throws(()=>options({AIRDROP_MODE:'execute'}));
  const env={AIRDROP_MODE:'execute',AIRDROP_CONFIRM:'20x200x7',GITHUB_ACTIONS:'true',GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REPOSITORY:'xuxi1234/flap-stock-meme',GITHUB_REF:'refs/heads/main'};
+ assert.throws(()=>options(env),/确认/);env.AIRDROP_OWNED_RETURN_CONFIRMED='true';
  assert.equal(options(env).execute,true);assert.throws(()=>options({...env,GITHUB_EVENT_NAME:'push'}));assert.throws(()=>options({...env,GITHUB_REF:'refs/heads/evil'}));
+});
+test('manual workflow defaults to no principal exclusion and isolates the private key',()=>{
+ const y=readFileSync(new URL('../../.github/workflows/airdrop-20x200.yml',import.meta.url),'utf8');
+ const [check,execute]=y.split('\n  execute:\n');
+ assert.match(y,/owned_return_confirm:[\s\S]*?default: false/);
+ assert.match(execute,/inputs\.confirm == true && inputs\.owned_return_confirm == true/);
+ assert.ok(!check.includes('FLAP_MINT_PRIVATE_KEY'));
+ assert.match(execute,/AIRDROP_OWNED_RETURN_CONFIRMED: \$\{\{ inputs\.owned_return_confirm \}\}/);
+});
+test('stored accounting fields cannot approve a subsequent execution',async()=>{
+ const j=fresh();j.excludedPrincipalWei=OWNED_RETURN.valueWei;
+ let touched=false;
+ await assert.rejects(()=>run({clients:[],store:{journal:j,save:async()=>{touched=true}},execute:true,accountProvider:async()=>{touched=true}}),/确认/);
+ assert.equal(touched,false);
 });
 test('a single displayed transfer cannot pass a 200-recipient receipt check',()=>{
  assert.throws(()=>verifyDelivery({kind:'send',batch:0},[]));
@@ -68,7 +110,7 @@ test('receipt requires all 200 distinct exact recipients and seven actual tokens
 });
 test('additional legacy wallet spending cannot fall outside lifetime budget',async()=>{
  for(const unexpected of ['latest','pending']){
-  const c={getTransactionCount:async({address,blockTag})=>address.toLowerCase()===ACCOUNT.toLowerCase()?5:blockTag===unexpected?6:5};
+  const c={getTransactionCount:async({address,blockTag})=>address.toLowerCase()===ACCOUNT.toLowerCase()?5:blockTag===unexpected?7:6};
   await assert.rejects(()=>nonceCheck([c,c],5,false));
  }
 });
@@ -80,14 +122,14 @@ function networkFixture(){
  const blockHash='0x'+'1'.repeat(64);
  const receipt=(hash,from,gasUsed,gasPrice,logs=[])=>({transactionHash:hash,from,blockHash,blockNumber:'0x1',status:'0x1',gasUsed:toHex(gasUsed),effectiveGasPrice:toHex(gasPrice),logs,contractAddress:null});
  for(const p of history){
-  txs.set(p.hash,{hash:p.hash,from:p.from,chainId:'0x38',blockHash,nonce:toHex(p.nonce),to:TOKEN,input:'0x',value:toHex(BigInt(p.valueWei)),gas:'0x1',gasPrice:'0x1'});
+  txs.set(p.hash,{hash:p.hash,from:p.from,chainId:'0x38',blockHash,nonce:toHex(p.nonce),to:p.to||TOKEN,input:p.data||'0x',value:toHex(BigInt(p.valueWei)),gas:'0x1',gasPrice:'0x1'});
   receipts.set(p.hash,{...receipt(p.hash,p.from,BigInt(p.feeWei),1n),status:p.success?'0x1':'0x0'});
  }
  const store=()=>({journal:durable?hydrate(JSON.parse(durable)):fresh(),save:async j=>{validate(j);durable=JSON.stringify(compact(j));}});
  const client={
   getChainId:async()=>56,getCode:async()=>artifact.runtime,getBlockNumber:async()=>100n,getBlock:async()=>({hash:blockHash,number:1n}),
   getBalance:async()=>70000000000000000n,getGasPrice:async()=>50000000n,estimateGas:async()=>100000n,call:async()=>({data:'0x'}),
-  getTransactionCount:async({address})=>address.toLowerCase()===ACCOUNT.toLowerCase()?nonce:5,
+  getTransactionCount:async({address})=>address.toLowerCase()===ACCOUNT.toLowerCase()?nonce:6,
   readContract:async({functionName,args})=>({decimals:18,balanceOf:balance,allowance,completed:completed.has(args?.[1])})[functionName],
   request:async({method,params})=>{if(method==='eth_getTransactionByHash')return txs.get(params[0])||null;if(method==='eth_getTransactionReceipt')return receipts.get(params[0])||null;throw Error('Unexpected RPC method')},
   waitForTransactionReceipt:async({hash})=>{assert.ok(receipts.has(hash));return receipts.get(hash)},
@@ -111,11 +153,20 @@ function networkFixture(){
 }
 test('actual runner recovers accepted-send response loss, completes20, and cannot replay after restart',async t=>{
  t.mock.method(console,'log',()=>{}); // Suppress simulated hashes: they are not mainnet transactions.
- const f=networkFixture(),args={clients:[f.client,f.client],execute:true,accountProvider:async()=>f.account};
+ const f=networkFixture(),args={clients:[f.client,f.client],execute:true,ownedReturnConfirmed:true,accountProvider:async()=>f.account};
  await assert.rejects(()=>run({...args,store:f.store()}),/response was lost/);
  assert.equal(f.stats().completed,1);
  const done=await run({...args,store:f.store()});
  assert.equal(done.entries.filter(e=>e.kind==='send'&&e.received.length===200).length,20);
  assert.deepEqual(f.stats(),{broadcasts:21,nonce:26,balance:2000000000000000000000n,allowance:0n,completed:20});
+ assert.equal(BigInt(done.spentWei),CHARGED_BASELINE+126000000000000n);
+ assert.equal(BigInt(done.rawSpentWei),RAW_BASELINE+126000000000000n);
+ assert.equal(BigInt(done.campaignGasWei),126000000000000n);
  await run({...args,store:f.store(),accountProvider:async()=>f.account});assert.equal(f.stats().broadcasts,21);
+ const unapproved=f.store();
+ await assert.rejects(()=>run({...args,store:unapproved,execute:false,ownedReturnConfirmed:false,accountProvider:async()=>{throw Error('must not load signer')}}),/确认/);
+ assert.equal(unapproved.journal.rawSpentWei,done.rawSpentWei);
+ assert.equal(unapproved.journal.spentWei,undefined);
+ assert.equal(unapproved.journal.entries.filter(e=>e.kind==='send'&&e.received.length===200).length,20);
+ assert.equal(f.stats().broadcasts,21);
 });

@@ -15,6 +15,12 @@ on:
         default: false
         required: true
 
+      owned_return_confirm:
+        description: '确认仅将79F8转回本人22914钱包的0.073985542253494651 BNB本金单独记账；Gas仍计入累计0.1 BNB；本次空投Gas最多0.02 BNB'
+        type: boolean
+        default: false
+        required: true
+
 permissions:
   contents: read
 
@@ -41,6 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           AIRDROP_MODE: check
+          AIRDROP_OWNED_RETURN_CONFIRMED: ${{ inputs.owned_return_confirm }}
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           AIRDROP_REPORT_DIR: ${{ runner.temp }}/airdrop-check
         run: node scripts/mint-acceptance/airdrop-run.mjs
@@ -55,7 +62,7 @@ jobs:
   execute:
     name: 执行或继续本次20轮空投
     needs: check
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == '执行空投' && inputs.confirm == true
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == '执行空投' && inputs.confirm == true && inputs.owned_return_confirm == true
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -72,6 +79,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           AIRDROP_MODE: execute
+          AIRDROP_OWNED_RETURN_CONFIRMED: ${{ inputs.owned_return_confirm }}
           AIRDROP_CONFIRM: ${{ inputs.confirm && '20x200x7' || '' }}
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}

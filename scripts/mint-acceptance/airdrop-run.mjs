@@ -4,15 +4,18 @@ import { pathToFileURL } from 'node:url';
 import { createPublicClient, http, decodeEventLog, formatEther, keccak256, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { bsc } from 'viem/chains';
-import { Stop, receiptRecord, calculateBudget, stringify, transactionForSigning } from './core.mjs';
-import { ACCOUNT, TOKEN, DISTRIBUTOR, BUDGET, AMOUNT, TOTAL, BASE_NONCE, artifact, erc20, history, plan, batchId, fresh, validate, next, callFor, reserve, persistThenBroadcast, requireThat, equal } from './airdrop-core.mjs';
+import { Stop, receiptRecord, stringify, transactionForSigning } from './core.mjs';
+import { ACCOUNT, TOKEN, DISTRIBUTOR, BUDGET, AMOUNT, TOTAL, BASE_NONCE, artifact, erc20, history, plan, batchId, fresh, validate, next, callFor, persistThenBroadcast, requireThat, equal } from './airdrop-core.mjs';
+import { accountBudget, reserveCampaign, rawTotal, RAW_BASELINE, OWNED_RETURN } from './airdrop-budget.mjs';
 import { githubApi, openGitHubStore, REPOSITORY } from './airdrop-store.mjs';
 
 export function options(env){
  const mode=env.AIRDROP_MODE||'check';requireThat(['check','execute'].includes(mode),'运行模式无效。');
  const execute=mode==='execute';
  if(execute)requireThat(env.GITHUB_ACTIONS==='true'&&env.GITHUB_EVENT_NAME==='workflow_dispatch'&&env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF==='refs/heads/main'&&env.AIRDROP_CONFIRM==='20x200x7','执行只允许本仓库 main 分支手动启动，并确认 20×200×7 和累计 0.1 BNB 预算。');
- return {execute};
+ const ownedReturnConfirmed=env.AIRDROP_OWNED_RETURN_CONFIRMED==='true';
+ if(execute)requireThat(ownedReturnConfirmed,'请明确确认自有钱包调拨本金单独记账和本次0.02 BNB Gas上限。');
+ return {execute,ownedReturnConfirmed};
 }
 export function verifyDelivery(e,logs){
  if(e.kind!=='send')return [];
@@ -47,11 +50,12 @@ export async function verifiedRow(clients,hash){
 export async function baseline(clients){
  const rows=await mapReads(history,async pinned=>{
   const row=await verifiedRow(clients,pinned.hash);requireThat(row,'历史交易回执暂时不可用。');
-  requireThat(equal(row.from,pinned.from)&&row.nonce===pinned.nonce&&row.success===pinned.success&&row.valueWei===pinned.valueWei&&row.feeWei===pinned.feeWei,'历史预算记录与链上不匹配。');return row;
+  requireThat(equal(row.from,pinned.from)&&row.nonce===pinned.nonce&&row.success===pinned.success&&row.valueWei===pinned.valueWei&&row.feeWei===pinned.feeWei,'历史预算记录与链上不匹配。');
+  if(pinned.to)requireThat(equal(row.to,pinned.to)&&equal(row.data,pinned.data),'历史调拨收款地址或调用数据不匹配。');return row;
  });
- const spent=calculateBudget(rows);requireThat(spent===31134577509141262n,'历史累计支出与批准的基线不一致。');return rows;
+ requireThat(rawTotal(rows)===RAW_BASELINE,'历史全部转出及Gas与核实基线不一致。');return rows;
 }
-export async function reconcile(clients,j,base,save){
+export async function reconcile(clients,j,base,save,ownedReturnConfirmed=false){
  validate(j);const rows=[...base];
  const observed=await mapReads(j.entries,e=>e.hash?verifiedRow(clients,e.hash):Promise.resolve(null));
  for(const [index,e] of j.entries.entries()){
@@ -62,10 +66,14 @@ export async function reconcile(clients,j,base,save){
   requireThat(equal(row.from,ACCOUNT)&&row.nonce===t.nonce&&equal(row.to,t.to)&&equal(row.data,t.data)&&row.valueWei==='0'&&row.gas===String(t.gas)&&row.gasPrice===String(t.gasPrice),'回执与保存的固定交易参数不符。');
   // Even a reverted or semantically unexpected transaction consumes Gas.
   e.settled=true;e.success=row.success;e.feeWei=row.feeWei;rows.push(row);
-  j.spentWei=calculateBudget(rows).toString();await save(j);
+  j.rawSpentWei=rawTotal(rows).toString();
+  if(ownedReturnConfirmed===true){recordBudget(j,accountBudget(rows,true));await save(j);}
   if(row.success)e.received=verifyDelivery(e,row.logs);
  }
- const spent=calculateBudget(rows);j.spentWei=spent.toString();await save(j);return {rows,spent,nonce:rows.filter(r=>equal(r.from,ACCOUNT)).length};
+ // Read-only checks must reconstruct all actual costs and deliveries even
+ // without approval to change the accounting treatment of the owned transfer.
+ j.rawSpentWei=rawTotal(rows).toString();
+ const budget=accountBudget(rows,ownedReturnConfirmed);recordBudget(j,budget);await save(j);return {rows,spent:budget.spent,nonce:rows.filter(r=>equal(r.from,ACCOUNT)).length};
 }
 async function mapReads(items,fn){
  const out=[];for(let i=0;i<items.length;i+=5)out.push(...await Promise.all(items.slice(i,i+5).map(fn)));return out;
@@ -88,6 +96,9 @@ export async function nonceCheck(clients,nonce,pending){
   }
  }
 }
+function recordBudget(j,budget){
+ j.spentWei=budget.spent.toString();j.rawSpentWei=budget.raw.toString();j.excludedPrincipalWei=budget.excluded.toString();j.campaignGasWei=budget.campaignGas.toString();
+}
 function report(j,directory){
  if(!directory)return;
  fs.mkdirSync(directory,{recursive:true});
@@ -95,15 +106,18 @@ function report(j,directory){
  fs.writeFileSync(path.join(directory,'results.csv'),'\ufeff批次,地址,计划枚数,实际到账,交易哈希\n'+j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>(e.received||[]).map(r=>`${e.batch+1},${r.address},7,${formatEther(BigInt(r.received))},${e.hash}`)).join('\n')+'\n');
  fs.writeFileSync(path.join(directory,'journal.json'),stringify(j)+'\n');
  const count=j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success&&e.received?.length===200).length;
- const text=`已核实 ${count}/20 轮，${count*200}/4000 地址；计划总量 28000 枚。\n累计支出（含此前任务和 Gas）：${formatEther(BigInt(j.spentWei||'31134577509141262'))} / 0.1 BNB。\n随机地址不是 4000 名真实用户，不用于证明用户增长。\n`;
+ const text=`已核实 ${count}/20 轮，${count*200}/4000 地址；计划总量 28000 枚。\n已核实转出本金及Gas：${j.rawSpentWei?formatEther(BigInt(j.rawSpentWei)):'尚未核实'} BNB。\n单独记录的自有钱包调拨本金：${j.excludedPrincipalWei?formatEther(BigInt(j.excludedPrincipalWei)):'尚未确认'} BNB；对应哈希 ${OWNED_RETURN.hash}。\n计入预算（含此前任务和全部Gas）：${j.spentWei?formatEther(BigInt(j.spentWei)):'尚未确认'} / 0.1 BNB。\n本次空投累计Gas：${j.campaignGasWei?formatEther(BigInt(j.campaignGasWei)):'尚未核实'} / 0.02 BNB。\n随机地址不是 4000 名真实用户，不用于证明用户增长。\n`;
  fs.writeFileSync(path.join(directory,'summary.txt'),text);
  if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,text+'\n');
 }
-export async function run({clients,store,execute=false,accountProvider,reportDirectory}){
+export async function run({clients,store,execute=false,ownedReturnConfirmed=false,accountProvider,reportDirectory}){
  const {journal:j,save}=store;validate(j);
- await inspect(clients);console.log('双节点合约、余额及授权核对通过，正在核对10笔历史预算交易。');const base=await baseline(clients);
+ if(execute)requireThat(ownedReturnConfirmed===true,'执行前需要明确确认自有钱包调拨记账口径。');
+ delete j.spentWei;delete j.rawSpentWei;delete j.excludedPrincipalWei;delete j.campaignGasWei;
+ await inspect(clients);console.log('双节点合约、余额及授权核对通过，正在核对11笔历史预算交易。');const base=await baseline(clients);
+ j.rawSpentWei=rawTotal(base).toString();report(j,reportDirectory);
  console.log('历史预算核对通过，正在恢复本次任务的已确认交易。');
- let ledger=await reconcile(clients,j,base,save);
+ let ledger=await reconcile(clients,j,base,save,ownedReturnConfirmed);
  // A pending known hash is resolved before checking the completion mapping.
  let pending=j.entries.find(e=>!e.settled);
  if(pending?.hash){
@@ -111,7 +125,7 @@ export async function run({clients,store,execute=false,accountProvider,reportDir
   if(tx){
    requireThat(execute,'原交易尚待确认。请稍后检查，同一任务不应另建。');
    await clients[0].waitForTransactionReceipt({hash:pending.hash,confirmations:12,timeout:180000,pollingInterval:3000});
-   ledger=await reconcile(clients,j,base,save);pending=j.entries.find(e=>!e.settled);
+   ledger=await reconcile(clients,j,base,save,ownedReturnConfirmed);pending=j.entries.find(e=>!e.settled);
   }
  }
  await nonceCheck(clients,ledger.nonce,Boolean(pending));await verifyMappings(clients,j);
@@ -121,7 +135,7 @@ export async function run({clients,store,execute=false,accountProvider,reportDir
  requireThat(state.balance>=TOTAL-BigInt(done)*200n*AMOUNT,'蝴蝶股票余额不足以完成剩余轮次。');
  console.log(`钱包 ${ACCOUNT}；蝴蝶股票 ${formatEther(state.balance)} 枚；BNB ${formatEther(state.bnb)}；累计已用 ${formatEther(ledger.spent)} / 0.1 BNB。`);
  if(!execute){
-  if(!pending){const action=next(j,state.allowance);if(action){const c=callFor(action);const gas=await clients[0].estimateGas({account:ACCOUNT,...c});const price=await clients[0].getGasPrice();reserve(ledger.spent,gas*130n/100n+10000n,price*120n/100n);console.log(`下一步 ${action.kind} 只读模拟通过。`);}}
+  if(!pending){const action=next(j,state.allowance);if(action){const c=callFor(action);const gas=await clients[0].estimateGas({account:ACCOUNT,...c});const price=await clients[0].getGasPrice();reserveCampaign(ledger.spent,gas*130n/100n+10000n,price*120n/100n);console.log(`下一步 ${action.kind} 只读模拟通过。`);}}
   report(j,reportDirectory);return j;
  }
  const account=await accountProvider();requireThat(equal(account.address,ACCOUNT),'Secret 对应钱包不匹配。');
@@ -135,10 +149,10 @@ export async function run({clients,store,execute=false,accountProvider,reportDir
   if(!entry){
    const [gas,price]=await Promise.all([clients[0].estimateGas({account:ACCOUNT,...call}),clients[0].getGasPrice()]);
    entry={...expected,transaction:{...call,value:'0',nonce:ledger.nonce,type:'legacy',chainId:56,gas:(gas*130n/100n+10000n).toString(),gasPrice:(price*120n/100n).toString()},settled:false};
-   reserve(ledger.spent,BigInt(entry.transaction.gas),BigInt(entry.transaction.gasPrice));j.entries.push(entry);await save(j);
+   reserveCampaign(ledger.spent,BigInt(entry.transaction.gas),BigInt(entry.transaction.gasPrice));j.entries.push(entry);await save(j);
   }
   requireThat(entry.kind===expected.kind&&entry.batch===expected.batch&&entry.amount===expected.amount&&equal(entry.transaction.to,call.to)&&equal(entry.transaction.data,call.data),'恢复交易与当前剩余计划不一致，停止。');
-  const tx=transactionForSigning(entry.transaction),fee=reserve(ledger.spent,tx.gas,tx.gasPrice);
+  const tx=transactionForSigning(entry.transaction),fee=reserveCampaign(ledger.spent,tx.gas,tx.gasPrice);
   requireThat(state.bnb>=fee,'BNB 余额不足以支付最大 Gas。');
   // Simulate both nodes before any signature; no BNB is sent to contracts.
   await Promise.all(clients.map(client=>client.call({account:ACCOUNT,...call,gas:tx.gas})));
@@ -146,7 +160,7 @@ export async function run({clients,store,execute=false,accountProvider,reportDir
   const hash=await persistThenBroadcast({journal:j,entry,raw,save,broadcast:serializedTransaction=>clients[0].sendRawTransaction({serializedTransaction})});
   console.log(`已发送 ${entry.kind}${entry.batch===undefined?'':` 第 ${entry.batch+1}/20 轮`}：${hash}`);
   await clients[0].waitForTransactionReceipt({hash,confirmations:12,timeout:180000,pollingInterval:3000});
-  ledger=await reconcile(clients,j,base,save);
+  ledger=await reconcile(clients,j,base,save,ownedReturnConfirmed);
   if(entry.kind==='send')await verifyMappings(clients,j,entry.batch);
   else requireThat((await inspect(clients)).allowance===BigInt(entry.amount),'授权交易已确认但额度未生效，停止重复授权。');
   report(j,reportDirectory);
@@ -154,14 +168,14 @@ export async function run({clients,store,execute=false,accountProvider,reportDir
  throw new Stop('达到单次步骤限制，保留检查点后续跑。');
 }
 export async function main(env=process.env){
- const {execute}=options(env);
+ const {execute,ownedReturnConfirmed}=options(env);
  const primary=env.FLAP_BSC_RPC_URL||'https://bsc-dataseed.bnbchain.org';
  const secondary='https://bsc-dataseed1.defibit.io';
  requireThat(new URL(primary).protocol==='https:'&&primary!==secondary,'需要两个不同的 HTTPS RPC。');
  const clients=[primary,secondary].map(url=>createPublicClient({chain:bsc,transport:http(url,{timeout:25000,retryCount:1})}));
  const store=env.GITHUB_TOKEN?await openGitHubStore({api:githubApi(env.GITHUB_TOKEN),readOnly:!execute,reportDirectory:env.AIRDROP_REPORT_DIR}):{journal:fresh(),save:async()=>{requireThat(!execute,'执行模式必须有持久 GitHub 检查点。');}};
  try{
-  await run({clients,store,execute,reportDirectory:env.AIRDROP_REPORT_DIR,accountProvider:async()=>{
+  await run({clients,store,execute,ownedReturnConfirmed,reportDirectory:env.AIRDROP_REPORT_DIR,accountProvider:async()=>{
    options(env);let key=(env.FLAP_MINT_PRIVATE_KEY||'').trim();delete env.FLAP_MINT_PRIVATE_KEY;
    if(key&&!key.startsWith('0x'))key='0x'+key;requireThat(/^0x[0-9a-fA-F]{64}$/.test(key),'缺少有效 FLAP_MINT_PRIVATE_KEY Secret。');
    const account=privateKeyToAccount(key);key='';return account;
