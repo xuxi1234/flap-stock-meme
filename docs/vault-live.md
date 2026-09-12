@@ -37,3 +37,5 @@ Production, presale and existing swap funds were not modified. This supersedes t
 - A browser without a wallet extension displays the installation/DApp-browser instructions; no fake wallet fallback exists.
 - Catalog navigation reached the real management route. Obsolete preview counters and snapshot headings were removed in the follow-up.
 - Mobile verification uses the authored 390 × 844 iframe fixture at `/vault-layout-check.html`. See the final QA record for the observed result after deployment.
+
+Mobile QA found the host site’s global mobile `nav` styles creating an absolute menu over the title. The live vault explicitly resets position, inset, margin, padding, border, shadow and background within `.vl-header nav`. A 390px fixture checks the correction.
