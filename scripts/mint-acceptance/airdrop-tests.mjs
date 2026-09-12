@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decodeFunctionData, parseAbi, encodeEventTopics, encodeAbiParameters, keccak256 } from 'viem';
-import { plan, fresh, validate, callFor, reserve, next, persistThenBroadcast, ACCOUNT, TOKEN, DISTRIBUTOR, artifact, batchId } from './airdrop-core.mjs';
-import { options, verifyDelivery } from './airdrop-run.mjs';
+import { decodeFunctionData, parseAbi, encodeEventTopics, encodeAbiParameters, keccak256, toHex } from 'viem';
+import { plan, fresh, validate, callFor, reserve, next, persistThenBroadcast, ACCOUNT, TOKEN, DISTRIBUTOR, artifact, batchId, history, erc20 } from './airdrop-core.mjs';
+import { options, verifyDelivery, nonceCheck, run } from './airdrop-run.mjs';
 import { compact, hydrate } from './airdrop-store.mjs';
 test('execution requires explicit manual main-branch confirmation; checks never need a key',()=>{
  assert.equal(options({}).execute,false);
@@ -65,4 +65,57 @@ test('receipt requires all 200 distinct exact recipients and seven actual tokens
  const duplicated=structuredClone(logs);duplicated[199]=duplicated[0];assert.throws(()=>verifyDelivery({kind:'send',batch:0},duplicated));
  const taxed=structuredClone(logs);taxed[0].data=encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[plan()[0][0],7000000000000000000n,6790000000000000000n]);assert.throws(()=>verifyDelivery({kind:'send',batch:0},taxed));
  assert.throws(()=>verifyDelivery({kind:'send',batch:1},logs));
+});
+test('additional legacy wallet spending cannot fall outside lifetime budget',async()=>{
+ for(const unexpected of ['latest','pending']){
+  const c={getTransactionCount:async({address,blockTag})=>address.toLowerCase()===ACCOUNT.toLowerCase()?5:blockTag===unexpected?6:5};
+  await assert.rejects(()=>nonceCheck([c,c],5,false));
+ }
+});
+
+// The RPC and signer are the external boundaries. All production run-loop,
+// receipt, budget, checkpoint and state-transition code below is real.
+function networkFixture(){
+ const receipts=new Map(),txs=new Map(),signed=new Map(),completed=new Set();let nonce=5,allowance=0n,balance=30000000000000000000000n,drop=true,broadcasts=0,durable;
+ const blockHash='0x'+'1'.repeat(64);
+ const receipt=(hash,from,gasUsed,gasPrice,logs=[])=>({transactionHash:hash,from,blockHash,blockNumber:'0x1',status:'0x1',gasUsed:toHex(gasUsed),effectiveGasPrice:toHex(gasPrice),logs,contractAddress:null});
+ for(const p of history){
+  txs.set(p.hash,{hash:p.hash,from:p.from,chainId:'0x38',blockHash,nonce:toHex(p.nonce),to:TOKEN,input:'0x',value:toHex(BigInt(p.valueWei)),gas:'0x1',gasPrice:'0x1'});
+  receipts.set(p.hash,{...receipt(p.hash,p.from,BigInt(p.feeWei),1n),status:p.success?'0x1':'0x0'});
+ }
+ const store=()=>({journal:durable?hydrate(JSON.parse(durable)):fresh(),save:async j=>{validate(j);durable=JSON.stringify(compact(j));}});
+ const client={
+  getChainId:async()=>56,getCode:async()=>artifact.runtime,getBlockNumber:async()=>100n,getBlock:async()=>({hash:blockHash,number:1n}),
+  getBalance:async()=>70000000000000000n,getGasPrice:async()=>50000000n,estimateGas:async()=>100000n,call:async()=>({data:'0x'}),
+  getTransactionCount:async({address})=>address.toLowerCase()===ACCOUNT.toLowerCase()?nonce:5,
+  readContract:async({functionName,args})=>({decimals:18,balanceOf:balance,allowance,completed:completed.has(args?.[1])})[functionName],
+  request:async({method,params})=>{if(method==='eth_getTransactionByHash')return txs.get(params[0])||null;if(method==='eth_getTransactionReceipt')return receipts.get(params[0])||null;throw Error('Unexpected RPC method')},
+  waitForTransactionReceipt:async({hash})=>{assert.ok(receipts.has(hash));return receipts.get(hash)},
+  sendRawTransaction:async({serializedTransaction:raw})=>{
+   const t=signed.get(raw),hash=keccak256(raw);assert.equal(JSON.parse(durable).entries.at(-1).hash,hash);assert.equal(t.nonce,nonce);broadcasts++;
+   const decoded=decodeFunctionData({abi:t.to.toLowerCase()===TOKEN.toLowerCase()?erc20:artifact.abi,data:t.data});const logs=[];
+   if(decoded.functionName==='approve')allowance=decoded.args[1];
+   else{
+    const [token,id,recipients,amounts]=decoded.args;assert.equal(token.toLowerCase(),TOKEN.toLowerCase());assert.equal(recipients.length,200);assert.ok(!completed.has(id));
+    recipients.forEach((recipient,i)=>{assert.equal(amounts[i],7000000000000000000n);logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,amounts[i],amounts[i]])})});
+    logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[200n,1400000000000000000000n])});
+    balance-=1400000000000000000000n;allowance-=1400000000000000000000n;completed.add(id);
+   }
+   txs.set(hash,{hash,from:ACCOUNT,chainId:'0x38',blockHash,nonce:toHex(t.nonce),to:t.to,input:t.data,value:'0x0',gas:toHex(t.gas),gasPrice:toHex(t.gasPrice)});
+   receipts.set(hash,receipt(hash,ACCOUNT,100000n,t.gasPrice,logs));nonce++;
+   if(completed.size===1&&drop){drop=false;throw Error('RPC accepted transaction but response was lost')};return hash;
+  },
+ };
+ const account={address:ACCOUNT,signTransaction:async t=>{const raw=toHex(JSON.stringify(t,(_,v)=>typeof v==='bigint'?v.toString():v));signed.set(raw,t);return raw}};
+ return {client,store,account,stats:()=>({broadcasts,nonce,balance,allowance,completed:completed.size})};
+}
+test('actual runner recovers accepted-send response loss, completes20, and cannot replay after restart',async t=>{
+ t.mock.method(console,'log',()=>{}); // Suppress simulated hashes: they are not mainnet transactions.
+ const f=networkFixture(),args={clients:[f.client,f.client],execute:true,accountProvider:async()=>f.account};
+ await assert.rejects(()=>run({...args,store:f.store()}),/response was lost/);
+ assert.equal(f.stats().completed,1);
+ const done=await run({...args,store:f.store()});
+ assert.equal(done.entries.filter(e=>e.kind==='send'&&e.received.length===200).length,20);
+ assert.deepEqual(f.stats(),{broadcasts:21,nonce:26,balance:2000000000000000000000n,allowance:0n,completed:20});
+ await run({...args,store:f.store(),accountProvider:async()=>f.account});assert.equal(f.stats().broadcasts,21);
 });

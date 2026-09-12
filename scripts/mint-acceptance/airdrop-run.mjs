@@ -77,10 +77,15 @@ export async function verifyMappings(clients,j,only){
   requireThat(flags.every(f=>f===expected),'链上完成状态与检查点不符。保留记录并补核原交易，不会重新空投。');
  });
 }
-async function nonceCheck(clients,nonce,pending){
+export async function nonceCheck(clients,nonce,pending){
  for(const c of clients){
   const [latest,pool]=await Promise.all(['latest','pending'].map(blockTag=>c.getTransactionCount({address:ACCOUNT,blockTag})));
   requireThat(latest===nonce&&(pool===nonce||(pending&&pool===nonce+1)),'钱包存在记录外交易或未确认交易，停止以避免重复或漏算预算。');
+  for(const address of [...new Set(history.map(r=>r.from.toLowerCase()))].filter(a=>!equal(a,ACCOUNT))){
+   const known=history.filter(r=>equal(r.from,address)).length;
+   const counts=await Promise.all(['latest','pending'].map(blockTag=>c.getTransactionCount({address,blockTag})));
+   requireThat(counts.every(n=>n===known),`原任务旧钱包 ${address} 的记录为 ${known} 笔，链上已确认/待处理计数为 ${counts.join('/')}。存在未计入累计预算的交易，停止。请提供缺失交易哈希以补核历史记录。`);
+  }
  }
 }
 function report(j,directory){
@@ -96,7 +101,8 @@ function report(j,directory){
 }
 export async function run({clients,store,execute=false,accountProvider,reportDirectory}){
  const {journal:j,save}=store;validate(j);
- await inspect(clients);const base=await baseline(clients);
+ await inspect(clients);console.log('双节点合约、余额及授权核对通过，正在核对10笔历史预算交易。');const base=await baseline(clients);
+ console.log('历史预算核对通过，正在恢复本次任务的已确认交易。');
  let ledger=await reconcile(clients,j,base,save);
  // A pending known hash is resolved before checking the completion mapping.
  let pending=j.entries.find(e=>!e.settled);
@@ -109,6 +115,7 @@ export async function run({clients,store,execute=false,accountProvider,reportDir
   }
  }
  await nonceCheck(clients,ledger.nonce,Boolean(pending));await verifyMappings(clients,j);
+ console.log('钱包交易序号和20轮链上完成状态核对通过。');
  let state=await inspect(clients);
  const done=j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).length;
  requireThat(state.balance>=TOTAL-BigInt(done)*200n*AMOUNT,'蝴蝶股票余额不足以完成剩余轮次。');
