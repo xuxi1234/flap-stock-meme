@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { encodeFunctionData, erc20Abi, type Address, type EIP1193Provider, type Hex } from 'viem'
+import { encodeFunctionData, encodeEventTopics, encodeAbiParameters, parseAbiParameters, erc20Abi, type Address, type EIP1193Provider, type Hex } from 'viem'
 import artifact from './distributor.json'
 const mock=vi.hoisted(()=>({rpc:{getCode:vi.fn(),readContract:vi.fn(),estimateGas:vi.fn(),getGasPrice:vi.fn(),getBalance:vi.fn(),getTransactionCount:vi.fn(),getTransaction:vi.fn(),getTransactionReceipt:vi.fn(),waitForTransactionReceipt:vi.fn()},send:vi.fn()}))
 vi.mock('viem',async original=>({...await original<typeof import('viem')>(),createPublicClient:()=>mock.rpc,createWalletClient:()=>({sendTransaction:mock.send})}))
@@ -27,5 +27,18 @@ describe('live distribution safety and recovery',()=>{
  it('refuses a changed account or chain and pending unrelated wallet transaction',async()=>{const t=task();const r=await prepare(t);const wrong={request:async({method}:{method:string})=>method==='eth_chainId'?'0x1':[wallet]} as EIP1193Provider;await expect(runStep(wallet,wrong,t.id,r)).rejects.toThrow('原发送钱包');mock.rpc.getTransactionCount.mockImplementation(async({blockTag})=>blockTag==='pending'?1:0);await expect(runStep(wallet,provider,t.id,r)).rejects.toThrow('待确认交易');expect(mock.send).not.toHaveBeenCalled()})
  it('rejects receipt recovery for unrelated transaction data',async()=>{const t=task();t.intent={kind:'deploy',data:artifact.bytecode as Hex,nonce:0,gas:'200000',gasPrice:'1',createdAt:'test'};saveTask(t);mock.rpc.getTransaction.mockResolvedValue({from:wallet,to:null,input:'0x00',value:0n,nonce:0});await expect(runStep(wallet,provider,t.id,undefined,hash)).rejects.toThrow('交易与当前任务不匹配');expect(mock.send).not.toHaveBeenCalled()})
  it('reconciles a successful deployment once, without rebroadcast',async()=>{const t=task();t.intent={kind:'deploy',data:artifact.bytecode as Hex,nonce:0,gas:'200000',gasPrice:'1',createdAt:'test',hash};saveTask(t);mock.rpc.getTransaction.mockResolvedValue({from:wallet,to:null,input:artifact.bytecode,value:0n,nonce:0});mock.rpc.waitForTransactionReceipt.mockResolvedValue({status:'success',contractAddress:dist,gasUsed:100n,effectiveGasPrice:2n,logs:[]});const restored=await runStep(wallet,provider,t.id);expect(restored.distributor).toBe(dist);expect(spent(restored)).toBe(200n);expect(restored.intent).toBeUndefined();expect(mock.send).not.toHaveBeenCalled()})
+ it('accepts a real-shaped taxed delivery receipt and never rebroadcasts it',async()=>{
+  const t=task();t.distributor=dist;const b=batch(t,0)
+  const data=encodeFunctionData({abi,functionName:'distribute',args:[token,b.id,[to],[7n*10n**18n]]})
+  t.intent={kind:'send',to:dist,data,nonce:0,gas:'200000',gasPrice:'1',createdAt:'test',hash,batch:0};saveTask(t)
+  mock.rpc.getTransaction.mockResolvedValue({from:wallet,to:dist,input:data,value:0n,nonce:0})
+  const logs=[
+   {address:dist,topics:encodeEventTopics({abi,eventName:'Delivered',args:{sender:wallet,batchId:b.id,token}}),data:encodeAbiParameters(parseAbiParameters('address,uint256,uint256'),[to,7n*10n**18n,679n*10n**16n])},
+   {address:dist,topics:encodeEventTopics({abi,eventName:'BatchCompleted',args:{sender:wallet,batchId:b.id,token}}),data:encodeAbiParameters(parseAbiParameters('uint256,uint256'),[1n,7n*10n**18n])}
+  ]
+  mock.rpc.waitForTransactionReceipt.mockResolvedValue({status:'success',gasUsed:100n,effectiveGasPrice:2n,logs})
+  const done=await runStep(wallet,provider,t.id)
+  expect(completedCount(done)).toBe(1);expect(done.records[0].received?.[0].received).toBe((679n*10n**16n).toString());expect(done.intent).toBeUndefined();expect(mock.send).not.toHaveBeenCalled()
+ })
  it('charges failed receipt gas without marking any batch complete',async()=>{const t=task();t.distributor=dist;const data=encodeFunctionData({abi,functionName:'distribute',args:[token,batch(t,0).id,[to],[7n*10n**18n]]});t.intent={kind:'send',to:dist,data,nonce:0,gas:'200000',gasPrice:'1',createdAt:'test',hash,batch:0};saveTask(t);mock.rpc.getTransaction.mockResolvedValue({from:wallet,to:dist,input:data,value:0n,nonce:0});mock.rpc.waitForTransactionReceipt.mockResolvedValue({status:'reverted',gasUsed:100n,effectiveGasPrice:2n,logs:[]});await expect(runStep(wallet,provider,t.id)).rejects.toThrow('链上失败');const saved=loadTask(wallet) as Task;expect(spent(saved)).toBe(200n);expect(completedCount(saved)).toBe(0);expect(saved.intent).toBeUndefined()})
 })

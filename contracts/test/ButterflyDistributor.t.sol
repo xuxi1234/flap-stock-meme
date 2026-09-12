@@ -49,11 +49,13 @@ contract DistributionToken {
             uint256[] memory a = new uint256[](1);
             a[0] = 1;
             try reentry.distribute(address(this), bytes32(uint256(99)), r, a) {}
-                catch {
+            catch {
                 reentryBlocked = true;
             }
         }
-        if (noReturn) assembly { return(0, 0) }
+        if (noReturn) {
+            assembly { return(0, 0) }
+        }
         return true;
     }
 }
