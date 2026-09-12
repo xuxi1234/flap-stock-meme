@@ -8,8 +8,11 @@ export default async function handler(req: Request, res: Response) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'POST required' }); return }
   let body: unknown
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body } catch { res.status(400).json({ error: 'Invalid JSON' }); return }
-  const items = Array.isArray(body) ? body : [body]
-  const serialized = JSON.stringify(body)
+  // viem omits params for no-argument reads such as eth_gasPrice.
+  const normalize = (item: unknown) => item && typeof item === 'object' ? { ...item, params: (item as { params?: unknown }).params ?? [] } : item
+  const normalized = Array.isArray(body) ? body.map(normalize) : normalize(body)
+  const items = Array.isArray(normalized) ? normalized : [normalized]
+  const serialized = JSON.stringify(normalized)
   if (!serialized || serialized.length > 40_000 || items.length < 1 || items.length > 10 || items.some(item => !item || typeof item !== 'object' || !allowed.has(item.method) || item.jsonrpc !== '2.0' || !Array.isArray(item.params) || item.params.length > 2)) {
     res.status(400).json({ error: 'Unsupported read request' }); return
   }
