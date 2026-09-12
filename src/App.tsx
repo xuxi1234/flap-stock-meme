@@ -4,6 +4,7 @@ const PresaleDeadlineAdmin = lazy(() => import('./components/PresaleDeadlineAdmi
 const HomePage = lazy(() => import('./HomePage'))
 const MarketDashboard = lazy(() => import('./components/MarketDashboard').then(module => ({ default: module.MarketDashboard })))
 const SwapPage = lazy(() => import('./swap/SwapPage').then(module => ({ default: module.SwapPage })))
+const AirdropPage = lazy(() => import('./airdrop/AirdropPage'))
 
 class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -15,8 +16,9 @@ class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 }
 export default function App() {
   const params = new URLSearchParams(window.location.search)
+  const airdrop = params.get('view') === 'airdrop' || window.location.pathname === '/airdrop'
   const admin = params.get('view') === 'presale-admin'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
   const swap = params.get('view') === 'swap' || ['app.gupiao.sh', 'app.hudiegupiao.com'].includes(window.location.hostname)
-  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{swap ? <SwapPage /> : admin ? <PresaleDeadlineAdmin /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
+  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{airdrop ? <AirdropPage /> : swap ? <SwapPage /> : admin ? <PresaleDeadlineAdmin /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
 }
