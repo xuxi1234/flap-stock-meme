@@ -289,5 +289,12 @@
       ]
     }
   ],
-  "spentWei": "31134577509141262"
+  "spentWei": "31134577509141262",
+  "acceptance": {
+    "token": "0xEfc800C9AFA89AC73eb7c7Ab2bFA3b0cd4B77777",
+    "observedTokenBalanceWei": "3450952337706195609819457",
+    "block": "121425208",
+    "completed": true,
+    "scope": "fund-launch-claim; revenue payout not tested"
+  }
 }
