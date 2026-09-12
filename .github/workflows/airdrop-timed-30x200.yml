@@ -1,0 +1,96 @@
+name: 蝴蝶定时空投｜30次·200地址·0.1枚·间隔20分钟
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: '检查不花币；启动或继续后自动定时发放；暂停保留已发送记录'
+        type: choice
+        default: 只读检查
+        options: [只读检查, 启动或继续, 暂停]
+        required: true
+      confirm:
+        description: '确认69aA钱包向6000个随机新地址共发600枚；30次间隔至少20分钟；本次Gas最多0.02 BNB；累计0.1 BNB沿用已确认调拨本金单列口径'
+        type: boolean
+        default: false
+        required: true
+  # Polling only. A persisted manual authorization is required to send anything.
+  # GitHub can delay cron; receipt timestamps enforce >=20 min with no catch-up burst.
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  check:
+    name: 检查启动状态、到期时间及链上记录
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TIMED_OPERATION: ${{ github.event_name == 'schedule' && 'tick' || inputs.operation == '启动或继续' && 'start' || inputs.operation == '暂停' && 'pause' || 'check' }}
+          TIMED_CONFIRM: ${{ inputs.confirm && '30x200x0.1' || '' }}
+          TIMED_PHASE: check
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/timed-check
+        run: node scripts/mint-acceptance/timed-airdrop-main.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always() && github.event_name == 'workflow_dispatch'
+        with:
+          name: timed-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/timed-check/
+          retention-days: 90
+          if-no-files-found: ignore
+  execute:
+    name: 到期只发一轮或暂停任务
+    needs: check
+    if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 暂停并保留记录
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == '暂停'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TIMED_OPERATION: pause
+          TIMED_PHASE: execute
+        run: node scripts/mint-acceptance/timed-airdrop-main.mjs
+      - name: 核对预算并执行本次到期轮次
+        if: github.event_name == 'schedule' || (inputs.operation == '启动或继续' && inputs.confirm == true)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TIMED_OPERATION: ${{ github.event_name == 'schedule' && 'tick' || 'start' }}
+          TIMED_CONFIRM: ${{ inputs.confirm && '30x200x0.1' || '' }}
+          TIMED_PHASE: execute
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/timed-results
+        run: node scripts/mint-acceptance/timed-airdrop-main.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: timed-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/timed-results/
+          retention-days: 90
+          if-no-files-found: ignore

@@ -1,0 +1,370 @@
+{
+  "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+  "campaignGasWei": "12636534960000000",
+  "distributor": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+  "entries": [
+    {
+      "amount": "28000000000000000000000",
+      "feeWei": "2937600000000",
+      "hash": "0x4ab43a7d7e909a397d4d9a76c68468dc1aada951de1ca262a0708e3865b363c6",
+      "kind": "approve",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "74152",
+        "gasPrice": "60000000",
+        "nonce": 5,
+        "to": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 0,
+      "feeWei": "631694700000000",
+      "hash": "0xa437783bf40dce8fcc59f51fd466f500c579b801c45638f67c2591824ca8f370",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820001",
+        "gasPrice": "60000000",
+        "nonce": 6,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 1,
+      "feeWei": "631695420000000",
+      "hash": "0x750b69d185b4d999cc0e2f6f81bdf29b06139ce9561af08b2df85b200f1481b2",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820017",
+        "gasPrice": "60000000",
+        "nonce": 7,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 2,
+      "feeWei": "631689660000000",
+      "hash": "0x23537781b19f3d418ee35a093bd93b8c865af632c74d2e9f5d6a6ae354ecac18",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819890",
+        "gasPrice": "60000000",
+        "nonce": 8,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 3,
+      "feeWei": "631693980000000",
+      "hash": "0xbe5933df7037eb1fcc632954cf730ee47c68cb945810204aeb312730b458b803",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819985",
+        "gasPrice": "60000000",
+        "nonce": 9,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 4,
+      "feeWei": "631691820000000",
+      "hash": "0x020915906d08e1f0131bfbb8e01464634b6ccf348af5ffe9b9c6305e43410950",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819937",
+        "gasPrice": "60000000",
+        "nonce": 10,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 5,
+      "feeWei": "631697580000000",
+      "hash": "0xff72ed273f1dc3f28d8d9b7c44c85ccff66ea30c509968b578911ed56750dbfc",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820063",
+        "gasPrice": "60000000",
+        "nonce": 11,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 6,
+      "feeWei": "631690380000000",
+      "hash": "0x7b551adc798fc62e7f8abaa44c007d09e139a6491ae8b5a48fbfd8b99b16ef5d",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819906",
+        "gasPrice": "60000000",
+        "nonce": 12,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 7,
+      "feeWei": "631698300000000",
+      "hash": "0x32ab9c46ed8e5b1b85d7139d9c990f6415a362e973cbcfb0889c5340c9c94f93",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820079",
+        "gasPrice": "60000000",
+        "nonce": 13,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 8,
+      "feeWei": "631697580000000",
+      "hash": "0x2612db355257ca8eb40c80697a557e8b611c27f694b5d3a8bf3d76bf9a07e641",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820063",
+        "gasPrice": "60000000",
+        "nonce": 14,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 9,
+      "feeWei": "631700460000000",
+      "hash": "0x0c5c048bce9b86751b24e4b00a639262bc8dbef043b6c49accb045fbc020f73c",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820126",
+        "gasPrice": "60000000",
+        "nonce": 15,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 10,
+      "feeWei": "631691820000000",
+      "hash": "0x9d5da447244446e89ccb01ec806aa9c10590b89ec77a63f3a1e3b146839540e1",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819937",
+        "gasPrice": "60000000",
+        "nonce": 16,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 11,
+      "feeWei": "631693260000000",
+      "hash": "0x5a4b6a02ce44399b612ca2f04aa2fd95dbd8b2dfc86c6556a852047f62331681",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819970",
+        "gasPrice": "60000000",
+        "nonce": 17,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 12,
+      "feeWei": "631693260000000",
+      "hash": "0x4403dfa089dcc0ec9f7651503e2472eded2fb97b80c1ea77c55483148e8a3ca8",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819970",
+        "gasPrice": "60000000",
+        "nonce": 18,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 13,
+      "feeWei": "631694700000000",
+      "hash": "0x40c31d61e98161c3c5e7682bb09408163323df84555b8df044f419e19b773d67",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820001",
+        "gasPrice": "60000000",
+        "nonce": 19,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 14,
+      "feeWei": "631692540000000",
+      "hash": "0x001fa8dd8675fe5e7c92242c90af545aede6a06619712cf096d3fb13d2beb5d2",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819953",
+        "gasPrice": "60000000",
+        "nonce": 20,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 15,
+      "feeWei": "631694700000000",
+      "hash": "0xa097cedbeb81fdf4f25c34d1fcc79e6865d9b79275ac32275571c9285b494bc7",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820001",
+        "gasPrice": "60000000",
+        "nonce": 21,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 16,
+      "feeWei": "631693980000000",
+      "hash": "0x05f3d1f7d19cc8be4652a9f76907c6554c9101363145435abb3610886cd9bb30",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819985",
+        "gasPrice": "60000000",
+        "nonce": 22,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 17,
+      "feeWei": "631696860000000",
+      "hash": "0x06b79fdaa1dadbbb7968e35189a2c93992aefe40f234544dca712fec05622602",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13820048",
+        "gasPrice": "60000000",
+        "nonce": 23,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 18,
+      "feeWei": "631691820000000",
+      "hash": "0x3bf6cf5c9974756e1774284916b09890997450b19b51d7d184ca37cca46898cb",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13819937",
+        "gasPrice": "60000000",
+        "nonce": 24,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    },
+    {
+      "batch": 19,
+      "feeWei": "631404540000000",
+      "hash": "0xe85b12957f42ab31ea518c97e639ec3aea0a04d7cc2c4e8fed925f0fbd968a4d",
+      "kind": "send",
+      "settled": true,
+      "success": true,
+      "transaction": {
+        "chainId": 56,
+        "gas": "13816833",
+        "gasPrice": "60000000",
+        "nonce": 25,
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "type": "legacy",
+        "value": "0"
+      }
+    }
+  ],
+  "excludedPrincipalWei": "73985542253494651",
+  "id": "0x4a859bb9120bed5485932dc7173dbcf9e653ca0091f69a3e89db1b957251b44e",
+  "rawSpentWei": "117757704722635913",
+  "spentWei": "43772162469141262",
+  "token": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+  "version": 1
+}
