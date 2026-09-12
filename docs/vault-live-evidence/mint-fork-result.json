@@ -1,0 +1,18 @@
+{
+  "network": "BSC mainnet local fork",
+  "block": 121370887,
+  "broadcast": false,
+  "walletFundsSpent": false,
+  "simulatedSubscriptionBNB": "0.02",
+  "result": "PASS",
+  "assertions": [
+    "factory and campaign creation",
+    "exact funded amount",
+    "Flap V6 token deployment and initial purchase",
+    "minimum token output",
+    "participant claim",
+    "vault registry matches selected factory"
+  ],
+  "event": "emit ForkResult(factory: ButterflyMintFactory: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], campaign: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, token: 0x65B6D17FC8195A606F5577AaF0F0d13B8b3d7777, tokensReceived: 3450952337706195609819457 [3.45e24], tokensClaimed: 3450952337706195609819457 [3.45e24])",
+  "command": "RUN_MINT_FORK=true BSC_MAINNET_RPC_URL=<public BSC RPC> forge test --root contracts --match-contract ButterflyMintForkTest -vvvv"
+}

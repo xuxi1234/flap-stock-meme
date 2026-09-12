@@ -1,0 +1,11 @@
+# Independent Butterfly Mint V1
+
+This is a new, reviewable implementation of the requested Mint lifecycle, not copied or claimed byte-for-byte equivalent to the unavailable reference implementation. The existing ordinary-vault receipt remains valid. Production/presale are unchanged.
+
+Native BNB only, 0.01 BNB per share, 1–1600 target shares. Configuration is frozen at campaign creation: token metadata, buy/sell tax (maximum 10%), distributions summing to 100%, external vault factory/data, minimum tokens received, and a deadline between one hour and 90 days. The first UI acceptance uses a separate clearly labeled token. Zero-target immediate creation continues through ordinary vault launch.
+
+A campaign escrows contributions. Participants may refund their own shares to a chosen receiver before successful launch, including after cancellation/expiry. Any wallet may launch a fully subscribed, unexpired campaign through the canonical Flap VaultPortal with all subscribed BNB as initial purchase. Launch failure reverts atomically and preserves refunds. A frozen minimum token amount must be met. Acquired tokens and any BNB returned during launch are allocated by shares. Claim accounting precedes external calls; repeated claims and reentry fail. Only after all shares claim may the creator recover rounding dust.
+
+Factory and campaign implementations are non-upgradeable. The project address 0x79F8b832DE72e81Ad34fd66EcbbF673613264072 controls pausing new campaigns and is the immutable Flap commission receiver. No additional deployment fee. Factory owner cannot seize campaign funds, replace implementations, change campaign terms or prevent existing refunds. Existing Flap and template privileges remain external dependencies and are disclosed.
+
+Build with Solidity 0.8.24, Paris EVM, optimizer 200. Verify lifecycle/accounting/reentry/failure cases locally and in CI. Frontend must use compiled ABI/bytecode, live gas simulation, exact wallet/chain checks, and the existing 0.1 BNB budget. No automatic mainnet broadcasts. No collection is enabled until deployed code, owner/recipient and end-to-end receipts have been checked. Local mocks verify invariants, not live Flap behavior; live integration is a separate gate.
