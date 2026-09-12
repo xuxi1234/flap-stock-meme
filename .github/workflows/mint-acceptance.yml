@@ -1,0 +1,107 @@
+name: Butterfly Mint - manual acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'check=只读；simulate=离线模拟；execute=真实主网执行'
+        required: true
+        default: check
+        type: choice
+        options: [check, simulate, execute]
+      confirmation:
+        description: '执行时填写 EXECUTE 0.1 BNB；不要在这里输入私钥'
+        required: false
+        type: string
+      import_hashes:
+        description: '可选：补录已完成交易哈希，多个用空格分隔'
+        required: false
+        type: string
+      retry_failed:
+        description: '已核对失败原因后，允许在原累计预算内重试'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/mint-acceptance/package-lock.json
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: Require manual main branch dispatch and explicit execution confirmation
+        if: inputs.mode != 'simulate'
+        env:
+          FLAP_MINT_MODE: ${{ inputs.mode }}
+          FLAP_MINT_CONFIRMATION: ${{ inputs.confirmation }}
+          FLAP_MINT_IMPORT_HASHES: ${{ inputs.import_hashes }}
+        run: node --input-type=module -e "import {actionsOptions} from './scripts/mint-acceptance/actions-run.mjs'; actionsOptions(process.env);"
+      - run: npm test --prefix scripts/mint-acceptance
+      - run: node scripts/mint-acceptance/simulate.mjs
+      - name: Read-only mainnet check (no wallet secret)
+        if: inputs.mode == 'check'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_MINT_MODE: check
+          FLAP_MINT_IMPORT_HASHES: ${{ inputs.import_hashes }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_REPORT_DIR: ${{ runner.temp }}/mint-report
+        run: node scripts/mint-acceptance/actions-run.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() && inputs.mode == 'check'
+        with:
+          name: mint-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mint-report/journal.json
+          if-no-files-found: ignore
+          retention-days: 90
+
+  execute:
+    needs: preflight
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == 'execute' && inputs.confirmation == 'EXECUTE 0.1 BNB'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # Only the fixed orphan checkpoint branch is written by the script.
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/mint-acceptance/package-lock.json
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: Execute the confirmed fixed mainnet sequence
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_MINT_MODE: execute
+          FLAP_MINT_CONFIRMATION: ${{ inputs.confirmation }}
+          FLAP_MINT_IMPORT_HASHES: ${{ inputs.import_hashes }}
+          FLAP_MINT_RETRY_FAILED: ${{ inputs.retry_failed }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_MINT_REPORT_DIR: ${{ runner.temp }}/mint-report
+        run: node scripts/mint-acceptance/actions-run.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: mint-execution-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mint-report/journal.json
+          if-no-files-found: ignore
+          retention-days: 90

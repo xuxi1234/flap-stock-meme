@@ -1,0 +1,20 @@
+{
+  "name": "Butterfly Mint Check",
+  "symbol": "MINTCHK",
+  "meta": "bafkreihoo25ud3y4yt5mr3zlddtdclt4v3mxibc3kmhznxz5dkid3ube4u",
+  "targetShares": 2,
+  "deadline": "1789786155",
+  "minimumTokensOut": "100000000000000000000000",
+  "vaultFactory": "0xfd2437DFFB8EBe9F96125b30c85Be22f99Fdddf3",
+  "vaultData": "0x000000000000000000000000000000000000000000000000000000000000003c00000000000000000000000000000000000000000000000000000000000003e8",
+  "buyTaxRate": 300,
+  "sellTaxRate": 300,
+  "taxDuration": "3153600000",
+  "antiFarmerDuration": "2592000",
+  "mktBps": 10000,
+  "deflationBps": 0,
+  "dividendBps": 0,
+  "lpBps": 0,
+  "minimumShareBalance": "0",
+  "dividendToken": "0x0000000000000000000000000000000000000000"
+}

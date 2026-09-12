@@ -1,0 +1,9 @@
+{
+  "name": "flap-mint-acceptance-runner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.12" },
+  "scripts": { "test": "node --test tests.mjs actions-tests.mjs", "simulate": "node simulate.mjs" },
+  "dependencies": { "viem": "2.56.3" }
+}
