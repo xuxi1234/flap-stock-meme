@@ -4,7 +4,7 @@ import artifact from './distributor.json'
 import legacyArtifact from './distributor-v1.json'
 const mock=vi.hoisted(()=>({rpc:{getCode:vi.fn(),readContract:vi.fn(),estimateGas:vi.fn(),getGasPrice:vi.fn(),getBalance:vi.fn(),getTransactionCount:vi.fn(),getTransaction:vi.fn(),getTransactionReceipt:vi.fn(),waitForTransactionReceipt:vi.fn()},send:vi.fn()}))
 vi.mock('viem',async original=>({...await original<typeof import('viem')>(),createPublicClient:()=>mock.rpc,createWalletClient:()=>({sendTransaction:mock.send})}))
-import { abi, batch, batchSize, batchCount, confirmedRecipients, upgradeToSingleTransaction, canonicalRows, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, taskId, validateTask, type Task } from './live'
+import { abi, freshRandomTask, archivedTasks, batch, batchSize, batchCount, confirmedRecipients, upgradeToSingleTransaction, canonicalRows, completedCount, loadTask, newTask, prepare, runStep, saveTask, spent, taskId, validateTask, type Task } from './live'
 const wallet='0x1111111111111111111111111111111111111111' as Address
 const token='0x2222222222222222222222222222222222222222' as Address
 const to='0x3333333333333333333333333333333333333333' as Address
@@ -179,5 +179,39 @@ describe('partially completed legacy task recovery',()=>{
   const {t}=setupPartial();t.records[0].batch=1;saveTask(t)
   await expect(upgradeToSingleTransaction(wallet,provider)).rejects.toThrow('历史批次')
   expect(loadTask(wallet)?.toolVersion).toBeUndefined();expect(mock.send).not.toHaveBeenCalled()
+ })
+})
+
+describe('fresh random task instead of continuing the old list',()=>{
+ it('archives a partially sent pending task intact and creates 200 disjoint addresses with 7 tokens each',async()=>{
+  const old=task();delete old.toolVersion;old.distributor=dist
+  old.records=[{kind:'send',hash,status:'success',gasWei:'200',batch:0}]
+  old.intent={kind:'send',to:dist,data:'0x',nonce:1,gas:'200000',gasPrice:'1',createdAt:'test',hash,batch:1};saveTask(old)
+  const fresh=await freshRandomTask(wallet,provider,token,18,'0.02')
+  expect(fresh.id).not.toBe(old.id);expect(fresh.toolVersion).toBe(2);expect(fresh.rows).toHaveLength(200)
+  expect(fresh.rows.every(r=>r.amount===(7n*10n**18n).toString())).toBe(true)
+  expect(fresh.rows.some(r=>old.rows.some(o=>o.address===r.address))).toBe(false)
+  expect(fresh.records).toEqual([]);expect(fresh.intent).toBeUndefined();expect(batchCount(fresh)).toBe(1)
+  expect(archivedTasks(wallet)).toEqual([old]);expect(loadTask(wallet)?.id).toBe(fresh.id)
+  expect(mock.send).not.toHaveBeenCalled()
+  const again=await freshRandomTask(wallet,provider,token,18,'0.02')
+  expect(again.rows.some(r=>fresh.rows.some(o=>o.address===r.address))).toBe(false)
+  expect(archivedTasks(wallet)).toHaveLength(2)
+ })
+ it('keeps the original task when archive storage fails',async()=>{
+  const old=task()
+  const original=Storage.prototype.setItem
+  const storage=vi.spyOn(Storage.prototype,'setItem').mockImplementation(function(this:Storage,key,value){
+   if(key.startsWith('butterfly-airdrop-archives:'))throw Error('storage full')
+   return original.call(this,key,value)
+  })
+  try{await expect(freshRandomTask(wallet,provider,token,18,'0.02')).rejects.toThrow('storage full');expect(loadTask(wallet)?.id).toBe(old.id)}finally{storage.mockRestore()}
+  expect(mock.send).not.toHaveBeenCalled()
+ })
+ it('does not replace a task while another tab holds the wallet lock',async()=>{
+  const old=task()
+  Object.defineProperty(navigator,'locks',{value:{request:async(_k:unknown,_o:unknown,fn:(x:null)=>unknown)=>fn(null)}})
+  await expect(freshRandomTask(wallet,provider,token,18,'0.02')).rejects.toThrow('另一个标签页')
+  expect(loadTask(wallet)?.id).toBe(old.id)
  })
 })

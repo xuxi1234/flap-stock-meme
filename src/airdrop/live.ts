@@ -2,7 +2,7 @@ import { createPublicClient, createWalletClient, custom, encodeAbiParameters, en
 import { bsc } from 'viem/chains'
 import artifact from './distributor.json'
 import legacyArtifact from './distributor-v1.json'
-import { units } from './math'
+import { randomRecipients, units } from './math'
 
 export const abi = parseAbi([
  'function completed(address,bytes32) view returns (bool)',
@@ -243,5 +243,48 @@ export async function upgradeToSingleTransaction(wallet:Address,provider:EIP1193
    records:t.records.map(r=>r.kind==='send'?{...r,layout:'legacy' as const}:r)}
   saveTask(upgraded)
   return upgraded
+ })
+}
+
+const archiveKey=(wallet:string)=>'butterfly-airdrop-archives:56:'+wallet.toLowerCase()
+export function archivedTasks(wallet:string):Task[]{
+ const raw=localStorage.getItem(archiveKey(wallet))
+ if(!raw)return []
+ const tasks:Task[]=JSON.parse(raw)
+ if(!Array.isArray(tasks))throw Error('历史任务记录无效。')
+ return tasks.map(t=>{
+  validateTask(t)
+  if(t.wallet.toLowerCase()!==wallet.toLowerCase())throw Error('历史任务钱包不匹配。')
+  return t
+ })
+}
+export async function freshRandomTask(wallet:Address,provider:EIP1193Provider,token:Address,decimals:number,budget:string):Promise<Task>{
+ if(!navigator.locks)throw Error('浏览器不支持任务锁。')
+ return navigator.locks.request(key(wallet),{ifAvailable:true},async lock=>{
+  if(!lock)throw Error('另一个标签页正在处理此钱包，请等待它完成。')
+  const previous=loadTask(wallet)
+  const history=archivedTasks(wallet)
+  const excluded=new Set([wallet,...(previous?.rows.map(r=>r.address)??[]),...history.flatMap(t=>t.rows.map(r=>r.address)),previous?.distributor??''].map(a=>a.toLowerCase()))
+  const recipients=new Set<string>()
+  for(let attempt=0;recipients.size<200&&attempt<10;attempt++){
+   for(const address of randomRecipients(200))if(!excluded.has(address)&&recipients.size<200)recipients.add(address)
+  }
+  if(recipients.size!==200)throw Error('无法生成全新地址，请重试。')
+  const rows=canonicalRows([...recipients].map(address=>({address,amount:'7'})),decimals)
+  const task:Task={version:1,toolVersion:2,chainId:56,id:taskId(wallet,token,rows),wallet,token,decimals,rows,mode:'random',budget:units(budget,18).toString(),records:[]}
+  validateTask(task)
+  await assertWallet(task,provider)
+  if(JSON.stringify(loadTask(wallet))!==JSON.stringify(previous))throw Error('当前任务已变化，请重新点击新建。')
+  // Keep pending hashes and all receipts in a downloadable archive. A fresh task never resends the old list.
+  // runStep checks the wallet nonce before any new transaction, so an existing pending transaction still blocks sending.
+  if(previous){
+   const remaining=history.filter(t=>t.id!==previous.id)
+   const data=JSON.stringify([...remaining,previous])
+   localStorage.setItem(archiveKey(wallet),data)
+   if(localStorage.getItem(archiveKey(wallet))!==data)throw Error('旧任务存档失败，未新建任务。')
+  }
+  if(previous?.toolVersion===2&&previous.distributor)task.distributor=previous.distributor
+  saveTask(task)
+  return task
  })
 }
