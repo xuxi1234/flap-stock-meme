@@ -4,7 +4,22 @@
   "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
   "token": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
   "distributor": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
-  "entries": [],
+  "entries": [
+    {
+      "kind": "approve",
+      "amount": "600000000000000000000",
+      "transaction": {
+        "to": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+        "value": "0",
+        "nonce": 26,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "74136",
+        "gasPrice": "60000000"
+      },
+      "settled": false
+    }
+  ],
   "active": true,
   "authorization": "30x200x0.1:budget0.1:gas0.02",
   "startedBy": "xuxi1234",
