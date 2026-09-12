@@ -32,3 +32,9 @@ it('reloads participant shares when the connected wallet changes',async()=>{
  expect(mocks.campaign).toHaveBeenLastCalledWith(expect.anything(),deployment.factory,acceptance.campaign,OWNER);
  expect(mocks.prepare).not.toHaveBeenCalled();
 })
+
+it('prefills two shares only on an explicit funding link without preparing a transaction',async()=>{
+ window.history.replaceState({},'', '/?view=vault-live&panel=mint&mintShares=2');
+ try{mount();await screen.findByRole('button',{name:'检查认购'});expect((screen.getByRole('textbox',{name:'认购份额'}) as HTMLInputElement).value).toBe('2');expect(mocks.prepare).not.toHaveBeenCalled();}
+ finally{window.history.replaceState({},'', '/');}
+})
