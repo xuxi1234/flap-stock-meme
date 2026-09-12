@@ -323,12 +323,14 @@
         "gas": "13820048",
         "gasPrice": "60000000"
       },
-      "settled": false,
-      "hash": "0x06b79fdaa1dadbbb7968e35189a2c93992aefe40f234544dca712fec05622602"
+      "settled": true,
+      "hash": "0x06b79fdaa1dadbbb7968e35189a2c93992aefe40f234544dca712fec05622602",
+      "success": true,
+      "feeWei": "631696860000000"
     }
   ],
-  "rawSpentWei": "115862911502635913",
-  "spentWei": "41877369249141262",
+  "rawSpentWei": "116494608362635913",
+  "spentWei": "42509066109141262",
   "excludedPrincipalWei": "73985542253494651",
-  "campaignGasWei": "10741741740000000"
+  "campaignGasWei": "11373438600000000"
 }
