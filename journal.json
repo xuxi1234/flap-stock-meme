@@ -68,6 +68,20 @@
       "settled": true,
       "hash": "0xe4295c38a3717f6e73133817c0e10a94ae915b9d81c73e3f7dec0ebdc3bbcf94",
       "success": true
+    },
+    {
+      "action": "claim",
+      "transaction": {
+        "to": "0xF395E8008FD1730d2ACB53ed2Df42d18820fBe78",
+        "data": "0x1e83409a00000000000000000000000074a7d3198905c3b4ba53574c2dffef3aa4e569aa",
+        "value": "0",
+        "type": "legacy",
+        "chainId": 56,
+        "nonce": 4,
+        "gas": "230675",
+        "gasPrice": "60000000"
+      },
+      "settled": false
     }
   ],
   "results": [
