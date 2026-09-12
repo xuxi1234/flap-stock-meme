@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createPublicClient, custom, erc20Abi, fallback, formatUnits, http, isAddress, type Address } from 'viem'
+import { createPublicClient, erc20Abi, fallback, formatUnits, http, isAddress, type Address } from 'viem'
 import { bsc } from 'viem/chains'
 import { discoverWalletProviders, type WalletProviderDetail } from '../web3/walletProviders'
 import { amountText, countValue, csvText, parseRecipients, randomRecipients, splitPresale, units } from './math'
 import LiveSendPanel from './LiveSendPanel'
+import { requestSender } from './wallet'
 import './airdrop.css'
 
 type Mode = 'random' | 'import' | 'presale'
@@ -86,22 +87,19 @@ export default function AirdropPage() {
     return () => { active = false }
   }, [wallet, token])
   useEffect(() => {
-    const changed = () => { setWallet(''); setBalance(null); setMessage('钱包账户或网络已变化，请重新连接。') }
-    providers.forEach(({ provider }) => { provider.on('accountsChanged', changed); provider.on('chainChanged', changed) })
-    return () => providers.forEach(({ provider }) => { provider.removeListener('accountsChanged', changed); provider.removeListener('chainChanged', changed) })
-  }, [providers])
-  async function connect(detail: WalletProviderDetail) {
-    setConnecting(true); setMessage('')
+    if (!activeProvider) return
+    const { provider } = activeProvider
+    const changed = () => { setWallet(''); setBalance(null); setWalletMenu(true); setMessage('钱包账户或网络已变化，请重新连接并核对发送钱包。') }
+    provider.on('accountsChanged', changed); provider.on('chainChanged', changed)
+    return () => { provider.removeListener('accountsChanged', changed); provider.removeListener('chainChanged', changed) }
+  }, [activeProvider])
+  async function connect(detail: WalletProviderDetail, reselect = false) {
+    if (connecting) return
+    setConnecting(true); setMessage(''); setWallet(''); setBalance(null)
     try {
-      const accounts = await detail.provider.request({ method: 'eth_requestAccounts' })
-      const chain = await detail.provider.request({ method: 'eth_chainId' })
-      if (Number(chain) !== 56) { setMessage('请先在钱包中切换到 BNB Smart Chain，再连接。'); return }
-      if (!accounts[0]) throw Error('no account')
-      // A read-only wallet client is used here. No approval, transaction, or signature methods are called.
-      const walletReader = createPublicClient({ transport: custom(detail.provider) })
-      if (await walletReader.getChainId() !== 56) throw Error('chain')
-      setWallet(accounts[0]); setActiveProvider(detail); setWalletMenu(false)
-    } catch { setMessage('钱包未连接。请打开钱包确认连接请求后重试。') }
+      const account = await requestSender(detail.provider, reselect)
+      setWallet(account); setActiveProvider(detail); setMessage(''); setWalletMenu(false)
+    } catch (error) { setMessage((error as Error).message); setWalletMenu(true) }
     finally { setConnecting(false) }
   }
   const calc = useMemo(() => {
@@ -155,8 +153,8 @@ export default function AirdropPage() {
   const groupInput = (title: string, value: string, setter: (v: string) => void, result: ReturnType<typeof parseRecipients>, expected?: number) => <div className="ad-list-input"><div className="ad-label-row"><label>{title}</label><label className="ad-upload">导入 CSV<input type="file" accept=".csv,.txt" onChange={e => { void upload(e.target.files?.[0], setter); e.target.value = '' }}/></label></div><textarea aria-label={title} value={value} onChange={e => setter(e.target.value)} placeholder="每行一个 0x 地址，也可直接粘贴含地址列的 CSV" rows={4}/><div className="ad-hint">已识别 {result.addresses.length}{expected ? ` / ${expected}` : ''} 个地址{result.duplicates.length > 0 && ` · ${result.duplicates.length} 行重复`}{result.errors.length > 0 && ` · ${result.errors.length} 行无效`}</div></div>
   return <div className="ad-app">
     <aside className="ad-sidebar"><a className="ad-brand" href="/"><img src="/flap-stock-avatar.png" alt="蝴蝶股票"/><div>蝴蝶股票<small>FLAP STOCK</small></div></a><div className="ad-sidebar-label">社区工具箱</div><a className="ad-nav active" href="?view=airdrop"><Icon name="drop"/>批量空投<span>NEW</span></a><a className="ad-nav" href="?view=swap"><Icon name="settings"/>蝴蝶 Swap<small>↗</small></a><button className="ad-nav" onClick={() => { document.getElementById('ad-help')?.scrollIntoView({ behavior: 'smooth' }) }}><Icon name="info"/>使用说明</button><div className="ad-sidebar-bottom"><div className="ad-mini-art">✦</div><strong>让每一份共识<br/>准确抵达。</strong><p>BNB SMART CHAIN</p><a href="/">返回蝴蝶股票官网 ↗</a></div></aside>
-    <div className="ad-workspace"><header className="ad-topbar"><div className="ad-breadcrumb">工具箱 <span>/</span> <strong>批量空投</strong></div><div className="ad-top-actions"><span className="ad-network"><i/>BSC <small>主网读取</small></span><button className="ad-wallet" onClick={() => setWalletMenu(!walletMenu)}><Icon name="wallet" size={17}/>{wallet ? short(wallet) : '连接钱包'}</button></div></header>
-      {walletMenu && <div className="ad-wallet-panel" role="dialog" aria-label="选择钱包"><div className="ad-label-row"><strong>选择发送钱包</strong><button onClick={() => setWalletMenu(false)} aria-label="关闭钱包选择">×</button></div>{providers.length ? providers.map(p => <button className="ad-provider" key={p.info.uuid} disabled={connecting} onClick={() => void connect(p)}>{p.info.name} <Icon name="arrow"/></button>) : <p>未检测到浏览器钱包。电脑请启用钱包扩展；手机请在 MetaMask 等钱包的内置浏览器中打开本页。</p>}<small>连接后可查看余额；授权和发币由你逐步确认。</small></div>}
+    <div className="ad-workspace"><header className="ad-topbar"><div className="ad-breadcrumb">工具箱 <span>/</span> <strong>批量空投</strong></div><div className="ad-top-actions"><span className="ad-network"><i/>BSC <small>主网读取</small></span><button className="ad-wallet" onClick={() => setWalletMenu(!walletMenu)}><Icon name="wallet" size={17}/>{wallet ? `${short(wallet)} · 切换账户` : '连接钱包'}</button></div></header>
+      {walletMenu && <div className="ad-wallet-panel" role="dialog" aria-label="选择钱包"><div className="ad-label-row"><strong>选择发送钱包</strong><button onClick={() => setWalletMenu(false)} aria-label="关闭钱包选择">×</button></div>{wallet && <p className="ad-current-sender">当前发送钱包<br/><strong>{wallet}</strong></p>}{activeProvider && <button className="ad-provider" disabled={connecting} onClick={() => void connect(activeProvider, true)}>{connecting ? '请在钱包中选择账户…' : '切换账户（打开钱包选择）'} <Icon name="arrow"/></button>}{providers.length ? providers.map(p => <button className="ad-provider" key={p.info.uuid} disabled={connecting} onClick={() => void connect(p, !!activeProvider)}>{p.info.name} <Icon name="arrow"/></button>) : <p>未检测到浏览器钱包。电脑请启用钱包扩展；手机请在 MetaMask 等钱包的内置浏览器中打开本页。</p>}<small>切换时请只选择本次发币账户，再确认连接。切换账户免费，不会发币；原账户任务记录会保留。</small>{message && <p role="alert" className="ad-error">{message}</p>}</div>}
       <main className="ad-main"><section className="ad-hero"><div><div className="ad-eyebrow"><span/> BUTTERFLY AIRDROP <b>真实链上发放</b></div><h1>把共识，<em>分发出去。</em></h1><p>从小额空投到私募分配，清楚核对每一个地址、每一枚代币。</p><div className="ad-hero-tags"><span><Icon name="check" size={14}/> 精确数量计算</span><span><Icon name="check" size={14}/> CSV 名单导入</span><span><Icon name="check" size={14}/> 私募 4∶1 配比</span></div></div><div className="ad-hero-art" aria-hidden="true"><div className="ad-orbit o1"/><div className="ad-orbit o2"/><div className="ad-art-logo"><img src="/flap-stock-avatar.png" alt=""/></div><span className="ad-satellite s1">↗</span><span className="ad-satellite s2">✦</span><span className="ad-satellite s3">+</span></div></section>
       <div className="ad-stepbar"><span className="on"><b>01</b> 配置发放</span><i/><span className={plan ? 'on' : ''}><b>02</b> 核对清单</span><i/><span><b>03</b> 钱包发放</span><small>由你在钱包中确认交易</small></div>
       <div className="ad-columns"><div className="ad-config"><section className="ad-card"><div className="ad-section-title"><span className="ad-icon-box"><Icon name="drop"/></span><div><h2>发放方式</h2><p>选择这次空投的接收方式</p></div></div><div className="ad-modes" role="tablist" aria-label="发放方式">{([['random', '随机地址', '链上小额空投'], ['import', '指定地址', '导入你的接收名单'], ['presale', '私募分配', '151 + 360 · 四比一']] as const).map(([key, title, sub]) => <button role="tab" aria-selected={mode === key} className={mode === key ? 'selected' : ''} key={key} onClick={() => setMode(key)}><span className="ad-radio"/><strong>{title}</strong><small>{sub}</small></button>)}</div></section>
@@ -165,7 +163,7 @@ export default function AirdropPage() {
       <section className="ad-help" id="ad-help"><h3>提交前，先核对这三件事</h3><div><span>01</span><p><strong>确认代币</strong>核对完整合约地址，避免同名币混淆。</p></div><div><span>02</span><p><strong>确认分配</strong>按最小单位向下取整，保留余量，确保 4∶1 精确。</p></div><div><span>03</span><p><strong>确认接收人</strong>核对接收名单后，按页面步骤在钱包中确认授权和发送。</p></div></section></div>
       <aside className="ad-summary-column"><section className="ad-summary"><div className="ad-summary-title"><h2>发放摘要</h2><span>实时计算</span></div><div className="ad-summary-total"><span>预计发放总量</span><strong>{calc.total === '—' ? '—' : number(calc.total)}</strong><small>{token?.symbol || '代币 · 待核对'}</small></div><dl><div><dt>网络</dt><dd><i className="ad-success-dot"/>BNB Smart Chain</dd></div><div><dt>接收方式</dt><dd>{mode === 'random' ? '随机地址' : mode === 'import' ? '指定地址' : '私募 4∶1 分配'}</dd></div><div><dt>发放名额</dt><dd>{calc.count || '—'} 个</dd></div><div><dt>每地址数量</dt><dd>{mode === 'presale' ? '按 1 / 4 份分配' : perAddress || '—'}</dd></div><div><dt>工具费用</dt><dd>0 BNB</dd></div><div><dt>网络 Gas</dt><dd>签名前估算</dd></div>{mode === 'presale' && !calc.error && <div><dt>未分配余量</dt><dd className="ad-remainder">{amountText(calc.remainder, decimals)} 枚</dd></div>}</dl><div className="ad-summary-check"><Icon name="check" size={15}/> {token ? '已读取代币资料' : '代币资料待核对，不能发币'}</div><button className="ad-primary" onClick={generate}>生成发放清单 <Icon name="arrow" size={19}/></button><p className="ad-under-button">先核对清单，再连接钱包完成真实发放。</p>{message && <p role="alert" className="ad-error">{message}</p>}</section><section className="ad-side-tip"><span>✦</span><div><strong>每一份，都有依据。</strong><p>名单保存在本机；模拟与发送时会提交链上请求。</p></div></section><div className="ad-preview-note"><Icon name="info" size={15}/> BSC 主网 · 钱包签名后真实执行</div></aside></div>
       {plan && <section className="ad-card ad-results" ref={resultRef} aria-label="发放清单"><div className="ad-results-heading"><div><span className="ad-eyebrow">DISTRIBUTION PLAN</span><h2>发放清单已生成 <small>尚未发送</small></h2><p>{plan.created} · 共 {plan.rows.length} 条 · 合计 {number(plan.total)} 枚</p></div><a className="ad-export" href="#ad-live">准备真实发送 ↓</a><button className="ad-export" onClick={exportPlan}><Icon name="file" size={17}/>导出 CSV</button></div>{plan.mode === 'presale' && plan.rows.some(r => !r.address.startsWith('0x')) && <div className="ad-notice">这是比例计算表。接收地址尚未提供，不能用于实际转账。</div>}{plan.mode === 'random' && <div className="ad-notice">以下为随机地址。核对并确认后才会真实发送；不能把它们当作真实社区用户。</div>}<div className="ad-table-scroll"><table><thead><tr><th>序号</th><th>接收地址 / 名额</th><th>代币数量</th><th>分组</th><th>状态</th></tr></thead><tbody>{plan.rows.slice(page * 10, (page + 1) * 10).map((r, i) => <tr key={page * 10 + i}><td>{page * 10 + i + 1}</td><td className="ad-address">{r.address}</td><td>{number(r.amount)}</td><td>{r.group}</td><td><span className="ad-status">待发送</span></td></tr>)}</tbody></table></div><div className="ad-pagination"><span>共 {plan.rows.length} 条 · 第 {page + 1} / {Math.ceil(plan.rows.length / 10)} 页</span><div><button disabled={!page} onClick={() => setPage(page - 1)}>上一页</button><button disabled={(page + 1) * 10 >= plan.rows.length} onClick={() => setPage(page + 1)}>下一页</button></div></div></section>}
-      <LiveSendPanel wallet={wallet} provider={activeProvider?.provider} plan={plan} verified={!!token && token.address.toLowerCase() === plan?.token.toLowerCase() && token.decimals === plan?.decimals}/><footer className="ad-footer"><span>蝴蝶股票 <b>·</b> FLAP STOCK</span><span>振翅，让故事发生。 <a href="/">返回官网 ↗</a></span></footer></main>
+      <LiveSendPanel key={wallet.toLowerCase()} wallet={wallet} provider={activeProvider?.provider} plan={plan} verified={!!token && token.address.toLowerCase() === plan?.token.toLowerCase() && token.decimals === plan?.decimals}/><footer className="ad-footer"><span>蝴蝶股票 <b>·</b> FLAP STOCK</span><span>振翅，让故事发生。 <a href="/">返回官网 ↗</a></span></footer></main>
     </div>
   </div>
 }
