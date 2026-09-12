@@ -7,3 +7,9 @@ Decoded creation input matches the live config. Factory membership, EIP-1167 imp
 Next authorized handoff: user reviews and signs one share (0.01 BNB plus gas). An eth_call and estimateGas on the deployed campaign passed. No subscription was sent by the agent. After its receipt, verify the user's share and prepare their full refund before completing the remaining funding/launch/claim checks. Do not duplicate completed factory or campaign creation.
 
 Preview now selects the confirmed campaign by default and refreshes share data after wallet changes. Creation of other projects is a separate explicit action. 27 vault tests and the production build passed. All changes remain on the preview branch.
+
+## Contribution confirmed; refund handoff
+
+User transaction 0x7c2570e4ff063dc1c90f0d9524f0b2523b0c3b96317a9a39559abffb91ac06dd succeeded in block 121379903. Decoded call mint(1), value 0.01 BNB, matching Minted event for the requested user. Actual gas fee 0.000004676160077936 BNB. Fresh snapshot: campaign balance 0.01 BNB, total shares 1, user shares 1, launched false.
+
+Read-only refund simulation from the user's wallet to their own address succeeded; transfer value zero, refund principal 0.01 BNB. Estimated gas 54,386 before UI padding. No refund has been submitted by the agent. Use the existing preview's “检查退回全部份额” button after connecting the same wallet. Verify the user-signed refund receipt and both balances/credits before preparing the next funding step.

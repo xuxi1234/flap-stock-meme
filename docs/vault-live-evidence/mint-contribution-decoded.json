@@ -1,0 +1,11 @@
+{
+  "hash": "0x7c2570e4ff063dc1c90f0d9524f0b2523b0c3b96317a9a39559abffb91ac06dd",
+  "campaign": "0xC7c1BcD4F0d25e04Ca3CA58139284B7E075B5eb1",
+  "participant": "0x79F8b832DE72e81Ad34fd66EcbbF673613264072",
+  "shares": 1,
+  "amountBNB": "0.01",
+  "feeBNB": "0.000004676160077936",
+  "block": 121379903,
+  "confirmations": 118,
+  "status": "success"
+}
