@@ -18,7 +18,7 @@ Project administrator and commission receiver: `0x79F8b832DE72e81Ad34fd66EcbbF67
 - The independent Mint factory is not deployed. Reference factory `0x42eA4D729181E9e8dE1A85eDcCfa172F87c00DE3` is owned by `0x5c7aff98e20cc49362ff51f374a79354eba3c366` and can upgrade vault implementations. User address cannot exercise its upgrade permission. Verified implementation source was not obtained; do not route new fundraises through it as a user-owned factory. Evidence is in `vault-live-evidence/mint-research.md`.
 - Launches currently use zero initial purchase. ERC-20 bottom assets are still selected in the form and validated by the actual factory/Portal simulation. The existing stock directory is a discovery list, not proof every asset is accepted by every factory.
 - Contract management follows `vaultUISchema`. Unrecognized field types, unsupported approval types and array-input approval flows are rejected explicitly. Payable BNB deposit methods are not exposed by this generic nonpayable method adapter.
-- No full end-to-end mainnet receipt has been obtained. Wallet submission requires the user to review and sign the concrete transaction. Metadata upload was verified successfully on 2026-09-12 through the deployed endpoint, returning CID `bafkreihoo25ud3y4yt5mr3zlddtdclt4v3mxibc3kmhznxz5dkid3ube4u` for the separately labeled acceptance token. The earlier interrupted probe is superseded by this successful HTTP 200 result.
+- A user-signed percent-buyback creation succeeded; see the confirmed acceptance below. Other templates, buying/selling and revenue distribution are not covered by this one receipt. Further transactions still require wallet review and signature. Metadata upload was verified successfully on 2026-09-12 through the deployed endpoint, returning CID `bafkreihoo25ud3y4yt5mr3zlddtdclt4v3mxibc3kmhznxz5dkid3ube4u` for the separately labeled acceptance token. The earlier interrupted probe is superseded by this successful HTTP 200 result.
 - Source factories' contract code has not received a new security audit. Schema retrieval or simulation is not an audit and not proof that all mechanisms will function after launch.
 
 ## Sources
@@ -51,3 +51,17 @@ The updated metadata/name/symbol calldata passed BSC eth_call and gas estimation
 User acceptance exposed HTTP 400 during `prepare()`. Actual viem 2.56.3 serialization omits `params` for `eth_chainId` and `eth_gasPrice`. The read relay incorrectly required an array for every request, so balance and schema reads worked but preparation failed before simulation. A real viem → HTTP adapter → actual relay → RPC-fixture integration test reproduced the exact `HTTP request failed` / 400 error.
 
 The relay now normalizes omitted parameters to `[]` only for `eth_chainId`, `eth_blockNumber` and `eth_gasPrice`, preserving validation and the write-method deny list. The new integration test and mixed-batch regression failed before the fix and passed after it. All 15 targeted tests and source TypeScript checking pass. Previous direct-upstream simulation alone did not exercise this relay boundary.
+
+## Confirmed user-signed mainnet creation
+
+- Transaction: `0x6e56ed60da568446c36cf2890f9a52ed1c93105a68a6bca6bc171bfc86c43c5f`
+- Status: success (`0x1`), block 121366889; observation head 121367057 (169 confirmations).
+- Sender: `0x79F8b832DE72e81Ad34fd66EcbbF673613264072`; target: canonical VaultPortal.
+- Token: `0xF5297ea286966dd54E5810d16bEcF4b449f57777` — Butterfly Vault Check / FLAPCHK.
+- Vault: `0x608057051D1A3D6b3B6DDfEe96c68D92cDB429d6`; factory: `0xfd2437DFFB8EBe9F96125b30c85Be22f99Fdddf3`.
+- Actual network fee: 0.000346831505780525 BNB; transaction value and initial purchase: 0 BNB.
+- Decoded commissionReceiver: `0x79F8b832DE72e81Ad34fd66EcbbF673613264072`. Buy/sell tax 300 bps, mktBps 10000, interval 60 seconds, spendBps 1000.
+- Actual signed metadata CID differs from the prefilled upload: `bafkreiamb2dflonthu2lrdkikf2m52mrrrrmbdiz4g6uox6cjdjxu2q4ti`. The signed calldata is the authority for this deployment.
+- Portal.getVault confirms the receipt vault/factory; vault.taxToken confirms the token. vaultConfigView returns [9900,100,1000,60,1].
+- Token owner() returns Flap Portal, not the user's EOA. Direct token commissionReceiver/commissionBps/taxSplitter getters revert; recipient verification here is from the successful decoded creation call, not an invented getter. External factory/guardian privileges have not been transferred.
+- This validates one actual creation and its read interfaces. It does not validate all template mechanisms, prove paid-out earnings, complete independent Mint, or deploy the site's production branch. No further transaction was sent during verification.
