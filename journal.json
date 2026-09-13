@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "id": "0xe1085d623cae69e944ac5d2dd0631874695635c29747288e261b0e9370af0289",
+  "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+  "token": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+  "distributor": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+  "entries": [],
+  "active": true,
+  "authorization": "3x200x1:budget0.1:lifetime",
+  "startedBy": "xuxi1234",
+  "startedRun": "34787769510"
+}
