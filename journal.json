@@ -241,8 +241,8 @@
   "authorization": "30x200x0.1:budget0.1:gas0.02",
   "startedBy": "xuxi1234",
   "startedRun": "34736902214",
-  "rawSpentWei": "120287424002635913",
-  "spentWei": "46301881749141262",
+  "rawSpentWei": "120919117982635913",
+  "spentWei": "46933575729141262",
   "excludedPrincipalWei": "73985542253494651",
-  "campaignGasWei": "2529719280000000"
+  "campaignGasWei": "3161413260000000"
 }
