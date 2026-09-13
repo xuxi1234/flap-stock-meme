@@ -13,7 +13,7 @@ export const projectConfig = Object.freeze({
   network: Object.freeze({ name: 'BNB Smart Chain', chainId: 56 }),
   token: Object.freeze({ contractAddress: null as NullableAddress, totalSupply: null as string | null }),
   presale: Object.freeze({
-    websiteOpen: true,
+    websiteOpen: false,
     priceBnb: '0.05',
     maxParticipants: 10_000,
     initialDeadline: 1_788_969_599,
@@ -25,7 +25,7 @@ export const projectConfig = Object.freeze({
     adminAddress: '0xbE37AB912De351B9312FA593C9f99e3279FDB0a2',
     oneParticipationPerAddress: true,
     contractAddress: '0x409c9448172b0f244a6823e91ad669281294622b' as NullableAddress,
-    purchaseUrl: '#presale' as NullableLink,
+    purchaseUrl: null as NullableLink,
   }),
   community: Object.freeze({ qq: 'https://qun.qq.com/universal-share/share?ac=1&authKey=tmim20R9SXdX%2Bf%2Btg51ZYjataEroH9hIhAbZQfhEP%2Bj8wc66cl52QbcBBW7jsnz%2F&busi_data=eyJncm91cENvZGUiOiI4MTA4NTU1NzgiLCJ0b2tlbiI6IktQaU9IREZtaVV2TU8vRlE2UUZZTnRQbmtOS2NDaGJ0RE9xL0dXcXRmLzB0cmdBVm5OV2tYM0x6WjQ3cDlra1AiLCJ1aW4iOiIxNjY2MDM0MSJ9&data=4fRsa_V5Cm2YvDTzxzHRMW2j2yAzmWyQLm7Ig_8kYD5XNNzCbYSlwJwx-LcGECC2dEUIutYZsJGNDdFP3MStAA&svctype=4&tempid=h5_group_info', x: 'https://x.com/hudiegupiao', telegram: 'https://t.me/hudiegupiao', debox: 'https://m.debox.pro/group?id=g4o88wvy&code=pgk4b63r' }),
 })

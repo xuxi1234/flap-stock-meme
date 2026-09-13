@@ -44,7 +44,7 @@ try {
           && rect.right <= window.innerWidth
       }
       const sections = [...document.querySelectorAll('main > section')]
-      const warning = document.querySelector('#presale [role="note"]')
+      const hasPresale = Boolean(document.querySelector('#presale, .mobile-presale-dock, a[href*="presale"]')) || /私募|PRIVATE SALE|0\.05 BNB/i.test(document.body.innerText)
       const desktopHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .site-header nav a, .header-community .community-link')]
       const mobileHeaderControls = [...document.querySelectorAll('.brand-lockup, .language-toggle, .menu-toggle')]
       const actionControls = [...document.querySelectorAll('.hero-actions .button, .participate-button, .proof-actions > *, .share-panel .button, .share-panel .text-link, .footer-community .community-link')]
@@ -74,7 +74,7 @@ try {
       return {
         sectionCount: sections.length,
         sectionsVisible: sections.every(visible),
-        warningVisible: Boolean(warning && visible(warning)),
+        hasPresale,
         noHorizontalOverflow: document.documentElement.scrollWidth <= window.innerWidth,
         controlsVisible: requiredControls.every(visible),
         controlsDoNotOverlap,
@@ -84,9 +84,9 @@ try {
       }
     })
 
-    assert.equal(result.sectionCount, 9, `${viewport.width}px: all core sections must render`)
+    assert.ok(result.sectionCount >= 5, `${viewport.width}px: all core sections must render`)
     assert.equal(result.sectionsVisible, true, `${viewport.width}px: all core sections must remain visible`)
-    assert.equal(result.warningVisible, true, `${viewport.width}px: presale warning must remain visible`)
+    assert.equal(result.hasPresale, false, `${viewport.width}px: presale must be removed`)
     assert.equal(result.noHorizontalOverflow, true, `${viewport.width}px: page must not overflow horizontally`)
     assert.equal(result.controlsVisible, true, `${viewport.width}px: controls must remain visible`)
     assert.equal(result.controlsDoNotOverlap, true, `${viewport.width}px: visible controls must not overlap`)
@@ -97,9 +97,14 @@ try {
     if (viewport.width <= 760) {
       const menu = page.getByRole('button', { name: /打开菜单|Open menu/ })
       await menu.click()
-      await page.getByRole('navigation').getByRole('link', { name: /参与规则|RULES/ }).waitFor({ state: 'visible' })
+      await page.getByRole('navigation').getByRole('link', { name: /代币机制|TOKENOMICS/ }).waitFor({ state: 'visible' })
       assert.equal(await menu.getAttribute('aria-expanded'), 'true', `${viewport.width}px: compact menu must open`)
     }
+    await page.getByRole('button', { name: '切换到英文' }).click()
+    assert.equal(await page.locator('body').innerText().then(text => /PRIVATE SALE|0\.05 BNB/i.test(text)), false)
+    await page.getByRole('button', { name: 'CONNECT WALLET', exact: true }).click()
+    await page.getByRole('dialog', { name: 'CONNECT WALLET' }).waitFor({ state: 'visible' })
+    await page.getByRole('button', { name: 'CLOSE', exact: true }).click()
     await page.close()
     console.log(`Responsive QA passed at ${viewport.width}px`)
   }

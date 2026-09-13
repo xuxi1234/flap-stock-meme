@@ -1,7 +1,7 @@
 import type { SiteCopy } from '../content/siteContent'
 import type { WalletProviderDetail } from '../web3/walletProviders'
 
-type Props = { copy: SiteCopy['presale']['interaction']; providers: WalletProviderDetail[]; onSelect: (wallet: WalletProviderDetail) => void; onClose: () => void }
+type Props = { copy: Pick<SiteCopy['presale']['interaction'], 'walletHeading' | 'walletBody' | 'close' | 'walletMissing' | 'walletMobileHint' | 'walletConnectUnavailable'>; providers: WalletProviderDetail[]; onSelect: (wallet: WalletProviderDetail) => void; onClose: () => void }
 
 export function WalletChooser({ copy, providers, onSelect, onClose }: Props) {
   return (

@@ -3,7 +3,7 @@ import type { SiteCopy } from '../content/siteContent'
 
 export function ProjectUpdates({ copy }: { copy: SiteCopy['updates'] }) {
   const [copied, setCopied] = useState(false)
-  const shareUrl = 'https://www.hudiegupiao.com/?utm_source=community&utm_medium=share&utm_campaign=presale'
+  const shareUrl = 'https://www.hudiegupiao.com/?utm_source=community&utm_medium=share&utm_campaign=community'
   const payload = `${copy.shareText}\n${shareUrl}`
   const copyShare = async () => { await navigator.clipboard?.writeText(payload); setCopied(true); window.setTimeout(() => setCopied(false), 1800) }
   const systemShare = async () => {

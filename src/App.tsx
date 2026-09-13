@@ -1,6 +1,5 @@
-import { Component, lazy, Suspense, type ReactNode } from 'react'
+import { Component, lazy, Suspense, useEffect, type ReactNode } from 'react'
 
-const PresaleDeadlineAdmin = lazy(() => import('./components/PresaleDeadlineAdmin').then(module => ({ default: module.PresaleDeadlineAdmin })))
 const HomePage = lazy(() => import('./HomePage'))
 const MarketDashboard = lazy(() => import('./components/MarketDashboard').then(module => ({ default: module.MarketDashboard })))
 const SwapPage = lazy(() => import('./swap/SwapPage').then(module => ({ default: module.SwapPage })))
@@ -15,10 +14,17 @@ class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
 }
 export default function App() {
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const legacyView = ['presale', 'presale-admin'].includes(url.searchParams.get('view') ?? '')
+    if (legacyView) url.searchParams.delete('view')
+    if (url.hash === '#presale') url.hash = ''
+    if (url.searchParams.get('utm_campaign') === 'presale') url.searchParams.delete('utm_campaign')
+    if (url.href !== window.location.href) window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  }, [])
   const params = new URLSearchParams(window.location.search)
   const airdrop = params.get('view') === 'airdrop' || window.location.pathname === '/airdrop'
-  const admin = params.get('view') === 'presale-admin'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
   const swap = params.get('view') === 'swap' || ['app.gupiao.sh', 'app.hudiegupiao.com'].includes(window.location.hostname)
-  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{airdrop ? <AirdropPage /> : swap ? <SwapPage /> : admin ? <PresaleDeadlineAdmin /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
+  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{airdrop ? <AirdropPage /> : swap ? <SwapPage /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
 }
