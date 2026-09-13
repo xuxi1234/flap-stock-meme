@@ -22,3 +22,8 @@ test('remaining29 slots retain first delivery, wait1200s, total30 and no extra s
 test('failed execution stops the queued slot without retrying any transfer',async()=>{
  let count=0;await assert.rejects(()=>runSlot({load:async()=>({entries:[]}),now:()=>10000,sleep:async()=>{},execute:async()=>{count++;throw Error('failed')},log:()=>{}}));assert.equal(count,1);
 });
+test('a newly reverted receipt stops the slot immediately without another execution call',async()=>{
+ let count=0;const j={entries:[]};
+ await assert.rejects(()=>runSlot({load:async()=>structuredClone(j),now:()=>10000,sleep:async()=>{},execute:async()=>{count++;if(count>1)throw Error('unexpected second execution');j.entries.push({kind:'send',settled:true,success:false});},log:()=>{}}));
+ assert.equal(count,1);
+});

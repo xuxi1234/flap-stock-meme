@@ -20,6 +20,7 @@ export async function runSlot({load,execute,now=()=>Math.floor(Date.now()/1000),
   // authorization and chain timestamps before it can sign anything.
   await execute();
   j=await load();
+  requireThat(!j.entries.some(e=>e.settled&&!e.success),'已有失败交易，保留记录并停止。');
   if(completed(j)>before||completed(j)>=30){log(`本步骤结束，已完成${completed(j)}/30轮。`);return;}
   // The chain clock may lag wall time. Never force or bypass its due gate.
   await sleep(3000);
