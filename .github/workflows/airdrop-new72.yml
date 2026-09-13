@@ -1,0 +1,90 @@
+name: 蝴蝶新空投｜72轮·每轮200地址·每地址0.1枚
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: '独立新任务72轮；旧16轮不计入新任务，间隔至少20分钟'
+        type: choice
+        default: 只读检查
+        options: [只读检查, 启动或继续新72轮]
+        required: true
+      confirm:
+        description: '确认69aA钱包向14400个随机新地址共发1440枚；新72轮间隔至少20分钟；包含此前全部Gas的累计预算仍不超过0.1 BNB'
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  check:
+    name: 检查启动状态、到期时间及链上记录
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NEW72_OPERATION: ${{ inputs.operation == '启动或继续新72轮' && 'start' || 'check' }}
+          NEW72_CONFIRM: ${{ inputs.confirm && '72x200x0.1' || '' }}
+          NEW72_PHASE: check
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/new72-check
+        run: node scripts/mint-acceptance/new72-main.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always() && github.event_name == 'workflow_dispatch'
+        with:
+          name: new72-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/new72-check/
+          retention-days: 90
+          if-no-files-found: ignore
+  execute:
+    name: 续跑步骤 ${{ matrix.slot }}/72
+    needs: check
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        slot: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72]
+    if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main' && inputs.operation == '启动或继续新72轮' && inputs.confirm == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 核对预算并执行本次到期轮次
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == '启动或继续新72轮' && inputs.confirm == true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NEW72_OPERATION: start
+          NEW72_CONFIRM: ${{ inputs.confirm && '72x200x0.1' || '' }}
+          NEW72_PHASE: execute
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/new72-results
+        run: node scripts/mint-acceptance/new72-chain.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: new72-results-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
+          path: ${{ runner.temp }}/new72-results/
+          retention-days: 90
+          if-no-files-found: ignore
