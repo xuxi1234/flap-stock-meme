@@ -5,6 +5,12 @@ import { projectConfig } from '../config/project'
 import { siteContent } from '../content/siteContent'
 import { Presale } from './Presale'
 
+// Historical component regression fixture; production configuration is closed and App no longer mounts it.
+vi.mock('../config/project', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../config/project')>()
+  return { projectConfig: { ...actual.projectConfig, presale: { ...actual.projectConfig.presale, websiteOpen: true } } }
+})
+
 const contract = '0x1111111111111111111111111111111111111111' as Address
 const account = '0x2222222222222222222222222222222222222222' as Address
 const hash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const
