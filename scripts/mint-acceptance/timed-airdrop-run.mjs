@@ -1,3 +1,4 @@
+import { readWithRetry } from './rpc-read-retry.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -25,7 +26,7 @@ export function verifyDelivery(e,logs){
  });
 }
 const read=(client,functionName,args=[])=>client.readContract({address:TOKEN,abi:erc20,functionName,args});
-export async function inspect(clients){
+async function inspectOnce(clients){
  const results=await Promise.all(clients.map(async client=>{
   requireThat(await client.getChainId()===56,'RPC 链号不是 BSC 主网。');
   const [code,decimals,balance,allowance,bnb]=await Promise.all([client.getCode({address:DISTRIBUTOR}),read(client,'decimals'),read(client,'balanceOf',[ACCOUNT]),read(client,'allowance',[ACCOUNT,DISTRIBUTOR]),client.getBalance({address:ACCOUNT})]);
@@ -35,7 +36,7 @@ export async function inspect(clients){
  requireThat(results.every(r=>r.balance===results[0].balance&&r.allowance===results[0].allowance&&r.bnb===results[0].bnb),'两个 RPC 的余额或授权状态不一致，请稍后只读检查。');
  return results[0];
 }
-export async function verifiedRow(clients,hash){
+async function verifiedRowOnce(clients,hash){
  const row=await receiptRecord(clients[0],hash);if(!row)return null;
  const receipts=await Promise.all(clients.map(c=>c.request({method:'eth_getTransactionReceipt',params:[hash]})));
  const fingerprint=r=>r&&JSON.stringify([r.transactionHash,r.blockHash,r.status,r.gasUsed,r.effectiveGasPrice,r.logs.map(l=>[l.address,l.data,l.topics])]);
@@ -76,14 +77,14 @@ export async function reconcile(clients,j,base,save,ownedReturnConfirmed=false){
 async function mapReads(items,fn){
  const out=[];for(let i=0;i<items.length;i+=5)out.push(...await Promise.all(items.slice(i,i+5).map(fn)));return out;
 }
-export async function verifyMappings(clients,j,only){
+async function verifyMappingsOnce(clients,j,only){
  await mapReads(only===undefined?Array.from({length:30},(_,i)=>i):[only],async i=>{
   const expected=j.entries.some(e=>e.kind==='send'&&e.batch===i&&e.settled&&e.success);
   const flags=await Promise.all(clients.map(client=>client.readContract({address:DISTRIBUTOR,abi:artifact.abi,functionName:'completed',args:[ACCOUNT,batchId(i)]})));
   requireThat(flags.every(f=>f===expected),'链上完成状态与检查点不符。保留记录并补核原交易，不会重新空投。');
  });
 }
-export async function nonceCheck(clients,nonce,pending){
+async function nonceCheckOnce(clients,nonce,pending){
  for(const c of clients){
   const [latest,pool]=await Promise.all(['latest','pending'].map(blockTag=>c.getTransactionCount({address:ACCOUNT,blockTag})));
   requireThat(latest===nonce&&(pool===nonce||(pending&&pool===nonce+1)),'钱包存在记录外交易或未确认交易，停止以避免重复或漏算预算。');
@@ -173,3 +174,11 @@ export async function run({clients,store,execute=false,ownedReturnConfirmed=fals
  }
  throw new Stop('达到单次步骤限制，保留检查点后续跑。');
 }
+
+export const inspect=(clients)=>readWithRetry(()=>inspectOnce(clients),'读取合约和余额');
+
+export const verifiedRow=(clients,hash)=>readWithRetry(()=>verifiedRowOnce(clients,hash),'读取交易回执');
+
+export const verifyMappings=(clients,j,only)=>readWithRetry(()=>verifyMappingsOnce(clients,j,only),'核对批次状态');
+
+export const nonceCheck=(clients,nonce,pending)=>readWithRetry(()=>nonceCheckOnce(clients,nonce,pending),'核对钱包序号');

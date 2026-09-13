@@ -1,12 +1,12 @@
-name: 蝴蝶定时空投｜单轮检查与暂停
+name: 蝴蝶空投｜继续剩余29次·每次200地址·0.1枚
 on:
   workflow_dispatch:
     inputs:
       operation:
-        description: '检查不花币；启动或继续后自动定时发放；暂停保留已发送记录'
+        description: '保留已完成第一轮；一次启动，串行完成剩余轮次，每轮间隔至少20分钟'
         type: choice
         default: 只读检查
-        options: [只读检查, 启动或继续, 暂停]
+        options: [只读检查, 继续剩余轮次]
         required: true
       confirm:
         description: '确认69aA钱包向6000个随机新地址共发600枚；30次间隔至少20分钟；本次Gas最多0.02 BNB；累计0.1 BNB沿用已确认调拨本金单列口径'
@@ -36,7 +36,7 @@ jobs:
       - id: check
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          TIMED_OPERATION: ${{ github.event_name == 'schedule' && 'tick' || inputs.operation == '启动或继续' && 'start' || inputs.operation == '暂停' && 'pause' || 'check' }}
+          TIMED_OPERATION: ${{ inputs.operation == '继续剩余轮次' && 'start' || 'check' }}
           TIMED_CONFIRM: ${{ inputs.confirm && '30x200x0.1' || '' }}
           TIMED_PHASE: check
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
@@ -50,11 +50,16 @@ jobs:
           retention-days: 90
           if-no-files-found: ignore
   execute:
-    name: 到期只发一轮或暂停任务
+    name: 续跑步骤 ${{ matrix.slot }}/29
     needs: check
-    if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        slot: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+    if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main' && inputs.operation == '继续剩余轮次' && inputs.confirm == true
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     permissions:
       contents: write
     steps:
@@ -65,28 +70,21 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
-      - name: 暂停并保留记录
-        if: github.event_name == 'workflow_dispatch' && inputs.operation == '暂停'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          TIMED_OPERATION: pause
-          TIMED_PHASE: execute
-        run: node scripts/mint-acceptance/timed-airdrop-main.mjs
       - name: 核对预算并执行本次到期轮次
-        if: github.event_name == 'schedule' || (inputs.operation == '启动或继续' && inputs.confirm == true)
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == '继续剩余轮次' && inputs.confirm == true
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          TIMED_OPERATION: ${{ github.event_name == 'schedule' && 'tick' || 'start' }}
+          TIMED_OPERATION: start
           TIMED_CONFIRM: ${{ inputs.confirm && '30x200x0.1' || '' }}
           TIMED_PHASE: execute
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           AIRDROP_REPORT_DIR: ${{ runner.temp }}/timed-results
-        run: node scripts/mint-acceptance/timed-airdrop-main.mjs
+        run: node scripts/mint-acceptance/timed-airdrop-chain.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: timed-results-${{ github.run_id }}-${{ github.run_attempt }}
+          name: timed-results-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
           path: ${{ runner.temp }}/timed-results/
           retention-days: 90
           if-no-files-found: ignore
