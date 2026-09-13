@@ -215,7 +215,8 @@
         "gas": "13820158",
         "gasPrice": "60000000"
       },
-      "settled": false
+      "settled": false,
+      "hash": "0xf01db4a54a84ce9bce243771584f3056c55404e77e05cbac1b293061f07b4eb5"
     }
   ],
   "active": true,
