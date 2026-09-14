@@ -1,0 +1,92 @@
+name: 蝴蝶表格空投｜6批·末批196地址·每地址1枚
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: '固定1196地址；前5批200、末批196，每地址1枚，间隔至少1分钟'
+        type: choice
+        default: 只读检查
+        options: [只读检查, 执行或继续1196地址]
+        required: true
+      confirm:
+        description: '确认发1196枚，6批间隔至少1分钟；与旧任务串行，保留全部历史Gas和0.1 BNB累计上限'
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  check:
+    name: 检查启动状态、到期时间及链上记录
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CSV1196_OPERATION: ${{ inputs.operation == '执行或继续1196地址' && 'start' || 'check' }}
+          CSV1196_CONFIRM: ${{ inputs.confirm && '1196x1:6batches' || '' }}
+          CSV1196_PHASE: check
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/csv1196-check
+        run: node scripts/mint-acceptance/csv1196-main.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always() && github.event_name == 'workflow_dispatch'
+        with:
+          name: csv1196-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/csv1196-check/
+          retention-days: 90
+          if-no-files-found: ignore
+  execute:
+    name: 续跑步骤 ${{ matrix.slot }}/6
+    needs: check
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        slot: [1, 2, 3, 4, 5, 6]
+    if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main' && inputs.operation == '执行或继续1196地址' && inputs.confirm == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 核对预算并执行本次到期轮次
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == '执行或继续1196地址' && inputs.confirm == true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CSV1196_OPERATION: start
+          CSV1196_CONFIRM: ${{ inputs.confirm && '1196x1:6batches' || '' }}
+          CSV1196_PHASE: execute
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/csv1196-results
+        run: node scripts/mint-acceptance/csv1196-chain.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: csv1196-results-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
+          path: ${{ runner.temp }}/csv1196-results/
+          retention-days: 90
+          if-no-files-found: ignore
