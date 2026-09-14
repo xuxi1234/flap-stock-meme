@@ -1,13 +1,16 @@
 import { parseAbi, type Address } from 'viem'
+import { v3Abi } from './v3'
 import stockTokens from './stock-tokens.json'
+import { projectConfig } from '../config/project'
 
 // PancakeSwap's published BSC V2 deployment; never supplied by a token or URL.
 export const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E' as const
 export const FACTORY = '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73' as const
 export const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c' as const
-export type SwapToken = { address: Address; symbol: string; name: string; decimals: number; native?: boolean; custom?: boolean; color: string; logoURI?: string; stockSymbol?: string; issuer?: string; source?: string; category?: string; verifiedAt?: string }
+export type SwapToken = { address: Address; symbol: string; name: string; decimals: number; native?: boolean; custom?: boolean; color: string; logoURI?: string; stockSymbol?: string; issuer?: string; source?: string; category?: string; verifiedAt?: string; buyTaxBps?: number; sellTaxBps?: number }
 export const STOCK_TOKENS = stockTokens as SwapToken[]
 export const MAG7_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA']
+export const BUTTERFLY: SwapToken = { address: projectConfig.token.contractAddress!, symbol: '蝴蝶股票', name: '蝴蝶股票 / FLAP STOCK', decimals: 18, color: '#6020ff', logoURI: '/flap-stock-avatar.png', buyTaxBps: 300, sellTaxBps: 300, source: 'https://gupiao.sh/', issuer: '蝴蝶股票', category: 'community' }
 export const TOKENS: SwapToken[] = [
   { address: WBNB, symbol: 'BNB', name: 'BNB · 原生资产', decimals: 18, native: true, color: '#f0b90b' },
   { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Binance-Peg BSC-USD', decimals: 18, color: '#219b83' },
@@ -17,6 +20,7 @@ export const TOKENS: SwapToken[] = [
   { address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', symbol: 'ETH', name: 'Binance-Peg Ethereum', decimals: 18, color: '#627eea' },
   { address: WBNB, symbol: 'WBNB', name: 'Wrapped BNB', decimals: 18, color: '#c89b0a' },
   ...STOCK_TOKENS,
+  BUTTERFLY,
 ]
 export const tokenKey = (t: SwapToken) => t.native ? 'BNB' : t.address.toLowerCase()
 export const routerAbi = parseAbi([
@@ -28,7 +32,7 @@ export const routerAbi = parseAbi([
 export const factoryAbi = parseAbi(['function getPair(address tokenA, address tokenB) view returns (address pair)'])
 export const pairAbi = parseAbi(['function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)'])
 export const wrappedAbi = parseAbi(['function deposit() payable', 'function withdraw(uint256 wad)'])
-export const executionAbi = [...routerAbi, ...wrappedAbi] as const
+export const executionAbi = [...routerAbi, ...wrappedAbi, ...v3Abi] as const
 
 export function swapHref(hostname = window.location.hostname) {
   if (/^(www\.)?gupiao\.sh$/.test(hostname)) return 'https://app.gupiao.sh/'
@@ -57,7 +61,7 @@ export function stockSwapHref(token: SwapToken) {
 export function selectedPair(search: string): { input: SwapToken; output: SwapToken } {
   const params = new URLSearchParams(search)
   const find = (value: string | null) => TOKENS.find(t => tokenKey(t).toLowerCase() === value?.toLowerCase())
-  const output = find(params.get('outputCurrency')) ?? TOKENS[1]
+  const output = find(params.get('outputCurrency')) ?? BUTTERFLY
   const requestedInput = find(params.get('inputCurrency')) ?? TOKENS[0]
   const input = tokenKey(output) === tokenKey(requestedInput) ? (output.native ? TOKENS[1] : TOKENS[0]) : requestedInput
   return { input, output }

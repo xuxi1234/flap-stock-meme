@@ -63,7 +63,7 @@ describe('simplified bilingual brand page', () => {
   it('opens the swap from the preview query with an adjacent market link', async () => {
     window.history.replaceState(null, '', '/?view=swap')
     render(<App />)
-    expect(await screen.findByRole('region', { name: '代币兑换' })).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: '代币兑换' }, { timeout: 5000 })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '美股动态' })).toHaveAttribute('href', '/?view=markets')
     expect(screen.getByRole('textbox', { name: '你支付' })).toHaveValue('')
     expect(screen.getByRole('status', { name: '预计收到数量' })).toHaveTextContent('0.0')

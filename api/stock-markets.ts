@@ -1,3 +1,4 @@
+import { projectConfig } from '../src/config/project.js'
 import stocks from '../src/swap/stock-tokens.json' with { type: 'json' }
 import { normalizeMarkets } from '../src/swap/marketData.js'
 
@@ -7,7 +8,7 @@ export default async function handler(req: Request, res: Response) {
   if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); res.status(405).json({ error: 'GET required' }); return }
   try {
     // Fixed reviewed addresses; no caller-supplied URL, wallet address or contract.
-    const addresses = stocks.map(t => t.address)
+    const addresses = [...stocks.map(t => t.address), projectConfig.token.contractAddress!]
     const response = await fetch('https://api.dexscreener.com/tokens/v1/bsc/' + addresses.join(','), { signal: AbortSignal.timeout(8000) })
     if (!response.ok) throw new Error('Market provider unavailable')
     const markets = normalizeMarkets(await response.json(), addresses)

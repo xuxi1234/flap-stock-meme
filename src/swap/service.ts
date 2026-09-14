@@ -1,9 +1,11 @@
+import {quoteV3,V3_ROUTER,v3SwapCall,encodeV3Path} from './v3'
 import { createPublicClient, encodeFunctionData, erc20Abi, fallback, formatUnits, getAddress, http, isAddress, parseUnits, zeroAddress, type Address, type Hash, type PublicClient, type WalletClient } from 'viem'
 import { bsc } from 'viem/chains'
 import { FACTORY, ROUTER, TOKENS, WBNB, executionAbi, factoryAbi, pairAbi, routerAbi, tokenKey, type SwapToken } from './config'
 
 export const QUOTE_TTL = 30_000
-export type SwapQuote = { input: SwapToken; output: SwapToken; amountIn: bigint; amountOut: bigint; path: Address[]; expiresAt: number; block: bigint; impactBps: number; wrap: boolean; alternatives?: { path: Address[]; amountOut: bigint }[]; checkedPaths?: number }
+export type Route = { path: Address[]; amountOut: bigint; protocol?: 'V2' | 'V3'; fees?: number[]; impactBps?: number }
+export type SwapQuote = { protocol?: 'V2' | 'V3'; fees?: number[]; taxAdjusted?: boolean; input: SwapToken; output: SwapToken; amountIn: bigint; amountOut: bigint; path: Address[]; expiresAt: number; block: bigint; impactBps: number; wrap: boolean; alternatives?: Route[]; checkedPaths?: number }
 export type SwapReview = { quote: SwapQuote; account: Address; slippageBps: number; minimumOut: bigint }
 export class SwapError extends Error {}
 export const makeSwapClient = () => createPublicClient({ chain: bsc, transport: fallback([
@@ -60,15 +62,20 @@ export async function getQuote(client: PublicClient, input: SwapToken, output: S
   const wrap = input.address.toLowerCase() === output.address.toLowerCase()
   if (wrap) return { input, output, amountIn, amountOut: amountIn, path: [WBNB], expiresAt: Date.now() + QUOTE_TTL, block, impactBps: 0, wrap }
   const paths = candidatePaths(input, output)
+  const afterSellTax = amountIn * BigInt(10000 - (input.sellTaxBps ?? 0)) / 10000n
+  const afterBuyTax = (value: bigint) => value * BigInt(10000 - (output.buyTaxBps ?? 0)) / 10000n
+  const v3Promise = (input.sellTaxBps || input.buyTaxBps || output.buyTaxBps || output.sellTaxBps) ? Promise.resolve([]) : quoteV3(client, paths, amountIn, block).catch(() => [])
   const results = await Promise.allSettled(paths.map(async path => {
-    const amounts = await client.readContract({ address: ROUTER, abi: routerAbi, functionName: 'getAmountsOut', args: [amountIn, path], blockNumber: block })
-    return { path, amountOut: amounts[amounts.length - 1] }
+    const amounts = await client.readContract({ address: ROUTER, abi: routerAbi, functionName: 'getAmountsOut', args: [afterSellTax, path], blockNumber: block })
+    return { protocol: 'V2' as const, path, amountOut: afterBuyTax(amounts[amounts.length - 1]) }
   }))
-  const routes = results.flatMap(r => r.status === 'fulfilled' && r.value.amountOut > 0n ? [r.value] : []).sort((a, b) => a.amountOut === b.amountOut ? a.path.length - b.path.length : a.amountOut > b.amountOut ? -1 : 1)
-  if (!routes.length) throw new SwapError('暂未找到可用的 PancakeSwap V2 路径，或节点连接失败。请重试；仅有 V3 / Infinity 池的代币暂不支持。')
+  const v3Routes = await v3Promise
+  const routes: Route[] = [...results.flatMap(r => r.status === 'fulfilled' && r.value.amountOut > 0n ? [r.value] : []), ...v3Routes].sort((a, b) => a.amountOut === b.amountOut ? a.path.length - b.path.length : a.amountOut > b.amountOut ? -1 : 1)
+  if (!routes.length) throw new SwapError('暂未找到可用的 PancakeSwap V2 / V3 路径，或节点连接失败。可重试或查看下方其他参考池；Infinity、其他交易所尚未接入站内成交。')
   const best = routes[0]
+  if (best.protocol === 'V3') return { input, output, amountIn, ...best, block, impactBps: best.impactBps!, wrap, alternatives: routes, checkedPaths: paths.length + v3Routes.length, expiresAt: Date.now() + QUOTE_TTL }
   // Compare quoted output with marginal reserve pricing, including the same V2 pool fee.
-  let marginal = amountIn
+  let marginal = afterSellTax
   for (let i = 0; i < best.path.length - 1; i++) {
     const a = best.path[i], b = best.path[i + 1]
     const pair = await client.readContract({ address: FACTORY, abi: factoryAbi, functionName: 'getPair', args: [a, b], blockNumber: block })
@@ -77,12 +84,20 @@ export async function getQuote(client: PublicClient, input: SwapToken, output: S
     if (!reserveIn || !reserveOut) throw new SwapError('池子流动性不足，请更换代币或稍后重试。')
     marginal = marginal * reserveOut * 9975n / (reserveIn * 10000n)
   }
+  marginal = afterBuyTax(marginal)
   const impactBps = marginal > best.amountOut ? Number((marginal - best.amountOut) * 10000n / marginal) : 0
-  return { input, output, amountIn, ...best, block, impactBps, wrap, alternatives: routes, checkedPaths: paths.length, expiresAt: Date.now() + QUOTE_TTL }
+  return { input, output, amountIn, ...best, block, impactBps, wrap, alternatives: routes, checkedPaths: paths.length + v3Routes.length, taxAdjusted: !!(input.sellTaxBps || output.buyTaxBps), expiresAt: Date.now() + QUOTE_TTL }
 }
+export const quoteRouter = (quote: SwapQuote) => quote.protocol === 'V3' ? V3_ROUTER : ROUTER
 export function assertReview(review: SwapReview, now = Date.now()) {
   if (now >= review.quote.expiresAt) throw new SwapError('报价已过期，请关闭确认窗口并刷新报价。')
   if (review.quote.impactBps >= 1000) throw new SwapError('价格影响达到 10%，已暂停此次兑换。请减少数量。')
+  const q = review.quote
+  if (q.protocol === 'V3') {
+    if (q.input.sellTaxBps || q.input.buyTaxBps || q.output.sellTaxBps || q.output.buyTaxBps) throw new SwapError('含税代币需使用 V2 路由。')
+    if (q.path[0]?.toLowerCase() !== q.input.address.toLowerCase() || q.path.at(-1)?.toLowerCase() !== q.output.address.toLowerCase()) throw new SwapError('路径与选择的资产不匹配。')
+    encodeV3Path(q.path, q.fees ?? [])
+  }
   const expected = review.quote.wrap ? review.quote.amountOut : minimumReceived(review.quote.amountOut, review.slippageBps)
   if (review.minimumOut !== expected || expected <= 0n) throw new SwapError('最低到账数量无效，请重新获取报价。')
 }
@@ -95,7 +110,7 @@ async function ensureWallet(wallet: WalletClient, expected: Address) {
 }
 export async function getAllowance(client: PublicClient, quote: SwapQuote, account: Address) {
   if (quote.input.native || quote.wrap) return quote.amountIn
-  return client.readContract({ address: quote.input.address, abi: erc20Abi, functionName: 'allowance', args: [account, ROUTER] })
+  return client.readContract({ address: quote.input.address, abi: erc20Abi, functionName: 'allowance', args: [account, quoteRouter(quote)] })
 }
 export async function approveExact(client: PublicClient, wallet: WalletClient, review: SwapReview): Promise<Hash> {
   assertReview(review)
@@ -106,7 +121,7 @@ export async function approveExact(client: PublicClient, wallet: WalletClient, r
   if (current >= review.quote.amountIn) throw new SwapError('授权已足够，请刷新后确认兑换。')
   // Tokens that require zero-first approvals receive a separate explicit reset action.
   const value = current > 0n ? 0n : review.quote.amountIn
-  const { request } = await client.simulateContract({ address: review.quote.input.address, abi: erc20Abi, functionName: 'approve', args: [ROUTER, value], account })
+  const { request } = await client.simulateContract({ address: review.quote.input.address, abi: erc20Abi, functionName: 'approve', args: [quoteRouter(review.quote), value], account })
   await ensureWallet(wallet, account)
   assertReview(review)
   return wallet.writeContract({ ...request, chain: bsc, account })
@@ -118,6 +133,7 @@ export function swapCall(review: SwapReview) {
   if (q.wrap) return q.input.native
     ? { address: WBNB, abi: executionAbi, functionName: 'deposit' as const, account, value: q.amountIn }
     : { address: WBNB, abi: executionAbi, functionName: 'withdraw' as const, args: [q.amountIn] as const, account }
+  if (q.protocol === 'V3') return { ...v3SwapCall(q, account, review.minimumOut, deadline), abi: executionAbi }
   const common = { address: ROUTER, abi: executionAbi, account }
   if (q.input.native) return { ...common, functionName: 'swapExactETHForTokensSupportingFeeOnTransferTokens' as const, args: [review.minimumOut, q.path, account, deadline] as const, value: q.amountIn }
   if (q.output.native) return { ...common, functionName: 'swapExactTokensForETHSupportingFeeOnTransferTokens' as const, args: [q.amountIn, review.minimumOut, q.path, account, deadline] as const }
