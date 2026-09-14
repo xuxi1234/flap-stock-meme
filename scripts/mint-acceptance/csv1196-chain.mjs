@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import { Stop,requireThat } from './core.mjs';
 import { dueAt } from './csv1196-schedule.mjs';
-import { main } from './csv1196-main.mjs';
+import { main,assertPrior72 } from './csv1196-main.mjs';
 import { openGitHubStore,githubApi } from './csv1196-store.mjs';
 const completed=j=>j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).length;
 export async function runSlot({load,execute,now=()=>Math.floor(Date.now()/1000),sleep=ms=>new Promise(r=>setTimeout(r,ms)),log=console.log}){
@@ -30,7 +30,8 @@ export async function runSlot({load,execute,now=()=>Math.floor(Date.now()/1000),
 export async function mainChain(env=process.env){
  requireThat(env.GITHUB_ACTIONS==='true'&&env.GITHUB_EVENT_NAME==='workflow_dispatch'&&env.GITHUB_REPOSITORY==='xuxi1234/flap-stock-meme'&&env.GITHUB_REF==='refs/heads/main'&&env.CSV1196_CONFIRM==='1196x1:6batches','串行续跑只允许用户在本仓库main手动确认后启动。');
  const api=githubApi(env.GITHUB_TOKEN);
-
+ // Each matrix job is a fresh process: derive the nonce before loading its checkpoint.
+ await assertPrior72(api);
  await runSlot({load:async()=>(await openGitHubStore({api,readOnly:true})).journal,execute:()=>main({...env,CSV1196_OPERATION:'start',CSV1196_PHASE:'execute'})});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)mainChain().catch(e=>{

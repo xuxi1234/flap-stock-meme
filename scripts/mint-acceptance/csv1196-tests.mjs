@@ -17,3 +17,55 @@ test('failed checkpoint prevents broadcasting',async()=>{let broadcast=false;awa
 test('budget is not reset and seventh round is forbidden',()=>{assert.throws(()=>reserve(100000000000000000n,100000n,50000000n));assert.throws(()=>callFor({kind:'send',batch:6}))});
 test('pending prior task is rejected',()=>assert.throws(()=>setPrior({version:2,entries:[{settled:false}]})));
 test('compact checkpoint preserves final batch calldata',()=>{setPrior({version:2,entries:[{settled:true,success:true,transaction:{nonce:87}}]});const j=fresh();for(let i=0;i<6;i++){const c=callFor({kind:'send',batch:i});j.entries.push({kind:'send',batch:i,settled:true,success:true,hash:'0x'+String(i+1).padStart(64,'0'),transaction:{...c,value:'0',nonce:88+i,chainId:56,type:'legacy',gas:'100000',gasPrice:'50000000'}})}validate(j);assert.deepEqual(hydrate(compact(j)),j)});
+
+import {mainChain} from './csv1196-chain.mjs';
+import {blobSha} from './csv1196-store.mjs';
+
+const dispatchEnv={
+ GITHUB_ACTIONS:'true',GITHUB_EVENT_NAME:'workflow_dispatch',
+ GITHUB_REPOSITORY:'xuxi1234/flap-stock-meme',GITHUB_REF:'refs/heads/main',
+ CSV1196_CONFIRM:'1196x1:6batches',GITHUB_TOKEN:'offline-test-token'
+};
+function completedCheckpoint(firstNonce){
+ const j=fresh();
+ for(let batch=0;batch<6;batch++){
+  j.entries.push({kind:'send',batch,settled:true,success:true,
+   hash:'0x'+String(batch+1).padStart(64,'0'),
+   transaction:{...callFor({kind:'send',batch}),value:'0',nonce:firstNonce+batch,
+    chainId:56,type:'legacy',gas:'100000',gasPrice:'50000000'}});
+ }
+ return compact(j);
+}
+function mockCheckpointReads(t,prior,checkpoint){
+ t.mock.method(globalThis,'fetch',async(url,init)=>{
+  assert.equal(init.method,'GET','recovery must not write or broadcast for a completed checkpoint');
+  const parsed=new URL(url);
+  assert.equal(parsed.origin,'https://api.github.com');
+  assert.equal(parsed.pathname,'/repos/xuxi1234/flap-stock-meme/contents/journal.json');
+  const ref=parsed.searchParams.get('ref');
+  assert.ok(['automation/airdrop-72x200-ledger','automation/airdrop-csv1196-ledger'].includes(ref));
+  const value=ref==='automation/airdrop-72x200-ledger'?prior:checkpoint;
+  const content=JSON.stringify(value)+'\n';
+  return new Response(JSON.stringify({encoding:'base64',size:Buffer.byteLength(content),
+   content:Buffer.from(content).toString('base64'),sha:blobSha(content)}),{status:200});
+ });
+}
+test('fresh runner loads the prior nonce before validating an existing campaign',async t=>{
+ // At the real interruption the old task ended at nonce 89; this task starts at 90.
+ setPrior({version:2,entries:[{settled:true,success:true,transaction:{nonce:87}}]});
+ const checkpoint=completedCheckpoint(90),before=structuredClone(checkpoint);
+ mockCheckpointReads(t,{version:2,entries:[{settled:true,success:true,transaction:{nonce:89}}]},checkpoint);
+ await assert.doesNotReject(mainChain({...dispatchEnv}));
+ assert.deepEqual(checkpoint,before);
+});
+test('fresh runner refuses an unsettled prior transaction before accepting a checkpoint',async t=>{
+ setPrior({version:2,entries:[{settled:true,success:true,transaction:{nonce:87}}]});
+ mockCheckpointReads(t,{version:2,entries:[{settled:false,transaction:{nonce:89}}]},completedCheckpoint(88));
+ await assert.rejects(mainChain({...dispatchEnv}),/旧任务仍有未确认或失败交易/);
+});
+test('loading prior history still rejects a tampered campaign nonce',async t=>{
+ setPrior({version:2,entries:[{settled:true,success:true,transaction:{nonce:87}}]});
+ const checkpoint=completedCheckpoint(90);checkpoint.entries[0].transaction.nonce=91;
+ mockCheckpointReads(t,{version:2,entries:[{settled:true,success:true,transaction:{nonce:89}}]},checkpoint);
+ await assert.rejects(mainChain({...dispatchEnv}),/交易参数或 nonce/);
+});
