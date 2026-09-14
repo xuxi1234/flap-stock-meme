@@ -1,3 +1,4 @@
+import {prepareResume1196} from './resume72-csv1196.mjs';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createPublicClient,http } from 'viem';
@@ -38,6 +39,12 @@ export async function main(env=process.env){
   const csv=JSON.parse(Buffer.from(r.content,'base64').toString('utf8'));assertCsvComplete(csv);
   Object.assign(j,prepareResume(j,csv));
  }else requireThat(j.version===1,'此任务需要使用“原72轮从28轮续跑”入口，保留原进度。');
+ if(env.NEW72_RESUME_CSV1196==='true'){
+  requireThat(env.NEW72_RESUME_CSV==='true'&&env.GITHUB_TOKEN,'续跑需要两个表格任务的持久检查点。');
+  const r=await githubApi(env.GITHUB_TOKEN)('GET','/contents/journal.json?ref=automation%2Fairdrop-csv1196-ledger');
+  requireThat(r.encoding==='base64'&&r.size<1000000,'1196地址任务检查点读取异常。');
+  Object.assign(j,prepareResume1196(j,JSON.parse(Buffer.from(r.content,'base64').toString('utf8'))));
+ }else requireThat(j.version!==3,'请使用保留39轮并核对1196地址任务的续跑入口。');
  const before=recoveryFingerprint(j);
  if(env.GITHUB_TOKEN)await assertOldStopped(githubApi(env.GITHUB_TOKEN));
  if(operation==='pause'){

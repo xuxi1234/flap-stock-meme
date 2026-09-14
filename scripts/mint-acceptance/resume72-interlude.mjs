@@ -16,8 +16,8 @@ export function assertCsvComplete(j){
 }
 export function prepareResume(j,csv){
  assertCsvComplete(csv);
- requireThat(j.version===2||(j.version===1&&j.entries.length===29),'只能迁移已核实27轮的原任务。');
- const updated={...j,version:2,resumeAfterCsv600:CSV_CHECKPOINT};assertResumePrefix(updated);
+ requireThat([2,3].includes(j.version)||(j.version===1&&j.entries.length===29),'只能迁移已核实27轮的原任务。');
+ const updated={...j,version:j.version===3?3:2,resumeAfterCsv600:CSV_CHECKPOINT};assertResumePrefix(updated);
  return updated;
 }
 

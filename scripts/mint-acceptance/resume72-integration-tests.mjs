@@ -1,3 +1,5 @@
+import {PRIOR39,CSV1196,CSV1196_CHECKPOINT} from './resume72-csv1196.mjs';
+import {plan as plan1196,batchId as batch1196,callFor as call1196} from './csv1196-core.mjs';
 import {plan as csvPlan,batchId as csvBatch,callFor as csvCall} from './csv600-core.mjs';
 import {plan as p72,batchId as b72,callFor as c72} from './new72-core.mjs';
 const j72=JSON.parse(fs.readFileSync(new URL('./data/csv600-prior72.json',import.meta.url),'utf8'));
@@ -25,8 +27,9 @@ function previousLogs(batch){
  const logs=oldPlan()[batch].map(recipient=>({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,7000000000000000000n,7000000000000000000n])}));
  logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[200n,1400000000000000000000n])});return logs;
 }
-function networkFixture(){
- const receipts=new Map(),txs=new Map(),signed=new Map(),completed=new Set();let now=1789340200;const times=new Map();let nonce=77,allowance=0n,balance=7568000000000000000000n,drop=true,dropAt=1,broadcasts=0,durable;
+function networkFixture({afterCsv1196=false}={}){
+ const starting=afterCsv1196?PRIOR39:j72,doneBefore=afterCsv1196?39:27;
+ const receipts=new Map(),txs=new Map(),signed=new Map(),completed=new Set();let now=afterCsv1196?1789371680:1789340200;const times=new Map();let nonce=afterCsv1196?98:77,allowance=0n,balance=7568000000000000000000n,drop=true,dropAt=1,broadcasts=0,durable;
  const blockHash='0x'+'1'.repeat(64);
  const receipt=(hash,from,gasUsed,gasPrice,logs=[])=>({transactionHash:hash,from,blockHash,blockNumber:'0x1',status:'0x1',gasUsed:toHex(gasUsed),effectiveGasPrice:toHex(gasPrice),logs,contractAddress:null});
  for(const p of history){
@@ -36,7 +39,7 @@ function networkFixture(){
   receipts.set(p.hash,{...receipt(p.hash,p.from,BigInt(p.feeWei),1n,prior?.kind==='send'?previousLogs(prior.batch):old?.kind==='send'?cancelledLogs(old.batch):[]),status:p.success?'0x1':'0x0'});
  }
  const oldCompleted=new Set();
- for(const e of j72.entries){
+ for(const e of starting.entries){
   const call=c72(e),t=e.transaction,args={sender:ACCOUNT,token:TOKEN,batchId:e.kind==='send'?b72(e.batch):'0x'+'0'.repeat(64)};
   const logs=e.kind==='send'?p72()[e.batch].map(recipient=>({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,100000000000000000n,100000000000000000n])})):[];
   if(e.kind==='send'){logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[200n,20000000000000000000n])});oldCompleted.add(args.batchId);}
@@ -51,7 +54,14 @@ function networkFixture(){
   txs.set(e.hash,{hash:e.hash,from:ACCOUNT,chainId:'0x38',blockHash,nonce:toHex(t.nonce),to:call.to,input:call.data,value:'0x0',gas:toHex(BigInt(t.gas)),gasPrice:toHex(BigInt(t.gasPrice))});
   times.set(t.nonce+1000,e.confirmedAt);receipts.set(e.hash,{...receipt(e.hash,ACCOUNT,BigInt(e.feeWei)/BigInt(t.gasPrice),BigInt(t.gasPrice),logs),blockNumber:toHex(t.nonce+1000)});
  }
- const store=(readOnly=false)=>({journal:durable?hydrate(JSON.parse(durable)):{...hydrate(structuredClone(j72)),version:2,resumeAfterCsv600:'48b9be9f832ae2d1de9eee0c90c4151a2e580e9f',active:true,authorization:'72x200x0.1:budget0.1:lifetime'},save:async j=>{validate(j);if(!readOnly)durable=JSON.stringify(compact(j));}});
+ if(afterCsv1196)for(const e of CSV1196.entries){
+  const call=call1196(e),t=e.transaction,args={sender:ACCOUNT,token:TOKEN,batchId:e.kind==='send'?batch1196(e.batch):'0x'+'0'.repeat(64)};
+  const logs=e.kind==='send'?plan1196()[e.batch].map(recipient=>({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,1000000000000000000n,1000000000000000000n])})):[];
+  if(e.kind==='send'){const count=BigInt(plan1196()[e.batch].length);logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[count,count*1000000000000000000n])});oldCompleted.add(args.batchId);}
+  txs.set(e.hash,{hash:e.hash,from:ACCOUNT,chainId:'0x38',blockHash,nonce:toHex(t.nonce),to:call.to,input:call.data,value:'0x0',gas:toHex(BigInt(t.gas)),gasPrice:toHex(BigInt(t.gasPrice))});
+  times.set(t.nonce+1000,e.confirmedAt);receipts.set(e.hash,{...receipt(e.hash,ACCOUNT,BigInt(e.feeWei)/BigInt(t.gasPrice),BigInt(t.gasPrice),logs),blockNumber:toHex(t.nonce+1000)});
+ }
+ const store=(readOnly=false)=>({journal:durable?hydrate(JSON.parse(durable)):{...hydrate(structuredClone(starting)),version:afterCsv1196?3:2,...(afterCsv1196?{resumeAfterCsv1196:CSV1196_CHECKPOINT}:{}),resumeAfterCsv600:'48b9be9f832ae2d1de9eee0c90c4151a2e580e9f',active:true,authorization:'72x200x0.1:budget0.1:lifetime'},save:async j=>{validate(j);if(!readOnly)durable=JSON.stringify(compact(j));}});
  const client={
   getChainId:async()=>56,getCode:async()=>artifact.runtime,getBlockNumber:async()=>100000n,getBlock:async(args)=>({hash:args?blockHash:blockHash,number:args?.blockNumber||100n,timestamp:BigInt(args?times.get(Number(args.blockNumber))||1000:now)}),
   getBalance:async()=>70000000000000000n,getGasPrice:async()=>50000000n,estimateGas:async()=>100000n,call:async()=>({data:'0x'}),
@@ -64,7 +74,7 @@ function networkFixture(){
    const decoded=decodeFunctionData({abi:t.to.toLowerCase()===TOKEN.toLowerCase()?erc20:artifact.abi,data:t.data});const logs=[];
    if(decoded.functionName==='approve')allowance=decoded.args[1];
    else{
-    const [token,id,recipients,amounts]=decoded.args;assert.equal(token.toLowerCase(),TOKEN.toLowerCase());assert.equal(recipients.length,200);assert.ok(!completed.has(id));assert.equal(id,b72(27+completed.size));assert.deepEqual(recipients.map(x=>x.toLowerCase()),p72()[27+completed.size]);
+    const [token,id,recipients,amounts]=decoded.args;assert.equal(token.toLowerCase(),TOKEN.toLowerCase());assert.equal(recipients.length,200);assert.ok(!completed.has(id));assert.equal(id,b72(doneBefore+completed.size));assert.deepEqual(recipients.map(x=>x.toLowerCase()),p72()[doneBefore+completed.size]);
     recipients.forEach((recipient,i)=>{assert.equal(amounts[i],100000000000000000n);logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,amounts[i],amounts[i]])})});
     logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[200n,20000000000000000000n])});
     balance-=20000000000000000000n;allowance-=20000000000000000000n;completed.add(id);
@@ -105,4 +115,26 @@ test('fee spike stops before a signature or broadcast and retains27 rounds',asyn
  t.mock.method(console,'log',()=>{});const f=networkFixture();f.client.getGasPrice=async()=>100000000000n;
  await assert.rejects(()=>run({clients:[f.client,f.client],store:f.store(),execute:true,ownedReturnConfirmed:true,accountProvider:async()=>f.account}),/Gas/);
  assert.equal(f.stats().broadcasts,0);assert.equal(f.store().journal.entries.length,29);
+});
+
+test('resume after CSV1196 charges all eight fees, keeps39 rounds and recovers round40 without duplicate sends',async t=>{
+ t.mock.method(console,'log',()=>{});
+ const f=networkFixture({afterCsv1196:true}),args={clients:[f.client,f.client],execute:true,ownedReturnConfirmed:true,accountProvider:async()=>f.account};
+ const readonly=f.store(true);await run({...args,store:readonly,execute:false});
+ assert.equal(readonly.journal.spentWei,'82930062009141262');assert.equal(f.stats().broadcasts,0);
+ await assert.rejects(()=>run({...args,store:f.store()}),/response was lost/);
+ assert.equal(f.stats().completed,1);assert.equal(f.stats().nonce,100);assert.equal(f.stats().broadcasts,2);
+ let j=await run({...args,store:f.store()});assert.equal(f.stats().broadcasts,2);
+ assert.deepEqual(compact(j).entries.slice(0,42),PRIOR39.entries);
+ assert.equal(j.entries.filter(e=>e.kind==='send').length,40);
+ assert.equal(BigInt(j.spentWei),82930062009141262n+10000000000000n);
+ f.setNow(1789372879);await run({...args,store:f.store()});assert.equal(f.stats().completed,1);
+ f.setNow(1789372880);j=await run({...args,store:f.store()});assert.equal(f.stats().completed,2);
+ assert.equal(j.entries.filter(e=>e.kind==='send').length,41);assert.equal(f.stats().allowance,620000000000000000000n);
+});
+test('missing CSV1196 receipt prevents resuming before a signature',async t=>{
+ t.mock.method(console,'log',()=>{});const f=networkFixture({afterCsv1196:true}),request=f.client.request;
+ f.client.request=async q=>q.method==='eth_getTransactionReceipt'&&q.params[0]===CSV1196.entries[0].hash?null:request(q);
+ await assert.rejects(()=>run({clients:[f.client,f.client],store:f.store(),execute:true,ownedReturnConfirmed:true,accountProvider:async()=>assert.fail('must not sign')}),/1196地址空投回执/);
+ assert.equal(f.stats().broadcasts,0);
 });

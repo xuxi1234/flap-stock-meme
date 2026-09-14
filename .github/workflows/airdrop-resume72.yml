@@ -1,15 +1,15 @@
-name: 蝴蝶空投续跑｜保留27轮·从28轮继续
+name: 蝴蝶空投续跑｜保留39轮·从40轮继续
 on:
   workflow_dispatch:
     inputs:
       operation:
-        description: '继续原72轮的剩余45轮；保留已完成27轮，间隔至少20分钟'
+        description: '继续原72轮的剩余33轮；保留已完成39轮，间隔至少20分钟'
         type: choice
         default: 只读检查
         options: [只读检查, 继续原72轮]
         required: true
       confirm:
-        description: '确认保留27轮；从28轮继续，每轮200地址×0.1枚、间隔20分钟；含表格空投及历史Gas累计上限0.1 BNB'
+        description: '确认保留39轮；从40轮继续，每轮200地址×0.1枚、间隔20分钟；含表格空投及历史Gas累计上限0.1 BNB'
         type: boolean
         default: false
         required: true
@@ -40,6 +40,7 @@ jobs:
           NEW72_CONFIRM: ${{ inputs.confirm && '72x200x0.1' || '' }}
           NEW72_PHASE: check
           NEW72_RESUME_CSV: 'true'
+          NEW72_RESUME_CSV1196: 'true'
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           AIRDROP_REPORT_DIR: ${{ runner.temp }}/resume72-check
         run: node scripts/mint-acceptance/new72-main.mjs
@@ -51,13 +52,13 @@ jobs:
           retention-days: 90
           if-no-files-found: ignore
   execute:
-    name: 续跑步骤 ${{ matrix.slot }}/45
+    name: 续跑步骤 ${{ matrix.slot }}/33
     needs: check
     strategy:
       fail-fast: true
       max-parallel: 1
       matrix:
-        slot: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
+        slot: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
     if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main' && inputs.operation == '继续原72轮' && inputs.confirm == true
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -79,6 +80,7 @@ jobs:
           NEW72_CONFIRM: ${{ inputs.confirm && '72x200x0.1' || '' }}
           NEW72_PHASE: execute
           NEW72_RESUME_CSV: 'true'
+          NEW72_RESUME_CSV1196: 'true'
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           AIRDROP_REPORT_DIR: ${{ runner.temp }}/resume72-results
