@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AssetExplorer } from './AssetExplorer'
-import { MAG7_SYMBOLS, STOCK_TOKENS, TOKENS, selectedPair, sharePairUrl, tokenKey } from './config'
+import { BUTTERFLY, MAG7_SYMBOLS, STOCK_TOKENS, TOKENS, selectedPair, sharePairUrl, tokenKey } from './config'
 import { normalizeMarkets } from './marketData'
 import { useFavorites } from './useDiscovery'
 import handler from '../../api/stock-markets'
@@ -26,7 +26,7 @@ describe('reference market data boundaries', () => {
     const fetch = vi.fn().mockResolvedValue({ ok: false }); vi.stubGlobal('fetch', fetch)
     const res = { setHeader: vi.fn(), status: vi.fn(), json: vi.fn() }; res.status.mockReturnValue(res)
     await handler({ method: 'GET' }, res)
-    expect(fetch.mock.calls[0][0]).toBe('https://api.dexscreener.com/tokens/v1/bsc/' + STOCK_TOKENS.map(t => t.address).join(','))
+    expect(fetch.mock.calls[0][0]).toBe('https://api.dexscreener.com/tokens/v1/bsc/' + [...STOCK_TOKENS.map(t => t.address), BUTTERFLY.address].join(','))
     expect(res.status).toHaveBeenCalledWith(503)
     expect(res.json.mock.calls[0][0]).not.toHaveProperty('markets')
     await handler({ method: 'POST' }, res)
@@ -56,7 +56,7 @@ describe('asset discovery', () => {
     const parsed = new URL(url)
     expect([...parsed.searchParams.keys()]).toEqual(['view', 'inputCurrency', 'outputCurrency'])
     expect(selectedPair(parsed.search)).toEqual({ input: TOKENS[1], output: token })
-    expect(selectedPair('?inputCurrency=evil&outputCurrency=0x0000000000000000000000000000000000000001')).toEqual({ input: TOKENS[0], output: TOKENS[1] })
+    expect(selectedPair('?inputCurrency=evil&outputCurrency=0x0000000000000000000000000000000000000001')).toEqual({ input: TOKENS[0], output: BUTTERFLY })
     const duplicate = selectedPair('?inputCurrency=BNB&outputCurrency=BNB')
     expect(tokenKey(duplicate.input)).not.toBe(tokenKey(duplicate.output))
     expect(sharePairUrl('https://example.com', TOKENS[0], { ...token, address: '0x0000000000000000000000000000000000000001', custom: true })).toBeNull()

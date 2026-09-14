@@ -1,6 +1,7 @@
+import { projectConfig } from '../config/project'
 import type { Language } from '../content/siteContent'
 
-export const flapTokenAddress: string | null = null
+export const flapTokenAddress = projectConfig.token.contractAddress
 
 export function TokenMechanism({ language }: { language: Language }) {
   const zh = language === 'zh'
@@ -17,7 +18,7 @@ export function TokenMechanism({ language }: { language: Language }) {
   return <section className="statement token-mechanism" id="mechanism" aria-label={zh ? '代币机制' : 'Token mechanism'}>
     <p className="eyebrow">TOKENOMICS</p>
     <h2>{zh ? '一笔税款，两层分配。' : 'ONE TAX FLOW. TWO LAYERS.'}</h2>
-    <p className="mechanism-status">{zh ? '总交易税率：待公布' : 'TOTAL TRADING TAX RATE: NOT ANNOUNCED'}</p>
+    <p className="mechanism-status">{zh ? '买入税率：3% · 卖出税率：3%' : 'BUY TAX: 3% · SELL TAX: 3%'}</p>
     <p className="mechanism-intro">{zh ? '下面的百分比表示税款如何分配，并非每笔交易的税率。' : 'The percentages below describe how collected tax is allocated, not the tax rate on each trade.'}</p>
     <h3 className="allocation-heading">{zh ? '第一层 · 交易税款如何分配' : 'LAYER 1 · ALLOCATION OF COLLECTED TAX'}</h3>
     <div className="allocation-grid primary-allocation">{first.map(([value, title, body], i) => <article className={i === 0 ? 'allocation-card treasury-source' : 'allocation-card'} key={title}>
@@ -35,6 +36,6 @@ export function TokenMechanism({ language }: { language: Language }) {
     <div className="contract-status-row"><span>{zh ? '蝴蝶股票代币合约' : 'FLAP STOCK TOKEN CONTRACT'}</span>
       {flapTokenAddress ? <a href={`https://bscscan.com/address/${flapTokenAddress}`} target="_blank" rel="noreferrer">{flapTokenAddress}</a> : <strong>{zh ? '待公布' : 'NOT ANNOUNCED'}</strong>}
     </div>
-    <p className="mechanism-footnote">{zh ? '以上为机制方案。具体资产、持有人权益及链上实现，待合约和完整规则公布后核对。' : 'This is a proposed mechanism. Asset details, holder rights and on-chain implementation await the contract and complete rules.'}</p>
+    <p className="mechanism-footnote">{zh ? '以上为机制方案。具体资产、持有人权益及链上实现，请结合已公布合约及完整规则核对。' : 'This is a proposed mechanism. Asset details, holder rights and on-chain implementation should be checked against the published contract and complete rules.'}</p>
   </section>
 }

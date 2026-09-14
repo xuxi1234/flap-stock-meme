@@ -392,3 +392,5 @@ h1 em { color: var(--ink); font-size: .25em; font-style: normal; letter-spacing:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+.hero-token-contract a { overflow-wrap: anywhere; font-size: 14px; }
