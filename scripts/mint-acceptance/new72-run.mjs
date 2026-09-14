@@ -1,3 +1,4 @@
+import {csv1196InterludeRows,assertCsv1196Rows} from './resume72-csv1196.mjs';
 import { readWithRetry } from './rpc-read-retry.mjs';
 import { csvInterludeRows,assertCsvRows } from './resume72-interlude.mjs';
 import fs from 'node:fs';
@@ -32,7 +33,7 @@ export function verifyDelivery(e,logs){
 }
 const read=(client,functionName,args=[])=>client.readContract({address:TOKEN,abi:erc20,functionName,args});
 export async function gasPriceFor(clients,j){
- if(j.version!==2)return (await clients[0].getGasPrice())*120n/100n;
+ if(j.version===1)return (await clients[0].getGasPrice())*120n/100n;
  const prices=await Promise.all(clients.map(c=>c.getGasPrice()));
  requireThat(prices.length===2&&prices.every(p=>p>0n),'两个节点未返回有效Gas单价。');
  // Use the higher live recommendation without the old 20% price markup.
@@ -68,7 +69,8 @@ export async function baseline(clients){
  requireThat(rawTotal(rows)===RAW_BASELINE,'历史全部转出及Gas与核实基线不一致。');return rows;
 }
 export async function reconcile(clients,j,base,save,ownedReturnConfirmed=false){
- if(j.version===2)assertCsvRows(base);
+ if(j.version>=2)assertCsvRows(base);
+ if(j.version===3)assertCsv1196Rows(base);
  validate(j);const rows=[...base];
  const observed=await mapReads(j.entries,e=>e.hash?verifiedRow(clients,e.hash):Promise.resolve(null));
  for(const [index,e] of j.entries.entries()){
@@ -129,7 +131,8 @@ export async function run({clients,store,execute=false,ownedReturnConfirmed=fals
  if(execute)requireThat(ownedReturnConfirmed===true,'执行前需要明确确认自有钱包调拨记账口径。');
  delete j.spentWei;delete j.rawSpentWei;delete j.excludedPrincipalWei;delete j.campaignGasWei;
  await inspect(clients);console.log('双节点合约、余额及授权核对通过，正在核对49笔历史预算交易。');const base=await baseline(clients);
- if(j.version===2){base.push(...await csvInterludeRows(clients));console.log('表格600地址的5笔交易及全部Gas核对通过，纳入原任务累计预算。');}
+ if(j.version>=2){base.push(...await csvInterludeRows(clients));console.log('表格600地址的5笔交易及全部Gas核对通过，纳入原任务累计预算。');}
+ if(j.version===3){base.push(...await csv1196InterludeRows(clients));console.log('1196地址的8笔交易及全部Gas核对通过，纳入累计预算。');}
  j.rawSpentWei=rawTotal(base).toString();
  console.log('历史预算核对通过，正在恢复本次任务的已确认交易。');
  let ledger=await reconcile(clients,j,base,save,ownedReturnConfirmed);

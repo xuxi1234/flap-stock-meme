@@ -3,6 +3,7 @@ import { plan as previousTimedPlan } from './timed-airdrop-core.mjs';
 import { readFileSync } from 'node:fs';
 import { keccak256, toHex, encodeFunctionData, encodeAbiParameters, parseAbi } from 'viem';
 import { requireThat, equal } from './core.mjs';
+import {assertCsv1196Prefix} from './resume72-csv1196.mjs';
 import { assertResumePrefix } from './resume72-interlude.mjs';
 export { requireThat, equal } from './core.mjs';
 export const ACCOUNT='0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA';
@@ -45,15 +46,16 @@ export function reserve(spent,gas,price){
  requireThat(spent+fee<=BUDGET,'累计支出（含历史支出及 Gas）超过 0.1 BNB，停止。');return fee;
 }
 export function validate(j){
- requireThat([1,2].includes(j.version)&&j.id===ID&&equal(j.account,ACCOUNT)&&equal(j.token,TOKEN)&&equal(j.distributor,DISTRIBUTOR),'任务、钱包或固定合约不匹配。');
- if(j.version===2)assertResumePrefix(j);
+ requireThat([1,2,3].includes(j.version)&&j.id===ID&&equal(j.account,ACCOUNT)&&equal(j.token,TOKEN)&&equal(j.distributor,DISTRIBUTOR),'任务、钱包或固定合约不匹配。');
+ if(j.version>=2)assertResumePrefix(j);
+ if(j.version===3)assertCsv1196Prefix(j);
  requireThat(typeof j.active==='boolean','定时任务开关无效。');
   requireThat(Array.isArray(j.entries)&&j.entries.length<=148,'执行记录结构异常。');
  let completed=0;
  j.entries.forEach((e,i)=>{
   const c=callFor(e),t=e.transaction;
   // Nonces72..76 belong to the fixed, separately reconciled CSV600 task.
-  const nonce=BASE_NONCE+i+(j.version===2&&i>=29?5:0);
+  const nonce=BASE_NONCE+i+(j.version>=2&&i>=29?5:0)+(j.version===3&&i>=42?8:0);
   requireThat(t&&t.nonce===nonce&&t.chainId===56&&t.type==='legacy'&&equal(t.to,c.to)&&equal(t.data,c.data)&&BigInt(t.value)===0n,'交易参数或 nonce 与固定计划不符。');
   reserve(0n,BigInt(t.gas),BigInt(t.gasPrice));
   requireThat(!e.hash||/^0x[0-9a-f]{64}$/.test(e.hash),'交易哈希异常。');
