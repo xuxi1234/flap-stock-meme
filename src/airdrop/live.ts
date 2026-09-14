@@ -56,6 +56,7 @@ export function newTask(wallet:Address,token:Address,decimals:number,rows:{addre
  const normalized=canonicalRows(rows,decimals)
  if(normalized.some(r=>r.address.toLowerCase()===wallet.toLowerCase()))throw Error('接收名单包含发送钱包自身，请先核对并移除该地址。')
  const task:Task={version:1,toolVersion:2,chainId:56,id:taskId(wallet,token,normalized),wallet,token,decimals,rows:normalized,mode,budget:units(budget,18).toString(),records:[]}
+ if(mode==='community200')task.distributor='0x369890cb7a233be14d33fd4265b26afadce00bc0'
  const previous=loadTask(wallet)
  if(previous?.intent)throw Error('上一任务仍有待确认交易，请先恢复处理。')
  if(previous?.id===task.id)return previous

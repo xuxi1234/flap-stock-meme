@@ -1,5 +1,6 @@
 import { Component, lazy, Suspense, useEffect, type ReactNode } from 'react'
 
+const CommunityAirdrop = lazy(() => import('./airdrop/CommunityAirdrop'))
 const HomePage = lazy(() => import('./HomePage'))
 const MarketDashboard = lazy(() => import('./components/MarketDashboard').then(module => ({ default: module.MarketDashboard })))
 const SwapPage = lazy(() => import('./swap/SwapPage').then(module => ({ default: module.SwapPage })))
@@ -23,8 +24,9 @@ export default function App() {
     if (url.href !== window.location.href) window.history.replaceState(null, '', url.pathname + url.search + url.hash)
   }, [])
   const params = new URLSearchParams(window.location.search)
+  const community = params.get('view') === 'community-airdrop'
   const airdrop = params.get('view') === 'airdrop' || window.location.pathname === '/airdrop'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
   const swap = params.get('view') === 'swap' || ['app.gupiao.sh', 'app.hudiegupiao.com'].includes(window.location.hostname)
-  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{airdrop ? <AirdropPage /> : swap ? <SwapPage /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
+  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{community ? <CommunityAirdrop /> : airdrop ? <AirdropPage /> : swap ? <SwapPage /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
 }
