@@ -32,7 +32,13 @@ export function SwapPage() {
   const [slippage, setSlippage] = useState(50)
   const [customSlippage, setCustomSlippage] = useState('')
   const [settings, setSettings] = useState(false)
-  const [quote, setQuote] = useState<SwapQuote | null>(null)
+  const [receivedQuote, setQuote] = useState<SwapQuote | null>(null)
+  // Never render or confirm an old asset/amount while the next effect is pending.
+  const quote = useMemo(() => {
+    if (!receivedQuote || tokenKey(receivedQuote.input) !== tokenKey(input) || tokenKey(receivedQuote.output) !== tokenKey(output)) return null
+    try { return receivedQuote.amountIn === parseAmount(amount, input.decimals) ? receivedQuote : null } catch { return null }
+  }, [receivedQuote, input, output, amount])
+  const quoteRequestPending = useRef(false)
   const [quoteError, setQuoteError] = useState('')
   const [quoteBusy, setQuoteBusy] = useState(false)
   const [refresh, setRefresh] = useState(0)
@@ -75,20 +81,21 @@ export function SwapPage() {
   useEffect(() => { document.body.classList.add('swap-route'); document.title = '蝴蝶swap · BNB Chain 代币兑换'; return () => document.body.classList.remove('swap-route') }, [])
   useEffect(() => discoverWalletProviders(setProviders), [])
   useEffect(() => { const timer = window.setInterval(() => setClock(Date.now()), 1000); return () => clearInterval(timer) }, [])
-  useEffect(() => { const timer = window.setInterval(() => { if (!review && !document.hidden) setRefresh(x => x + 1) }, 20_000); return () => clearInterval(timer) }, [review])
+  useEffect(() => { const timer = window.setInterval(() => { if (!review && !document.hidden && !quoteRequestPending.current) setRefresh(x => x + 1) }, 20_000); return () => clearInterval(timer) }, [review])
   useEffect(() => { try { localStorage.setItem(TX_KEY, JSON.stringify(transactions.slice(0, 12))) } catch { /* current-session history still works */ } }, [transactions])
 
   useEffect(() => {
     let cancelled = false
+    quoteRequestPending.current = false
     setQuote(null); setQuoteError(''); setQuoteBusy(false)
     if (!amount.trim()) return
     let parsed: bigint
     try { parsed = parseAmount(amount, input.decimals) } catch (error) { setQuoteError(friendlySwapError(error)); return }
-    setQuoteBusy(true)
+    setQuoteBusy(true); quoteRequestPending.current = true
     const timer = window.setTimeout(() => {
-      void getQuote(client, input, output, parsed).then(value => { if (!cancelled) { setQuote(value); setClock(Date.now()) } }).catch(error => { if (!cancelled) setQuoteError(friendlySwapError(error)) }).finally(() => { if (!cancelled) setQuoteBusy(false) })
+      void getQuote(client, input, output, parsed).then(value => { if (!cancelled) { setQuote(value); setClock(Date.now()) } }).catch(error => { if (!cancelled) setQuoteError(friendlySwapError(error)) }).finally(() => { if (!cancelled) { setQuoteBusy(false); quoteRequestPending.current = false } })
     }, 400)
-    return () => { cancelled = true; clearTimeout(timer) }
+    return () => { cancelled = true; quoteRequestPending.current = false; clearTimeout(timer) }
   }, [client, input, output, amount, refresh])
   useEffect(() => {
     let cancelled = false
