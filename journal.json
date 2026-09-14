@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "id": "0x63f0ba3c74396b8ddddd392cc19a2bde6d23ae78498b6d354f82c166900ed80a",
   "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
   "token": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
@@ -531,9 +531,10 @@
   "active": true,
   "authorization": "72x200x0.1:budget0.1:lifetime",
   "startedBy": "xuxi1234",
-  "startedRun": "34751514715",
+  "startedRun": "34800344166",
   "rawSpentWei": "144928057622635913",
   "spentWei": "70942515369141262",
   "excludedPrincipalWei": "73985542253494651",
-  "campaignGasWei": "17060292900000000"
+  "campaignGasWei": "17060292900000000",
+  "resumeAfterCsv600": "48b9be9f832ae2d1de9eee0c90c4151a2e580e9f"
 }
