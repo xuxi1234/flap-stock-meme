@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "id": "0xe1085d623cae69e944ac5d2dd0631874695635c29747288e261b0e9370af0289",
+  "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+  "token": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+  "distributor": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+  "entries": [
+    {
+      "kind": "reset",
+      "amount": "0",
+      "transaction": {
+        "to": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+        "value": "0",
+        "nonce": 72,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "51879",
+        "gasPrice": "60000000"
+      },
+      "settled": true,
+      "hash": "0xd847f3c9e32aeeabcd7de2fdb2bea05f38a477c116ded559e8365216a0a60c96",
+      "success": true,
+      "feeWei": "1617840000000",
+      "confirmedAt": 1789339638
+    },
+    {
+      "kind": "approve",
+      "amount": "600000000000000000000",
+      "transaction": {
+        "to": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+        "value": "0",
+        "nonce": 73,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "74136",
+        "gasPrice": "60000000"
+      },
+      "settled": true,
+      "hash": "0xfa7dba7b8b9666f1cce22cbd7c42d48e718ec867a82c795f04cb0da138222ef8",
+      "success": true,
+      "feeWei": "2936880000000",
+      "confirmedAt": 1789339649
+    },
+    {
+      "kind": "send",
+      "batch": 0,
+      "transaction": {
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "value": "0",
+        "nonce": 74,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "13775325",
+        "gasPrice": "60000000"
+      },
+      "settled": true,
+      "hash": "0x2b3bf386c312e25f2a559d9475f30abb34f11929f013cd9a524a80b1e055070c",
+      "success": true,
+      "feeWei": "629649000000000",
+      "confirmedAt": 1789339661
+    },
+    {
+      "kind": "send",
+      "batch": 1,
+      "transaction": {
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "value": "0",
+        "nonce": 75,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "13797563",
+        "gasPrice": "60000000"
+      },
+      "settled": true,
+      "hash": "0x9bf4b4bccd634f6baf7a56d8b2b105cc921857c4b20ebfe5aa13d67b847df553",
+      "success": true,
+      "feeWei": "630667260000000",
+      "confirmedAt": 1789339856
+    },
+    {
+      "kind": "send",
+      "batch": 2,
+      "transaction": {
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "value": "0",
+        "nonce": 76,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "13768620",
+        "gasPrice": "60000000"
+      },
+      "settled": true,
+      "hash": "0xb83286b367c0ee8cd2ee43c27c9c011ba4f1aa4eb0f0400195c7428e8f0426d8",
+      "success": true,
+      "feeWei": "629196840000000",
+      "confirmedAt": 1789340050
+    }
+  ],
+  "active": false,
+  "authorization": "3x200x1:budget0.1:lifetime",
+  "startedBy": "xuxi1234",
+  "startedRun": "34787769510",
+  "rawSpentWei": "146822125442635913",
+  "spentWei": "72836583189141262",
+  "excludedPrincipalWei": "73985542253494651",
+  "campaignGasWei": "18954360720000000"
+}

@@ -1,4 +1,5 @@
 import { readWithRetry } from './rpc-read-retry.mjs';
+import { csvInterludeRows,assertCsvRows } from './resume72-interlude.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -30,6 +31,14 @@ export function verifyDelivery(e,logs){
  });
 }
 const read=(client,functionName,args=[])=>client.readContract({address:TOKEN,abi:erc20,functionName,args});
+export async function gasPriceFor(clients,j){
+ if(j.version!==2)return (await clients[0].getGasPrice())*120n/100n;
+ const prices=await Promise.all(clients.map(c=>c.getGasPrice()));
+ requireThat(prices.length===2&&prices.every(p=>p>0n),'两个节点未返回有效Gas单价。');
+ // Use the higher live recommendation without the old 20% price markup.
+ // Gas-limit headroom and both per-transaction/lifetime caps still apply.
+ return prices.reduce((a,b)=>a>b?a:b);
+}
 async function inspectOnce(clients){
  const results=await Promise.all(clients.map(async client=>{
   requireThat(await client.getChainId()===56,'RPC 链号不是 BSC 主网。');
@@ -59,6 +68,7 @@ export async function baseline(clients){
  requireThat(rawTotal(rows)===RAW_BASELINE,'历史全部转出及Gas与核实基线不一致。');return rows;
 }
 export async function reconcile(clients,j,base,save,ownedReturnConfirmed=false){
+ if(j.version===2)assertCsvRows(base);
  validate(j);const rows=[...base];
  const observed=await mapReads(j.entries,e=>e.hash?verifiedRow(clients,e.hash):Promise.resolve(null));
  for(const [index,e] of j.entries.entries()){
@@ -119,6 +129,7 @@ export async function run({clients,store,execute=false,ownedReturnConfirmed=fals
  if(execute)requireThat(ownedReturnConfirmed===true,'执行前需要明确确认自有钱包调拨记账口径。');
  delete j.spentWei;delete j.rawSpentWei;delete j.excludedPrincipalWei;delete j.campaignGasWei;
  await inspect(clients);console.log('双节点合约、余额及授权核对通过，正在核对49笔历史预算交易。');const base=await baseline(clients);
+ if(j.version===2){base.push(...await csvInterludeRows(clients));console.log('表格600地址的5笔交易及全部Gas核对通过，纳入原任务累计预算。');}
  j.rawSpentWei=rawTotal(base).toString();
  console.log('历史预算核对通过，正在恢复本次任务的已确认交易。');
  let ledger=await reconcile(clients,j,base,save,ownedReturnConfirmed);
@@ -143,7 +154,7 @@ export async function run({clients,store,execute=false,ownedReturnConfirmed=fals
  requireThat(state.balance>=TOTAL-BigInt(done)*200n*AMOUNT,'蝴蝶股票余额不足以完成剩余轮次。');
  console.log(`钱包 ${ACCOUNT}；蝴蝶股票 ${formatEther(state.balance)} 枚；BNB ${formatEther(state.bnb)}；累计已用 ${formatEther(ledger.spent)} / 0.1 BNB。`);
  if(!execute){
-  if(!pending){const action=next(j,state.allowance);if(action){const c=callFor(action);const gas=await clients[0].estimateGas({account:ACCOUNT,...c});const price=await clients[0].getGasPrice();reserveCampaign(ledger.spent,gas*130n/100n+10000n,price*120n/100n);console.log(`下一步 ${action.kind} 只读模拟通过。`);}}
+  if(!pending){const action=next(j,state.allowance);if(action){const c=callFor(action);const gas=await clients[0].estimateGas({account:ACCOUNT,...c});const price=await gasPriceFor(clients,j);reserveCampaign(ledger.spent,gas*130n/100n+10000n,price);console.log(`下一步 ${action.kind} 只读模拟通过。`);}}
   report(j,reportDirectory);return j;
  }
  requireThat(j.active&&j.authorization==='72x200x0.1:budget0.1:lifetime','定时任务未由用户启动或已经暂停。');
@@ -157,8 +168,8 @@ export async function run({clients,store,execute=false,ownedReturnConfirmed=fals
   const call=callFor(expected);let entry=pending;
   await nonceCheck(clients,ledger.nonce,Boolean(entry));
   if(!entry){
-   const [gas,price]=await Promise.all([clients[0].estimateGas({account:ACCOUNT,...call}),clients[0].getGasPrice()]);
-   entry={...expected,transaction:{...call,value:'0',nonce:ledger.nonce,type:'legacy',chainId:56,gas:(gas*130n/100n+10000n).toString(),gasPrice:(price*120n/100n).toString()},settled:false};
+   const [gas,price]=await Promise.all([clients[0].estimateGas({account:ACCOUNT,...call}),gasPriceFor(clients,j)]);
+   entry={...expected,transaction:{...call,value:'0',nonce:ledger.nonce,type:'legacy',chainId:56,gas:(gas*130n/100n+10000n).toString(),gasPrice:price.toString()},settled:false};
    reserveCampaign(ledger.spent,BigInt(entry.transaction.gas),BigInt(entry.transaction.gasPrice));j.entries.push(entry);await save(j);
   }
   requireThat(entry.kind===expected.kind&&entry.batch===expected.batch&&entry.amount===expected.amount&&equal(entry.transaction.to,call.to)&&equal(entry.transaction.data,call.data),'恢复交易与当前剩余计划不一致，停止。');

@@ -5,6 +5,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { bsc } from 'viem/chains';
 import { Stop,requireThat } from './core.mjs';
 import { fresh } from './new72-core.mjs';
+import { prepareResume,assertCsvComplete } from './resume72-interlude.mjs';
 import { run,report } from './new72-run.mjs';
 import { openGitHubStore,githubApi,REPOSITORY } from './new72-store.mjs';
 import { authorize,shouldWake,recoveryFingerprint,readyForExecution } from './new72-schedule.mjs';
@@ -29,7 +30,15 @@ export async function main(env=process.env){
  const {operation,execute}=options(env);
  const output=ready=>{if(env.GITHUB_OUTPUT)fs.appendFileSync(env.GITHUB_OUTPUT,`ready=${ready}\n`);};output(false);
  const store=env.GITHUB_TOKEN?await openGitHubStore({api:githubApi(env.GITHUB_TOKEN),readOnly:!execute,reportDirectory:env.AIRDROP_REPORT_DIR}):{journal:fresh(),save:async()=>requireThat(!execute,'执行需要GitHub持久检查点。')};
- const j=store.journal;const before=recoveryFingerprint(j);
+ const j=store.journal;
+ if(env.NEW72_RESUME_CSV==='true'){
+  requireThat(env.GITHUB_TOKEN,'续跑需要读取原任务和表格任务的持久检查点。');
+  const r=await githubApi(env.GITHUB_TOKEN)('GET','/contents/journal.json?ref=automation%2Fairdrop-csv600-ledger');
+  requireThat(r.encoding==='base64'&&r.size<1000000,'表格任务检查点读取异常。');
+  const csv=JSON.parse(Buffer.from(r.content,'base64').toString('utf8'));assertCsvComplete(csv);
+  Object.assign(j,prepareResume(j,csv));
+ }else requireThat(j.version===1,'此任务需要使用“原72轮从28轮续跑”入口，保留原进度。');
+ const before=recoveryFingerprint(j);
  if(env.GITHUB_TOKEN)await assertOldStopped(githubApi(env.GITHUB_TOKEN));
  if(operation==='pause'){
   if(execute){j.active=false;await store.save(j);console.log('已暂停，保留原名单和所有已发送记录。');}else output(true);
