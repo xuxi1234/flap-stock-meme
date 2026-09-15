@@ -58,7 +58,9 @@ contract FeeToken {
             );
             blockedReentry = !ok;
         }
-        if (noReturn) assembly { return(0, 0) }
+        if (noReturn) {
+            assembly { return(0, 0) }
+        }
         return true;
     }
 
