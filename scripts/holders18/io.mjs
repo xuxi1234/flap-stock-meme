@@ -8,17 +8,22 @@ const hex=n=>'0x'+BigInt(n).toString(16);
 const digest=v=>createHash('sha256').update(typeof v==='string'?v:JSON.stringify(v)).digest('hex');
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const safe=e=>String(e.message).replace(/https?:\/\/\S+/g,'[endpoint]').replace(/alch_[\w-]+/g,'[key]').slice(0,400);
-let calls=0,requestId=0;
+let calls=0,requestId=0,nextRequestAt=0;
+// Six workers together stay below the observed 10,000 CU/s plan limit.
+// Reserve a conservative 50 CU per balance/code read and 100 per other call.
+async function throttle(cost){const at=Math.max(Date.now(),nextRequestAt);nextRequestAt=at+cost;await pause(Math.max(0,at-Date.now()));}
+
 async function rpc(method,params){
  if(!['eth_chainId','eth_blockNumber','eth_getBlockByNumber','eth_getCode','eth_getLogs','eth_call','eth_getBalance','eth_getTransactionCount'].includes(method))throw new Error('Read-only method required');
- for(let attempt=0;attempt<5;attempt++){
+ for(let attempt=0;attempt<12;attempt++){
   if(++calls>2000000)throw new Error('Read request limit reached');
   try{
+   await throttle(method==='eth_call'||method==='eth_getCode'?50:100);
    const r=await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:++requestId,method,params}),signal:AbortSignal.timeout(45000)});
    const j=await r.json().catch(()=>({}));
    if(!r.ok||j.error)throw rpcError(method,r.status,j);
    if(j.result===undefined)throw new Error('Missing RPC result');return j.result;
-  }catch(e){if(e.range||attempt===4)throw e;await pause(500*2**attempt);}
+  }catch(e){if(e.range||attempt===11)throw e;await pause(Math.min(30000,1000*2**attempt)+Math.random()*1000);}
  }
 }
 async function mapLimit(items,fn,limit=8){let index=0;const out=Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;out[i]=await fn(items[i],i);}}));return out;}
@@ -47,15 +52,16 @@ async function rpcBatch(requests){
  const ids=requests.map(()=>++requestId);
  const body=requests.map((r,i)=>({jsonrpc:'2.0',id:ids[i],...r}));
  if(requests.some(r=>!['eth_call','eth_getCode'].includes(r.method)))throw new Error('Only readonly balance/code batches allowed');
- for(let attempt=0;attempt<5;attempt++){
+ for(let attempt=0;attempt<12;attempt++){
   calls+=requests.length;if(calls>2000000)throw new Error('Read request limit reached');
   try{
+   await throttle(requests.length*50);
    const r=await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(45000)});
    const rows=await r.json();
    if(!Array.isArray(rows)&&r.status!==429&&r.status<500)return mapLimit(requests,r=>rpc(r.method,r.params),8);
    if(!r.ok)throw new Error('Batch HTTP '+r.status);
    return decodeBatch(rows,ids);
-  }catch(e){if(attempt===4)throw e;await pause(1000*2**attempt);}
+  }catch(e){if(attempt===11)throw e;await pause(Math.min(30000,1000*2**attempt)+Math.random()*1000);}
  }
 }
 export {OUT,hex,digest,pause,safe,calls,rpc,rpcBatch,mapLimit,api,publish,BRANCH};
