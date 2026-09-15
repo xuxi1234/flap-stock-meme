@@ -1,3 +1,4 @@
+import {verifyMulticall,readBalances} from './multicall.mjs';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {candidates,selectTop,mergeRecipients,scanRanges,rpcError} from './core.mjs';
@@ -13,6 +14,7 @@ async function main(){
  if(Number(BigInt(await rpc('eth_chainId',[])))!==56)throw new Error('Wrong chain');
  const snapshot=process.env.HOLDERS_SNAPSHOT?Number(process.env.HOLDERS_SNAPSHOT):Number(BigInt(await rpc('eth_blockNumber',[])))-30,tag=hex(snapshot);
  if(!Number.isSafeInteger(snapshot)||snapshot<1)throw new Error('Invalid fixed snapshot');
+ await verifyMulticall(rpc,tag);
  const block=await rpc('eth_getBlockByNumber',[tag,false]);Object.assign(status,{snapshotBlock:snapshot,snapshotHash:block.hash,snapshotTime:new Date(Number(BigInt(block.timestamp))*1000).toISOString()});
  await publish({[statusName]:write('status.json',status)});
  for(const token of WORK_TOKENS){
@@ -55,7 +57,9 @@ async function main(){
    const addresses=[...allCandidates].sort();
    const groups=Array.from({length:Math.ceil(addresses.length/100)},(_,i)=>addresses.slice(i*100,i*100+100));
    const balances=(await mapLimit(groups,async(group,i)=>{
-    const results=await rpcBatch(group.map(address=>({method:'eth_call',params:[{to:token,data:'0x70a08231'+address.slice(2).padStart(64,'0')},tag]})));
+    const results=await readBalances(group,rpc,token,tag);
+    // Cross-check both ends directly; fail if token semantics depend on caller.
+    for(const n of new Set([0,group.length-1])){const direct=BigInt(await rpc('eth_call',[{to:token,data:'0x70a08231'+group[n].slice(2).padStart(64,'0')},tag]));if(direct!==BigInt(results[n]))throw new Error('Aggregated balance differs from direct call');}
     if(i%10===0)console.log('BALANCE_PROGRESS',token,i*100+'/'+addresses.length);
     return group.map((address,n)=>({address,balance:BigInt(results[n]).toString()}));
    },2)).flat();

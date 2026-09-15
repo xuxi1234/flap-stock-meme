@@ -26,7 +26,13 @@ async function rpc(method,params){
   }catch(e){if(e.range||attempt===11)throw e;await pause(Math.min(30000,1000*2**attempt)+Math.random()*1000);}
  }
 }
-async function mapLimit(items,fn,limit=8){let index=0;const out=Array(items.length);await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(index<items.length){const i=index++;out[i]=await fn(items[i],i);}}));return out;}
+async function mapLimit(items,fn,limit=8){
+ let index=0,failure;const out=Array(items.length);
+ await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{
+  while(!failure&&index<items.length){const i=index++;try{out[i]=await fn(items[i],i);}catch(e){failure??=e;}}
+ }));
+ if(failure)throw failure;return out;
+}
 const REPO='xuxi1234/flap-stock-meme',BRANCH=process.env.HOLDERS_BRANCH||'automation/holders18-snapshot';
 async function api(method,path,body){const r=await fetch('https://api.github.com/repos/'+REPO+path,{method,signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.GITHUB_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error('GitHub '+r.status);return r.json();}
 async function publish(files){
