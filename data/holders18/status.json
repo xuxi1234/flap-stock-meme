@@ -2,30 +2,12 @@
   "complete": false,
   "chainId": 56,
   "provider": "Alchemy BNB mainnet",
-  "run": "34956689174",
+  "run": "34956939009",
   "tokenCount": 18,
   "tokens": [],
-  "errors": [
-    {
-      "token": "0xbeea1d618e533a387d941f58a7d4c9b7bd377777",
-      "error": "RPC HTTP 400"
-    },
-    {
-      "token": "0xfe189e97832da1573e4e4ff034f4ffc3a15c7777",
-      "error": "RPC HTTP 400"
-    },
-    {
-      "token": "0x9aa9cadec931c58c2a22bbc5381b266d12887777",
-      "error": "RPC HTTP 400"
-    },
-    {
-      "token": "0xdbb64ec2a453a612d0cc5001b6f15b0200000000",
-      "error": "RPC HTTP 400"
-    }
-  ],
+  "errors": [],
   "method": "Full Transfer history from deployment; balanceOf for every candidate at one fixed block; rank before filtering",
-  "snapshotBlock": 122011515,
-  "snapshotHash": "0xce86f416475e40ff2d0787547498811068013df896d92daaa53377630260df67",
-  "snapshotTime": "2026-09-15T10:12:15.000Z",
-  "requests": 167
+  "snapshotBlock": 122011886,
+  "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+  "snapshotTime": "2026-09-15T10:15:02.000Z"
 }
