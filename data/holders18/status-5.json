@@ -2,28 +2,12 @@
   "complete": false,
   "chainId": 56,
   "provider": "Alchemy BNB mainnet",
-  "run": "34957676109",
+  "run": "34958520753",
   "tokenCount": 18,
-  "tokens": [
-    {
-      "token": "0xfe7583c2e75282d965119e83b3dcb6597d457777",
-      "symbol": "病毒雪球",
-      "decimals": 18,
-      "creationBlock": 111797945,
-      "snapshotBlock": 122011886,
-      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
-      "totalSupply": "1000000000000000000000000000",
-      "verifiedBalanceSum": "1000000000000000000000000000",
-      "candidateCount": 293546,
-      "positiveHolders": 292382,
-      "logCount": 322625,
-      "balanceSha256": "c0bb2cff66bb42a0bbd39d04c9a4b34e917248a42a3d4a5b41c9919ba1b8a484"
-    }
-  ],
+  "tokens": [],
   "errors": [],
   "method": "Full Transfer history from deployment; balanceOf for every candidate at one fixed block; rank before filtering",
   "snapshotBlock": 122011886,
   "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
-  "snapshotTime": "2026-09-15T10:15:02.000Z",
-  "requests": 358962
+  "snapshotTime": "2026-09-15T10:15:02.000Z"
 }
