@@ -14,3 +14,8 @@ export function mergeRecipients(tokens,codes,sender){
 export async function scanRanges(fetchRange,from,to){
  try{return await fetchRange(from,to);}catch(e){if(!e.range||from===to)throw e;const mid=Math.floor((from+to)/2);return [...await scanRanges(fetchRange,from,mid),...await scanRanges(fetchRange,mid+1,to)];}
 }
+export function decodeBatch(rows,ids){
+ if(!Array.isArray(rows)||rows.length!==ids.length)throw new Error('Incomplete batch response');
+ const map=new Map();for(const row of rows){if(map.has(row.id)||!ids.includes(row.id)||row.error||row.result===undefined)throw new Error('Invalid batch response');map.set(row.id,row.result);}
+ return ids.map(id=>{if(!map.has(id))throw new Error('Missing batch id');return map.get(id);});
+}

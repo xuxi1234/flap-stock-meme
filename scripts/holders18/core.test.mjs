@@ -28,3 +28,11 @@ test('HTTP 400 JSON-RPC range rejection remains splittable and keys are redacted
  assert.equal(e.range,true);assert.ok(!e.message.includes('/v2/secret'));
  assert.equal(rpcError('eth_call',400,{error:{message:'execution reverted'}}).range,false);
 });
+
+test('batch responses are matched by id, never by response order',async()=>{
+ const {decodeBatch}=await import('./core.mjs');
+ assert.deepEqual(decodeBatch([{id:3,result:'c'},{id:1,result:'a'}],[1,3]),['a','c']);
+ assert.throws(()=>decodeBatch([{id:1,result:'a'}],[1,3]));
+ assert.throws(()=>decodeBatch([{id:1,result:'a'},{id:1,result:'b'}],[1,3]));
+ assert.throws(()=>decodeBatch([{id:1,error:{message:'rate limited'}}],[1]));
+});
