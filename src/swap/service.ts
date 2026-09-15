@@ -1,12 +1,14 @@
+import { feeAbi, feeDeployment, feeSwapCall, splitFee, verifyFeeDeployment, resolveReferrer } from './fees'
 import {quoteV3,V3_ROUTER,v3SwapCall,encodeV3Path} from './v3'
 import { createPublicClient, encodeFunctionData, erc20Abi, fallback, formatUnits, getAddress, http, isAddress, parseUnits, zeroAddress, type Address, type Hash, type PublicClient, type WalletClient } from 'viem'
 import { bsc } from 'viem/chains'
 import { FACTORY, ROUTER, TOKENS, WBNB, executionAbi, factoryAbi, pairAbi, routerAbi, tokenKey, type SwapToken } from './config'
 
+const swapExecutionAbi = [...executionAbi, ...feeAbi] as const
 export const QUOTE_TTL = 30_000
 export type Route = { path: Address[]; amountOut: bigint; protocol?: 'V2' | 'V3'; fees?: number[]; impactBps?: number }
-export type SwapQuote = { protocol?: 'V2' | 'V3'; fees?: number[]; taxAdjusted?: boolean; input: SwapToken; output: SwapToken; amountIn: bigint; amountOut: bigint; path: Address[]; expiresAt: number; block: bigint; impactBps: number; wrap: boolean; alternatives?: Route[]; checkedPaths?: number }
-export type SwapReview = { quote: SwapQuote; account: Address; slippageBps: number; minimumOut: bigint }
+export type SwapQuote = { protocol?: 'V2' | 'V3'; fees?: number[]; taxAdjusted?: boolean; input: SwapToken; output: SwapToken; amountIn: bigint; amountOut: bigint; path: Address[]; expiresAt: number; block: bigint; impactBps: number; wrap: boolean; alternatives?: Route[]; checkedPaths?: number; platformFee?: {gross:bigint;fee:bigint} }
+export type SwapReview = { quote: SwapQuote; account: Address; slippageBps: number; minimumOut: bigint; referrer?: Address | null }
 export class SwapError extends Error {}
 export const makeSwapClient = () => createPublicClient({ chain: bsc, transport: fallback([
   ...(typeof window !== 'undefined' && !['localhost', '127.0.0.1', 'terminal.local'].includes(window.location.hostname)
@@ -88,11 +90,15 @@ export async function getQuote(client: PublicClient, input: SwapToken, output: S
   const impactBps = marginal > best.amountOut ? Number((marginal - best.amountOut) * 10000n / marginal) : 0
   return { input, output, amountIn, ...best, block, impactBps, wrap, alternatives: routes, checkedPaths: paths.length + v3Routes.length, taxAdjusted: !!(input.sellTaxBps || output.buyTaxBps), expiresAt: Date.now() + QUOTE_TTL }
 }
-export const quoteRouter = (quote: SwapQuote) => quote.protocol === 'V3' ? V3_ROUTER : ROUTER
+export const quoteRouter = (quote: SwapQuote) => {
+  if (quote.platformFee) { const address = feeDeployment(); if (!address) throw new SwapError('收费版本尚未开放交易，请先查看报价。'); return address }
+  return quote.protocol === 'V3' ? V3_ROUTER : ROUTER
+}
 export function assertReview(review: SwapReview, now = Date.now()) {
   if (now >= review.quote.expiresAt) throw new SwapError('报价已过期，请关闭确认窗口并刷新报价。')
   if (review.quote.impactBps >= 1000) throw new SwapError('价格影响达到 10%，已暂停此次兑换。请减少数量。')
   const q = review.quote
+  if (q.platformFee) { const f = splitFee(q.platformFee.gross, false); if (q.wrap || f.net !== q.amountOut || f.fee !== q.platformFee.fee) throw new SwapError('服务费报价已改变，请重新获取报价。') }
   if (q.protocol === 'V3') {
     if (q.input.sellTaxBps || q.input.buyTaxBps || q.output.sellTaxBps || q.output.buyTaxBps) throw new SwapError('含税代币需使用 V2 路由。')
     if (q.path[0]?.toLowerCase() !== q.input.address.toLowerCase() || q.path.at(-1)?.toLowerCase() !== q.output.address.toLowerCase()) throw new SwapError('路径与选择的资产不匹配。')
@@ -117,6 +123,7 @@ export async function approveExact(client: PublicClient, wallet: WalletClient, r
   const account = await ensureWallet(wallet, review.account)
   assertReview(review)
   if (review.quote.input.native || review.quote.wrap) throw new SwapError('此交易不需要授权。')
+  if (review.quote.platformFee) await verifyFeeDeployment(client)
   const current = await getAllowance(client, review.quote, account)
   if (current >= review.quote.amountIn) throw new SwapError('授权已足够，请刷新后确认兑换。')
   // Tokens that require zero-first approvals receive a separate explicit reset action.
@@ -131,10 +138,11 @@ export function swapCall(review: SwapReview) {
   const account = review.account
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 120)
   if (q.wrap) return q.input.native
-    ? { address: WBNB, abi: executionAbi, functionName: 'deposit' as const, account, value: q.amountIn }
-    : { address: WBNB, abi: executionAbi, functionName: 'withdraw' as const, args: [q.amountIn] as const, account }
-  if (q.protocol === 'V3') return { ...v3SwapCall(q, account, review.minimumOut, deadline), abi: executionAbi }
-  const common = { address: ROUTER, abi: executionAbi, account }
+    ? { address: WBNB, abi: swapExecutionAbi, functionName: 'deposit' as const, account, value: q.amountIn }
+    : { address: WBNB, abi: swapExecutionAbi, functionName: 'withdraw' as const, args: [q.amountIn] as const, account }
+  if (q.platformFee) return {...feeSwapCall(review, deadline),abi:swapExecutionAbi}
+  if (q.protocol === 'V3') return { ...v3SwapCall(q, account, review.minimumOut, deadline), abi: swapExecutionAbi }
+  const common = { address: ROUTER, abi: swapExecutionAbi, account }
   if (q.input.native) return { ...common, functionName: 'swapExactETHForTokensSupportingFeeOnTransferTokens' as const, args: [review.minimumOut, q.path, account, deadline] as const, value: q.amountIn }
   if (q.output.native) return { ...common, functionName: 'swapExactTokensForETHSupportingFeeOnTransferTokens' as const, args: [q.amountIn, review.minimumOut, q.path, account, deadline] as const }
   return { ...common, functionName: 'swapExactTokensForTokensSupportingFeeOnTransferTokens' as const, args: [q.amountIn, review.minimumOut, q.path, account, deadline] as const }
@@ -144,6 +152,10 @@ export async function executeSwap(client: PublicClient, wallet: WalletClient, re
   const account = await ensureWallet(wallet, review.account)
   assertReview(review)
   const q = review.quote
+  if (q.platformFee) {
+    const actual = await resolveReferrer(client, account, review.referrer ?? null)
+    if ((actual ?? '').toLowerCase() !== (review.referrer ?? '').toLowerCase()) throw new SwapError('邀请关系已改变，请重新确认。')
+  }
   const [balance, allowance, nativeBalance] = await Promise.all([readBalance(client, q.input, account), getAllowance(client, q, account), client.getBalance({ address: account })])
   if (balance < q.amountIn) throw new SwapError('可用余额不足，请调整兑换数量。')
   if (allowance < q.amountIn) throw new SwapError('请先授权本次需要的代币数量。')

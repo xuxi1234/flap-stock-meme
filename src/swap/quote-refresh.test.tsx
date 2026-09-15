@@ -15,5 +15,5 @@ it('keeps a slow quote alive across the automatic refresh interval',async()=>{
  await act(async()=>{await vi.advanceTimersByTimeAsync(21000)})
  expect(getQuote).toHaveBeenCalledTimes(1)
  await act(async()=>{resolve({input:TOKENS[0],output:BUTTERFLY,amountIn:10n**18n,amountOut:7n*10n**18n,path:[TOKENS[0].address,BUTTERFLY.address],block:1n,impactBps:0,wrap:false,expiresAt:Date.now()+30000})})
- expect(screen.getByRole('status',{name:'预计收到数量'})).toHaveTextContent('7')
+ expect(screen.getByRole('status',{name:'预计收到数量'})).toHaveTextContent('6.944')
 })
