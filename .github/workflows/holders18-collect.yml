@@ -1,0 +1,31 @@
+name: 蝴蝶持仓名单｜18代币前600｜只读采集
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: butterfly-holders18-collection
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: node --test scripts/holders18/core.test.mjs
+      - name: 通过 Alchemy 采集持仓并核验排名（不发送交易）
+        run: node scripts/holders18/collect.mjs
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: holders18-${{ github.run_id }}-${{ github.run_attempt }}
+          path: holders18-output/
+          retention-days: 90
