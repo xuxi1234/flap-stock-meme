@@ -1,5 +1,5 @@
 // DEX Screener market data is informational only. It never supplies transaction calldata.
-export type PoolMarket = { address: string; pairAddress: string; priceUsd: number; change24h: number | null; volume24h: number | null; liquidityUsd: number; dex: string; protocol: string; quoteSymbol: string }
+export type PoolMarket = { address: string; pairAddress: string; priceUsd: number; change24h: number | null; volume24h: number | null; volume1h?: number | null; buys1h?: number | null; sells1h?: number | null; liquidityUsd: number; dex: string; protocol: string; quoteSymbol: string }
 export type TokenMarket = PoolMarket & { pools?: PoolMarket[] }
 export type MarketSnapshot = { fetchedAt: number; markets: Record<string, TokenMarket> }
 const positive = (value: unknown) => (typeof value === 'number' || typeof value === 'string') && value !== '' && Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null
@@ -26,7 +26,7 @@ export function normalizeMarkets(value: unknown, addresses: string[]): Record<st
     const labels = Array.isArray(p.labels) ? p.labels : []
     const pool: PoolMarket = { address, pairAddress: p.pairAddress.toLowerCase(), priceUsd: price, liquidityUsd: liquidity,
       change24h: typeof p.priceChange?.h24 === 'number' && Number.isFinite(p.priceChange.h24) ? p.priceChange.h24 : null,
-      volume24h: nonnegative(p.volume?.h24), dex: dexNames[p.dexId], quoteSymbol: quote,
+      volume24h: nonnegative(p.volume?.h24), volume1h: nonnegative(p.volume?.h1), buys1h: nonnegative(p.txns?.h1?.buys), sells1h: nonnegative(p.txns?.h1?.sells), dex: dexNames[p.dexId], quoteSymbol: quote,
       protocol: labels.some((x: unknown) => typeof x === 'string' && /infinity/i.test(x)) ? 'Infinity' : labels.includes('v3') ? 'V3' : labels.includes('v2') ? 'V2' : '其他池型' }
     const previous = markets[address]?.pools ?? []
     const pools = [...previous.filter(p => p.pairAddress !== pool.pairAddress), pool].sort((a,b) => b.liquidityUsd-a.liquidityUsd).slice(0,8)

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { STOCK_TOKENS } from './config'
+import { STOCK_TOKENS, BUTTERFLY } from './config'
 import type { MarketSnapshot } from './marketData'
 const KEY = 'butterfly-swap-favorites-v1'
-const allowed = new Set(STOCK_TOKENS.map(t => t.address.toLowerCase()))
+const allowed = new Set([...STOCK_TOKENS, BUTTERFLY].map(t => t.address.toLowerCase()))
 export function readFavorites(): string[] {
   try { const value: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]'); return Array.isArray(value) ? [...new Set(value.filter((v): v is string => typeof v === 'string' && allowed.has(v)))].slice(0, 100) : [] } catch { return [] }
 }
