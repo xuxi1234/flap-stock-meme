@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {candidates,selectTop,mergeRecipients,scanRanges} from './core.mjs';
+import {candidates,selectTop,mergeRecipients,scanRanges,rpcError} from './core.mjs';
 const TOKENS=JSON.parse(fs.readFileSync(new URL('./tokens.json',import.meta.url)));
 const RPC=process.env.FLAP_BSC_RPC_URL;
 if(!RPC||new URL(RPC).hostname!=='bnb-mainnet.g.alchemy.com')throw new Error('Alchemy BSC mainnet RPC is required');
@@ -16,9 +16,8 @@ async function rpc(method,params){
   if(++calls>200000)throw new Error('Read request limit reached');
   try{
    const r=await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:++requestId,method,params}),signal:AbortSignal.timeout(45000)});
-   if(!r.ok)throw new Error('RPC HTTP '+r.status);
-   const j=await r.json();
-   if(j.error){const e=new Error('RPC '+j.error.code+': '+j.error.message);e.range=method==='eth_getLogs'&&/range|limit.*log|too many|response.*size|query returned/i.test(j.error.message);if(e.range)throw e;throw e;}
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok||j.error)throw rpcError(method,r.status,j);
    if(j.result===undefined)throw new Error('Missing RPC result');return j.result;
   }catch(e){if(e.range||attempt===4)throw e;await pause(500*2**attempt);}
  }

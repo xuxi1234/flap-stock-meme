@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { candidates, selectTop, mergeRecipients, scanRanges } from './core.mjs';
+import { candidates, selectTop, mergeRecipients, scanRanges, rpcError } from './core.mjs';
 const a=n=>'0x'+n.toString(16).padStart(40,'0');
 test('Transfer candidates include previous and current owners, never zero',()=>{
  assert.deepEqual(candidates([{topics:['topic','0x'+a(2).slice(2).padStart(64,'0'),'0x'+a(3).slice(2).padStart(64,'0')]},{topics:['topic','0x'+'0'.repeat(64),'0x'+a(2).slice(2).padStart(64,'0')]}]),[a(2),a(3)]);
@@ -22,4 +22,9 @@ test('range split covers every block exactly once after provider limit',async()=
 });
 test('single-block failure never yields an incomplete successful scan',async()=>{
  await assert.rejects(scanRanges(async()=>{throw Object.assign(new Error('bad'),{range:true});},1,1),/bad/);
+});
+test('HTTP 400 JSON-RPC range rejection remains splittable and keys are redacted',()=>{
+ const e=rpcError('eth_getLogs',400,{error:{code:-32602,message:'block range must be under 2000 https://bnb-mainnet.g.alchemy.com/v2/secret'}});
+ assert.equal(e.range,true);assert.ok(!e.message.includes('/v2/secret'));
+ assert.equal(rpcError('eth_call',400,{error:{message:'execution reverted'}}).range,false);
 });
