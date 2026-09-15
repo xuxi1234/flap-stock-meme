@@ -6,8 +6,17 @@ permissions:
 concurrency:
   group: butterfly-holders18-collection
   cancel-in-progress: false
+env:
+  HOLDERS_SNAPSHOT: "122011886"
+  HOLDERS_BRANCH: automation/holders18-${{ github.run_id }}
 jobs:
   collect:
+    name: 核验代币 ${{ matrix.token }}
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        token: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -21,11 +30,34 @@ jobs:
       - name: 通过 Alchemy 采集持仓并核验排名（不发送交易）
         run: node scripts/holders18/collect.mjs
         env:
+          HOLDERS_TOKEN_INDEX: ${{ matrix.token }}
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           GITHUB_TOKEN: ${{ github.token }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: holders18-${{ github.run_id }}-${{ github.run_attempt }}
+          name: holders18-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.token }}
+          path: holders18-output/
+          retention-days: 90
+  finalize:
+    name: 合并18代币名单并去重
+    needs: collect
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: node scripts/holders18/finalize.mjs
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: holders18-final-${{ github.run_id }}-${{ github.run_attempt }}
           path: holders18-output/
           retention-days: 90
