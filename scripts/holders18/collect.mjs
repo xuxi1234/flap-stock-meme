@@ -17,6 +17,19 @@ async function main(){
  await publish({[statusName]:write('status.json',status)});
  for(const token of WORK_TOKENS){
   try{
+   // Reuse only a completed result from this exact snapshot. A failed token
+   // is retried independently; previously verified token results are retained.
+   if(tokenIndex!==undefined){
+    try{
+     const f=await api('GET',`/contents/data/holders18/${token}.json?ref=${encodeURIComponent(BRANCH)}`);
+     if(f.encoding!=='base64')throw new Error('Invalid previous token result');
+     const prior=JSON.parse(Buffer.from(f.content,'base64').toString('utf8'));
+     if(prior.token!==token||prior.snapshotBlock!==snapshot||prior.snapshotHash!==block.hash||prior.verifiedBalanceSum!==prior.totalSupply||prior.top.length!==Math.min(600,prior.positiveHolders))throw new Error('Previous result does not match snapshot');
+     status.tokens.push(prior);write(token+'.json',prior);
+     await publish({[statusName]:write('status.json',{...status,tokens:status.tokens.map(({top,ranges,...r})=>r),reused:true})});
+     console.log('TOKEN_REUSED',token,'holders',prior.positiveHolders);continue;
+    }catch(e){if(e.message!=='GitHub 404')throw e;}
+   }
    console.log('TOKEN_START',token,'requests',calls);
    if(await rpc('eth_getCode',[token,tag])==='0x')throw new Error('No contract at snapshot');
    let lo=0,hi=snapshot;while(lo<hi){const mid=Math.floor((lo+hi)/2);if(await rpc('eth_getCode',[token,hex(mid)])==='0x')lo=mid+1;else hi=mid;}

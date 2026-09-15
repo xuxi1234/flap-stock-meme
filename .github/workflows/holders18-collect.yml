@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 env:
   HOLDERS_SNAPSHOT: "122011886"
-  HOLDERS_BRANCH: automation/holders18-${{ github.run_id }}
+  HOLDERS_BRANCH: automation/holders18-34957676109
 jobs:
   collect:
     name: 核验代币 ${{ matrix.token }}
