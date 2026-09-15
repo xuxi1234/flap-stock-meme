@@ -5,9 +5,15 @@
   "run": "34958520753",
   "tokenCount": 18,
   "tokens": [],
-  "errors": [],
+  "errors": [
+    {
+      "token": "0xa1ed61902f13e162305f59e1b2475e269e647777",
+      "error": "Set maximum size exceeded"
+    }
+  ],
   "method": "Full Transfer history from deployment; balanceOf for every candidate at one fixed block; rank before filtering",
   "snapshotBlock": 122011886,
   "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
-  "snapshotTime": "2026-09-15T10:15:02.000Z"
+  "snapshotTime": "2026-09-15T10:15:02.000Z",
+  "requests": 6457
 }
