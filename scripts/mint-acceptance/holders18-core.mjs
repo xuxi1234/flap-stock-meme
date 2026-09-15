@@ -18,7 +18,7 @@ let cached;
 export function buildPlan(source,sha){
  requireThat(/^[0-9a-f]{64}$/.test(sha)&&createHash('sha256').update(source).digest('hex')===sha,'名单文件哈希不匹配。');
  const addresses=source.toString().trim().split(/\r?\n/).map(a=>a.trim().toLowerCase());
- requireThat(addresses.length>0&&addresses.length<=10800&&new Set(addresses).size===addresses.length&&addresses.every(a=>isAddress(a)&&![ACCOUNT,TOKEN,DISTRIBUTOR,'0x'+'0'.repeat(40),'0x000000000000000000000000000000000000dead'].some(b=>equal(a,b))),'名单数量、重复地址或格式无效。');
+ requireThat(addresses.length>0&&addresses.length<=10800&&new Set(addresses).size===addresses.length&&addresses.every(a=>isAddress(a)&&![ACCOUNT,TOKEN,DISTRIBUTOR,'0x'+'0'.repeat(40)].some(b=>equal(a,b))),'名单数量、重复地址或格式无效。');
  return Object.freeze(Array.from({length:Math.ceil(addresses.length/200)},(_,i)=>Object.freeze(addresses.slice(i*200,(i+1)*200))));
 }
 export function configure(source,sha,prior){
@@ -27,7 +27,7 @@ export function configure(source,sha,prior){
  cached=buildPlan(source,sha);BATCHES=cached.length;TOTAL=BigInt(cached.flat().length)*AMOUNT;SOURCE_SHA=sha;
  ID=keccak256(toHex(`butterfly:56:74a7:holders18:1:1800seconds:${SOURCE_SHA}`));
 }
-export function plan(){requireThat(cached&&ID,'尚未载入已固定的18代币持仓名单。');return cached;}
+export function plan(){requireThat(cached&&ID,'尚未载入已固定的持仓名单。');return cached;}
 export const batchId=i=>keccak256(encodeAbiParameters([{type:'bytes32'},{type:'uint256'}],[ID,BigInt(i)]));
 export const fresh=()=>({version:1,id:ID,sourceSha:SOURCE_SHA,account:ACCOUNT,token:TOKEN,distributor:DISTRIBUTOR,entries:[],active:false});
 export function callFor(e){

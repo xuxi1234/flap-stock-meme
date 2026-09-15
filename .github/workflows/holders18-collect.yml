@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 env:
   HOLDERS_SNAPSHOT: "122011886"
-  HOLDERS_BRANCH: automation/holders18-${{ github.run_id }}
+  HOLDERS_BRANCH: automation/holders18-34957676109
 jobs:
   collect:
     name: 核验代币 ${{ matrix.token }}
@@ -26,7 +26,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - run: node --test scripts/holders18/core.test.mjs
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node --test scripts/holders18/core.test.mjs scripts/holders18/multicall.test.mjs
       - name: 通过 Alchemy 采集持仓并核验排名（不发送交易）
         run: node scripts/holders18/collect.mjs
         env:

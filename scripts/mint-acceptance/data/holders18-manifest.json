@@ -1,0 +1,163 @@
+{
+  "complete": true,
+  "scope": "user-approved-17-token-snapshot-9992",
+  "chainId": 56,
+  "tokenCount": 17,
+  "originalRequestedTokenCount": 18,
+  "originalCollectionComplete": false,
+  "omittedTokens": [
+    "0xa1ed61902f13e162305f59e1b2475e269e647777"
+  ],
+  "tokens": [
+    {
+      "token": "0xbeea1d618e533a387d941f58a7d4c9b7bd377777",
+      "symbol": "牛来",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "4533c8989ecdcd175db78414202c1884a183a27201651ad34d6620fcc10534c1"
+    },
+    {
+      "token": "0xfe189e97832da1573e4e4ff034f4ffc3a15c7777",
+      "symbol": "MarsCoin",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "e7e17bf8ff5001aee43ee44e37560f3c9bcdff6566676e8b612e943fee978594"
+    },
+    {
+      "token": "0x9aa9cadec931c58c2a22bbc5381b266d12887777",
+      "symbol": "Kimi Ai",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "caca6ebc76ee180847a1bfbd8d6559a6b8f83a01472f4a04a69dfe017fd5b820"
+    },
+    {
+      "token": "0xdbb64ec2a453a612d0cc5001b6f15b0200000000",
+      "symbol": "杀零狗",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "2eb782f4441126b47f7a2c04ec6123980b1508b7fe620f14bf098492a977a04b"
+    },
+    {
+      "token": "0xf609e7c374ee82001c3c9834c63d8c8cc6ed7777",
+      "symbol": "妖蝶",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "534a4e3277efdb40e44112bf972c826e5be59f6d046e5b728b076a33fea74e18"
+    },
+    {
+      "token": "0xfe7583c2e75282d965119e83b3dcb6597d457777",
+      "symbol": "病毒雪球",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "c8ca27ccbcb137d76e83d9f073f995cbd81df026d7609b007d0e666ef9274a36"
+    },
+    {
+      "token": "0x914616d1a69632ee41a1d7d71b754f2d586b7777",
+      "symbol": "羊羊得亿",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "b0232aaf4332d86808dc6db2f08fdad7b6c4df908ca389c5515245aec674d2c0"
+    },
+    {
+      "token": "0x62d220cabb0027b2f432c020a48d2b0f4fef7777",
+      "symbol": "躺平",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "149047882a3420c7c8aaed3053fb8b28c9aa7a59f093c94df667f2f29a970129"
+    },
+    {
+      "token": "0xb1985f7f020e111bafac5d8e86936e6606f17777",
+      "symbol": "伯乐",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "572570c123329860d0321a3eddbf1d691d452d0c0d1e2a9071d7801ccb394c51"
+    },
+    {
+      "token": "0x3a51dae2dc3d901a2cefed3ad128116bf31c7777",
+      "symbol": "暴躁牛",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "6e9064ff4a5d6323853f9098ec15ee747f4706160b1113b453a86aca566602c0"
+    },
+    {
+      "token": "0x848e2b1cb00dc439a15b03b8c3194e7d08917777",
+      "symbol": "BAN",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "137dbee6506ba7d024bfc4afce8e3004dc2a5b15f650b014ab670a87a4823b5a"
+    },
+    {
+      "token": "0x36f2fd027f5f27c59b8c6d64df64bcc8e8c97777",
+      "symbol": "雪球",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "d32e4ec822a60cfe631cb30f744492958439bad156bc2deb280ae72e97de5f27"
+    },
+    {
+      "token": "0xd2c1cad9a374947b17f49d69fff7f278d7255555",
+      "symbol": "corla",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "d7bda1b62b0bac5047182473eaff8550e51b5e37bc2693e6c815b5091cec1920"
+    },
+    {
+      "token": "0xccfb3e8b1772bd3a9fc62deaf75127adad597777",
+      "symbol": "苹果人生",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "c89debb8e27dcc78da512be87794d044f9fb1acfaf8c51eead8b348b39dd2a88"
+    },
+    {
+      "token": "0x537c87f3c4fa801ffcebcc222fd687b9a5e97777",
+      "symbol": "吉祥狗",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "595d854d99b68eb18c1119102509cefa7ef83056d37f47e9714cf94947499df5"
+    },
+    {
+      "token": "0x31cb74c6c0869758712f722c17ca08cda27d7777",
+      "symbol": "苍生",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "533883315c7b77354898c0eb674af7284addc01f467b75d76f082fc7a877fcd9"
+    },
+    {
+      "token": "0x4f0c550bfe484f957d5c7dd26f9a630a92a17777",
+      "symbol": "金蝶圣甲",
+      "topCount": 600,
+      "snapshotBlock": 122011886,
+      "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+      "evidenceSha256": "6d54ba0e6900b27945d36ab2cb16bb8cc1658afb9ba0d552739ec72d1435aeea"
+    }
+  ],
+  "rawTopCount": 10200,
+  "recipientCount": 9992,
+  "deduplicationOnly": true,
+  "snapshotBlock": 122011886,
+  "snapshotHash": "0xac5c018e3f5d2e7658cc040b799bca0bba23c821a3e7e806b3ae7188f2a01ca3",
+  "snapshotTime": "2026-09-15T10:15:02Z",
+  "recipientSha256": "50addc10eb955343f01f0d054d750bf570f42b6e6796766c368f402d592cbce2",
+  "batchSize": 200,
+  "batches": 50,
+  "lastBatchSize": 192,
+  "amountPerAddress": "1",
+  "intervalSeconds": 1800,
+  "errors": [],
+  "evidenceBranch": "automation/holders18-34957676109"
+}

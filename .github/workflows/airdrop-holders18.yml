@@ -1,9 +1,9 @@
-name: 蝴蝶持仓空投｜18代币名单·每批200·每30分钟
+name: 蝴蝶持仓空投｜9992地址·50批·每30分钟
 on:
   workflow_dispatch:
     inputs:
       operation:
-        description: '使用已核验固定名单；每地址1枚、每批200、间隔至少30分钟'
+        description: '固定9992地址：17代币快照仅去重；每地址1枚，每批200，间隔至少30分钟'
         type: choice
         default: 只读检查
         options: [只读检查, 执行或继续持仓名单]

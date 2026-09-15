@@ -5,7 +5,7 @@ import { createPublicClient,http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { bsc } from 'viem/chains';
 import { Stop,requireThat } from './core.mjs';
-import { fresh,configure,BATCHES } from './holders18-core.mjs';
+import { fresh,configure,BATCHES,plan } from './holders18-core.mjs';
 import { run,report } from './holders18-run.mjs';
 import { openGitHubStore,githubApi,REPOSITORY } from './holders18-store.mjs';
 import { authorize,shouldWake,recoveryFingerprint,readyForExecution } from './holders18-schedule.mjs';
@@ -16,11 +16,13 @@ export async function assertPrior72(api){
  const current=JSON.parse(Buffer.from(r.content,'base64').toString('utf8'));
  requireThat(current.version===prior.version&&current.id===prior.id&&isDeepStrictEqual(current.entries,prior.entries),'旧任务已产生新交易；需要重新核对预算和nonce，禁止跳过。');
  const manifest=JSON.parse(fs.readFileSync(new URL('./data/holders18-manifest.json',import.meta.url),'utf8'));
- requireThat(manifest.complete===true&&manifest.chainId===56&&manifest.tokenCount===18&&manifest.tokens.length===18&&manifest.errors.length===0,'持仓名单尚未完整核验。');
+ requireThat(manifest.complete===true&&manifest.chainId===56&&manifest.tokenCount===17&&manifest.tokens.length===17&&manifest.errors.length===0&&manifest.scope==='user-approved-17-token-snapshot-9992'&&manifest.deduplicationOnly===true&&manifest.recipientCount===9992,'固定的9992地址名单尚未核验。');
  const expectedTokens=JSON.parse(fs.readFileSync(new URL('../holders18/tokens.json',import.meta.url),'utf8'));
- requireThat(isDeepStrictEqual(manifest.tokens.map(t=>t.token),expectedTokens),'持仓来源代币集合或顺序不匹配。');
+ const omitted='0xa1ed61902f13e162305f59e1b2475e269e647777';
+ requireThat(isDeepStrictEqual(manifest.omittedTokens,[omitted])&&isDeepStrictEqual(manifest.tokens.map(t=>t.token),expectedTokens.filter(t=>t!==omitted)),'持仓来源代币集合或顺序不匹配。');
  const source=fs.readFileSync(new URL('./data/holders18-recipients.txt',import.meta.url));
  configure(source,manifest.recipientSha256,prior);
+ requireThat(plan().flat().length===manifest.recipientCount,'名单人数与清单不匹配。');
 }
 export function options(env){
  const operation=env.HOLDERS18_OPERATION||'check',execute=env.HOLDERS18_PHASE==='execute';
