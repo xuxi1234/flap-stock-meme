@@ -5,9 +5,15 @@
   "run": "34956689174",
   "tokenCount": 18,
   "tokens": [],
-  "errors": [],
+  "errors": [
+    {
+      "token": "0xbeea1d618e533a387d941f58a7d4c9b7bd377777",
+      "error": "RPC HTTP 400"
+    }
+  ],
   "method": "Full Transfer history from deployment; balanceOf for every candidate at one fixed block; rank before filtering",
   "snapshotBlock": 122011515,
   "snapshotHash": "0xce86f416475e40ff2d0787547498811068013df896d92daaa53377630260df67",
-  "snapshotTime": "2026-09-15T10:12:15.000Z"
+  "snapshotTime": "2026-09-15T10:12:15.000Z",
+  "requests": 44
 }
