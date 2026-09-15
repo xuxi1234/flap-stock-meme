@@ -17,11 +17,15 @@
     {
       "token": "0x9aa9cadec931c58c2a22bbc5381b266d12887777",
       "error": "RPC HTTP 400"
+    },
+    {
+      "token": "0xdbb64ec2a453a612d0cc5001b6f15b0200000000",
+      "error": "RPC HTTP 400"
     }
   ],
   "method": "Full Transfer history from deployment; balanceOf for every candidate at one fixed block; rank before filtering",
   "snapshotBlock": 122011515,
   "snapshotHash": "0xce86f416475e40ff2d0787547498811068013df896d92daaa53377630260df67",
   "snapshotTime": "2026-09-15T10:12:15.000Z",
-  "requests": 116
+  "requests": 167
 }
