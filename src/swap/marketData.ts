@@ -35,6 +35,6 @@ export function normalizeMarkets(value: unknown, addresses: string[]): Record<st
   return markets
 }
 export function usd(value: number | null | undefined, compact = false) {
-  return value == null || !Number.isFinite(value) ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: compact ? 'compact' : 'standard', maximumFractionDigits: value < 1 && value > 0 ? 4 : 2 }).format(value)
+  return value == null || !Number.isFinite(value) ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: compact ? 'compact' : 'standard', ...(value > 0 && value < 1 ? { maximumSignificantDigits: 6 } : { maximumFractionDigits: 2 }) }).format(value)
 }
 export function percent(value: number | null | undefined) { return value == null ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%` }

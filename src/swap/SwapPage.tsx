@@ -278,7 +278,7 @@ export function SwapPage() {
       {section==='explore'&&<ExplorePage snapshot={markets.snapshot} loading={markets.loading} error={markets.error} onRefresh={markets.refresh} onSelect={chooseDiscovered} favorites={favorites} onFavorite={toggleFavorite} now={clock}/>}
       {section==='about'&&<AboutPage/>}
     </main>
-    <footer className="swap-footer"><a href={home}>蝴蝶股票 <b>FLAP STOCK</b></a><a href={`${home}?view=markets`}>美股动态</a><p>流动性来源 PancakeSwap V2 / V3 · 服务费 0.8% · 邀请返佣 70% · 池费、代币税与网络费另计</p><a href={`https://bscscan.com/address/${feeDeployment() ?? ROUTER}`} target="_blank" rel="noopener noreferrer">查看路由合约 ↗</a></footer>
+    <footer className="swap-footer"><a href={home}>蝴蝶股票 <b>FLAP STOCK</b></a><a href={`${home}?view=markets`}>美股动态</a><p>流动性来源 PancakeSwap V2 / V3 · 兑换服务费 0.8% · 邀请返佣 70% · 池费、代币税与网络费另计</p><a href={`https://bscscan.com/address/${feeDeployment() ?? ROUTER}`} target="_blank" rel="noopener noreferrer">查看路由合约 ↗</a></footer>
 
     {globalSearch&&<TokenPicker client={client} favorites={favorites} onClose={()=>setGlobalSearch(false)} onSelect={token=>{if(token.custom&&!customTokens.some(t=>tokenKey(t)===tokenKey(token)))setCustomTokens(list=>[...list,token]);chooseDiscovered(token);setGlobalSearch(false)}}/>}
     {inviteOpen && <Dialog title="邀请好友，共享交易收益" onClose={()=>setInviteOpen(false)}><ReferralPanel account={account} client={client} token={output} candidate={candidate} onConnect={()=>{setInviteOpen(false);setWalletOpen(true)}}/></Dialog>}
