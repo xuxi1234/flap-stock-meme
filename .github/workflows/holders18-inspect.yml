@@ -1,0 +1,27 @@
+name: 蝴蝶持仓名单｜特殊代币只读诊断
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: node scripts/holders18/inspect-special.mjs
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          HOLDERS_BRANCH: automation/holders18-34957676109
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: holders18-inspect-${{ github.run_id }}
+          path: holders18-inspect-output/
+          retention-days: 90
