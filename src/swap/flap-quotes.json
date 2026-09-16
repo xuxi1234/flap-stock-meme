@@ -1,0 +1,142 @@
+[
+  {
+    "symbol": "BNB",
+    "address": "0x0000000000000000000000000000000000000000"
+  },
+  {
+    "symbol": "ASTER",
+    "address": "0x000ae314e2a2172a039b26378814c252734f556a"
+  },
+  {
+    "symbol": "USDT",
+    "address": "0x55d398326f99059ff775485246999027b3197955"
+  },
+  {
+    "symbol": "USDC",
+    "address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+  },
+  {
+    "symbol": "U",
+    "address": "0xce24439f2d9c6a2289f741120fe202248b666666"
+  },
+  {
+    "symbol": "USD1",
+    "address": "0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d"
+  },
+  {
+    "symbol": "\u5e01\u5b89\u4eba\u751f",
+    "address": "0x924fa68a0fc644485b8df8abfa0a41c2e7744444"
+  },
+  {
+    "symbol": "UUSD",
+    "address": "0x61a10e8556bed032ea176330e7f17d6a12a10000"
+  },
+  {
+    "symbol": "SPCXB",
+    "address": "0xbe9d156892e55e7154bcd3cb0fea677f9d3103e1"
+  },
+  {
+    "symbol": "SKHYB",
+    "address": "0xca750ef65f295bbecd685abf54e82caf297bdb61"
+  },
+  {
+    "symbol": "SPYB",
+    "address": "0x7138b48df7d98d7e3cc221bfe7192d0a178182d8"
+  },
+  {
+    "symbol": "XAUT",
+    "address": "0x21caef8a43163eea865baee23b9c2e327696a3bf"
+  },
+  {
+    "symbol": "QQQB",
+    "address": "0x205812cdbed920aff76c6580abd681a46d11efc7"
+  },
+  {
+    "symbol": "AAPLB",
+    "address": "0x431a3bee82e2ca41e49895cbece5bb0f76a89b7a"
+  },
+  {
+    "symbol": "TSLAB",
+    "address": "0x5b1910eaad6450e50f816082aa078c41f10c292f"
+  },
+  {
+    "symbol": "MSFTB",
+    "address": "0x80106cb3ead06659a5ad19df39d9b4733863b9b0"
+  },
+  {
+    "symbol": "GOOGLB",
+    "address": "0x3f53de71c126bdabae20f9cd64848d317f6c3238"
+  },
+  {
+    "symbol": "BTCB",
+    "address": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+  },
+  {
+    "symbol": "SOL",
+    "address": "0x570a5d26f7765ecb712c0924e4de545b89fd43df"
+  },
+  {
+    "symbol": "ETH",
+    "address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+  },
+  {
+    "symbol": "HOODB",
+    "address": "0xa394dcea3fd3847fd793afbfd163e2e3858b7c65"
+  },
+  {
+    "symbol": "BABAB",
+    "address": "0x4ef9d3062c7f6eba4aae4990c5036598c6eff4ec"
+  },
+  {
+    "symbol": "GMEB",
+    "address": "0x46ceefda28dd7207059ed19b0acdc026955bb15c"
+  },
+  {
+    "symbol": "NFLXB",
+    "address": "0xd6829ea836b6fa224d099d40e54b31262f874631"
+  },
+  {
+    "symbol": "MSTRB",
+    "address": "0xe87afb3076aeb0f9b14e368de8145ae6a2826a14"
+  },
+  {
+    "symbol": "DJTB",
+    "address": "0xf2ec508422174ee564de98187db9359d318afb6b"
+  },
+  {
+    "symbol": "SOXSB",
+    "address": "0xe28cd11c99af2df76bb8ada4cd0ef3904378280f"
+  },
+  {
+    "symbol": "SOXLB",
+    "address": "0xd97d097a89113fa59b76c572e5b2eb647e8eefaf"
+  },
+  {
+    "symbol": "MRNAB",
+    "address": "0x5fd86da9b05abe396fe9d02a4a213a7c00556503"
+  },
+  {
+    "symbol": "FLNCB",
+    "address": "0x4af1d41cd9dd950dca43984b43aaa2a8702714ac"
+  },
+  {
+    "symbol": "SQQQB",
+    "address": "0x25e572b466d152604d9e6c3e53b432b978825342"
+  },
+  {
+    "symbol": "BNCB",
+    "address": "0x4902c5ebc598265ed2212b559b042de8a5eeec3f"
+  },
+  {
+    "symbol": "FXIon",
+    "address": "0x9b8e987e6fec8cf1380c4dca7071e2c7853aeea1"
+  },
+  {
+    "symbol": "BMNRB",
+    "address": "0x3548da95a9effe481e8604664d75e95821e557f5"
+  },
+  {
+    "symbol": "BILIon",
+    "address": "0x91fc7371d6de682a1e8cfcb4eb7da693312a03a4"
+  }
+]

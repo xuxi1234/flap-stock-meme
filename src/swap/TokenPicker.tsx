@@ -10,8 +10,8 @@ export function ProductDialog({ title, onClose, children, busy = false }: { titl
   return <dialog ref={ref} className="swap-dialog" aria-label={title} onCancel={e => { e.preventDefault(); if (!busy) onClose() }} onClick={e => { if (e.target === e.currentTarget && !busy) onClose() }}><div className="swap-dialog-head"><h2>{title}</h2><button disabled={busy} className="swap-icon-button" aria-label="关闭窗口" onClick={onClose}>×</button></div>{children}</dialog>
 }
 
-export function TokenPicker({ client, onSelect, onClose, favorites = [] }: { client: PublicClient; onSelect: (t: SwapToken) => void; onClose: () => void; favorites?: string[] }) {
-  const [query, setQuery] = useState('')
+export function TokenPicker({ client, onSelect, onClose, favorites = [], initialQuery = '' }: { client: PublicClient; onSelect: (t: SwapToken) => void; onClose: () => void; favorites?: string[]; initialQuery?: string }) {
+  const [query, setQuery] = useState(initialQuery)
   const [onlyFavorites, setOnlyFavorites] = useState(false)
   const [imported, setImported] = useState<SwapToken | null>(null)
   const [error, setError] = useState('')
