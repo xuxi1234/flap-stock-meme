@@ -11,6 +11,7 @@ contract ButterflyMarket is ReentrancyGuard {
  struct Listing {address payable seller;uint256 price;}
  mapping(uint256=>Listing) public listings;
  mapping(uint256=>uint256) public listingNonce;
+ mapping(uint256=>uint256) public listingVersion;
  uint256[] private listedIds;
  mapping(uint256=>bool) private everListed;
  event Listed(uint256 indexed tokenId,address indexed seller,uint256 price);
@@ -33,14 +34,15 @@ contract ButterflyMarket is ReentrancyGuard {
   require(price>0,'Invalid price');require(collection.ownerOf(tokenId)==msg.sender,'Only owner');
   require(collection.getApproved(tokenId)==address(this) || collection.isApprovedForAll(msg.sender,address(this)),'Approval required');
   if(!everListed[tokenId]){everListed[tokenId]=true;listedIds.push(tokenId);}
-  listings[tokenId]=Listing(payable(msg.sender),price);listingNonce[tokenId]=collection.transferNonce(tokenId);
+  ++listingVersion[tokenId];listings[tokenId]=Listing(payable(msg.sender),price);listingNonce[tokenId]=collection.transferNonce(tokenId);
   emit Listed(tokenId,msg.sender,price);
  }
  function cancel(uint256 tokenId) external nonReentrant {
   require(listings[tokenId].seller==msg.sender,'Only seller');delete listings[tokenId];delete listingNonce[tokenId];
   emit Cancelled(tokenId,msg.sender);
  }
- function buy(uint256 tokenId) external payable nonReentrant {
+ function buy(uint256 tokenId,address expectedSeller,uint256 expectedVersion) external payable nonReentrant {
+  require(listings[tokenId].seller==expectedSeller && listingVersion[tokenId]==expectedVersion,'Listing changed');
   Listing memory l=listings[tokenId];require(isListingActive(tokenId) && msg.sender!=l.seller,'Invalid buyer or listing');
   require(msg.value==l.price,'Exact price required');delete listings[tokenId];delete listingNonce[tokenId];
   collection.safeTransferFrom(l.seller,msg.sender,tokenId);

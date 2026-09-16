@@ -34,8 +34,8 @@ contract AdversarialReceiver {
  receive() external payable {require(!rejectPayment,'Rejected payment');attack();}
 }
 contract RejectingBuyer {
- function buy(address market,uint256 tokenId) external payable {
-  (bool ok,bytes memory data)=market.call{value:msg.value}(abi.encodeWithSignature('buy(uint256)',tokenId));
+ function buy(address market,uint256 tokenId,address expectedSeller,uint256 expectedVersion) external payable {
+  (bool ok,bytes memory data)=market.call{value:msg.value}(abi.encodeWithSignature('buy(uint256,address,uint256)',tokenId,expectedSeller,expectedVersion));
   if(!ok)assembly{revert(add(data,32),mload(data))}
  }
 }

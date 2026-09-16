@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {mkdirSync,writeFileSync,readFileSync,existsSync,rmSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
-import {createRequire} from 'node:module';
+import {Worker} from 'node:worker_threads';
 export const SUPPLY=7777;
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const VERSION='butterfly-nature-v3';
@@ -60,17 +60,23 @@ export function makeNFT(id){
  return{art,item,metadata};
 }
 export async function generate(output=resolve(ROOT,'public/nft')){
- const require=createRequire(new URL('./nft-art/package.json',import.meta.url));const{Resvg}=require('@resvg/resvg-js');const sharp=require('sharp');
+
  const configuredBase=process.env.NFT_ASSET_BASE_URL?.replace(/\/$/,'');
  if(configuredBase&&!/^https:\/\/[^/]+\/nft(?:\/[a-zA-Z0-9_-]+)*$/.test(configuredBase))throw Error('NFT_ASSET_BASE_URL must be an absolute HTTPS /nft path');
  const oldManifest=existsSync(`${output}/manifest.json`)?JSON.parse(readFileSync(`${output}/manifest.json`)):null;
- if(oldManifest?.version!==VERSION){rmSync(`${output}/art`,{recursive:true,force:true});rmSync(`${output}/metadata`,{recursive:true,force:true});}
- mkdirSync(`${output}/art`,{recursive:true});mkdirSync(`${output}/metadata`,{recursive:true});
+ const cacheVersion=existsSync(`${output}/art-version.txt`)?readFileSync(`${output}/art-version.txt`,'utf8'):oldManifest?.version;
+ if(cacheVersion!==VERSION){rmSync(`${output}/art`,{recursive:true,force:true});rmSync(`${output}/metadata`,{recursive:true,force:true});}
+ mkdirSync(`${output}/art`,{recursive:true});mkdirSync(`${output}/metadata`,{recursive:true});mkdirSync(`${output}/integrity`,{recursive:true});
+ writeFileSync(`${output}/art-version.txt`,VERSION);
+ const workerCount=4;
+ await Promise.all(Array.from({length:workerCount},(_,index)=>new Promise((resolve,reject)=>{const worker=new Worker(new URL('./nft-art/raster-worker.mjs',import.meta.url),{workerData:{index,count:workerCount,output}});worker.once('error',reject);worker.once('exit',code=>code===0?resolve():reject(Error(`Raster worker exit ${code}`)));})));
  const catalog=[],seen=new Set(),rarityCounts={},familyCounts={};
  for(let id=1;id<=SUPPLY;id++){
   const{art,item,metadata}=makeNFT(id);if(seen.has(item.dna))throw Error(`Duplicate artwork ${id}`);seen.add(item.dna);
   const path=`${output}/art/${id}.jpg`;let png;
-  if(existsSync(path)&&oldManifest?.version===VERSION)png=readFileSync(path);else{png=await sharp(new Resvg(art,{fitTo:{mode:'width',value:640}}).render().asPng()).jpeg({quality:91,chromaSubsampling:'4:4:4'}).toBuffer();writeFileSync(path,png);}
+  png=readFileSync(path);
+  const proof=JSON.parse(readFileSync(`${output}/integrity/${id}.json`));
+  if(proof.artwork_sha256!==item.dna||proof.image_sha256!==hash(png))throw Error(`Raster integrity failed ${id}`);
   metadata.properties.image_sha256=hash(png);item.imageHash=hash(png);
   catalog.push(item);rarityCounts[item.rarity]=(rarityCounts[item.rarity]||0)+1;familyCounts[item.family]=(familyCounts[item.family]||0)+1;
   writeFileSync(`${output}/metadata/${id}.json`,JSON.stringify(metadata));

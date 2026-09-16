@@ -57,10 +57,10 @@ test('noncustodial sale enforces exact payment and pays seller all 0.15777 BNB',
  await(await c.approve(await m.getAddress(),1)).wait();const salePrice=parseEther('0.15777');await(await m.list(1,salePrice)).wait();
  assert.equal(await c.ownerOf(1),await owner.getAddress());
  assert.equal(await m.FEE_BPS(),0n);
- await assert.rejects(m.connect(buyer).cancel(1));await assert.rejects(m.buy(1,{value:salePrice}));await assert.rejects(m.connect(buyer).buy(1,{value:9999}));
+ await assert.rejects(m.connect(buyer).cancel(1));await assert.rejects(m.buy(1,await owner.getAddress(),1,{value:salePrice}));await assert.rejects(m.connect(buyer).buy(1,await owner.getAddress(),1,{value:9999}));
  const sellerBefore=BigInt(await provider.send('eth_getBalance',[await owner.getAddress(),'latest']));
  const feeBefore=BigInt(await provider.send('eth_getBalance',[await m.TREASURY(),'latest']));
- await(await m.connect(buyer).buy(1,{value:salePrice})).wait();
+ await(await m.connect(buyer).buy(1,await owner.getAddress(),1,{value:salePrice})).wait();
  assert.equal(await c.ownerOf(1),await buyer.getAddress());
  assert.equal(BigInt(await provider.send('eth_getBalance',[await owner.getAddress(),'latest']))-sellerBefore,salePrice);
  assert.equal(BigInt(await provider.send('eth_getBalance',[await m.TREASURY(),'latest']))-feeBefore,0n);
@@ -127,9 +127,9 @@ test('seller payout cannot reenter cancellation; rejected payout restores owners
  await(await actor.execute(await c.getAddress(),c.interface.encodeFunctionData('approve',[await m.getAddress(),n]))).wait();await(await actor.execute(await m.getAddress(),m.interface.encodeFunctionData('list',[n,10000]))).wait();
  }
  await(await actor.configure(await m.getAddress(),m.interface.encodeFunctionData('cancel',[2]),false)).wait();
- await(await m.connect(buyer).buy(1,{value:10000})).wait();assert.equal(await actor.attempted(),true);assert.equal(await actor.reentered(),false);assert.equal((await m.listings(2)).seller,addr);
+ await(await m.connect(buyer).buy(1,addr,1,{value:10000})).wait();assert.equal(await actor.attempted(),true);assert.equal(await actor.reentered(),false);assert.equal((await m.listings(2)).seller,addr);
  await(await actor.configure(ZeroAddress,'0x',true)).wait();
- await assert.rejects(async()=>{await(await m.connect(buyer).buy(2,{value:10000})).wait();});
+ await assert.rejects(async()=>{await(await m.connect(buyer).buy(2,addr,1,{value:10000})).wait();});
  assert.equal((await m.listings(2)).seller,addr);assert.equal(await c.ownerOf(2),addr);assert.equal(await m.isListingActive(2),true);
  }finally{await f.rpc.disconnect();}
 });
@@ -151,10 +151,10 @@ test('revoked approvals disable sale; ownership roundtrip never resurrects listi
  const {collection:c,coordinator:v,adapter:a,owner,buyer,market:m}=f;const own=await owner.getAddress(),buy=await buyer.getAddress();
  await(await c.requestMint({value:price})).wait();await(await v.fulfill(await a.getAddress(),1,0)).wait();await(await c.claim(1,own)).wait();
  await(await c.approve(await m.getAddress(),1)).wait();await(await m.list(1,10000)).wait();assert.equal(await m.isListingActive(1),true);
- await(await c.approve(ZeroAddress,1)).wait();assert.equal(await m.isListingActive(1),false);await assert.rejects(m.connect(buyer).buy(1,{value:10000}));
+ await(await c.approve(ZeroAddress,1)).wait();assert.equal(await m.isListingActive(1),false);await assert.rejects(m.connect(buyer).buy(1,own,1,{value:10000}));
  await(await c.setApprovalForAll(await m.getAddress(),true)).wait();assert.equal(await m.isListingActive(1),true);
  const nonce=await c.transferNonce(1);await(await c.transferFrom(own,buy,1)).wait();await(await c.connect(buyer).transferFrom(buy,own,1)).wait();
- assert.equal(await c.transferNonce(1),nonce+2n);assert.equal(await m.isListingActive(1),false);await assert.rejects(m.connect(buyer).buy(1,{value:10000}));
+ assert.equal(await c.transferNonce(1),nonce+2n);assert.equal(await m.isListingActive(1),false);await assert.rejects(m.connect(buyer).buy(1,own,1,{value:10000}));
  await(await m.list(1,10001)).wait();assert.equal(await m.isListingActive(1),true);const beforeCancel=await c.transferNonce(1);
  assert.equal(await m.listedTokenCount(),1n);assert.deepEqual(Array.from(await m.listedTokenIds(0,100)),[1n]);await assert.rejects(m.listedTokenIds(0,101));assert.deepEqual(Array.from(await m.listedTokenIds(1,100)),[]);
  await(await m.cancel(1)).wait();assert.equal(await m.listedTokenCount(),1n);assert.equal(await c.transferNonce(1),beforeCancel);assert.equal(await c.ownerOf(1),own);assert.equal(await m.isListingActive(1),false);
@@ -167,7 +167,7 @@ test('buyer receiver reentry is blocked',async()=>{
  await(await c.approve(await m.getAddress(),1)).wait();await(await m.list(1,10000)).wait();
  const actor=await deploy('test/Fixtures.sol','AdversarialReceiver');
  await(await actor.configure(await m.getAddress(),m.interface.encodeFunctionData('list',[1,5]),false)).wait();
- await(await actor.execute(await m.getAddress(),m.interface.encodeFunctionData('buy',[1]),{value:10000})).wait();
+ await(await actor.execute(await m.getAddress(),m.interface.encodeFunctionData('buy',[1,own,1]),{value:10000})).wait();
  assert.equal(await actor.attempted(),true);assert.equal(await actor.reentered(),false);assert.equal(await c.ownerOf(1),await actor.getAddress());
  }finally{await f.rpc.disconnect();}
 });
@@ -177,7 +177,34 @@ test('rejected buyer receiver restores seller NFT, approval and listing',async()
  await(await c.requestMint({value:price})).wait();await(await v.fulfill(await a.getAddress(),1,0)).wait();await(await c.claim(1,own)).wait();
  await(await c.approve(await m.getAddress(),1)).wait();await(await m.list(1,10000)).wait();
  const bad=await deploy('test/Fixtures.sol','RejectingBuyer');const nonce=await c.transferNonce(1);
- await assert.rejects(bad.buy(await m.getAddress(),1,{value:10000}));
+ await assert.rejects(bad.buy(await m.getAddress(),1,own,1,{value:10000}));
  assert.equal(await c.ownerOf(1),own);assert.equal(await m.isListingActive(1),true);assert.equal(await c.transferNonce(1),nonce);
+ }finally{await f.rpc.disconnect();}
+});
+
+test('buy binds the reviewed listing version across cancellation and same-price relisting',async()=>{
+ const f=await fixture();try{
+ const {collection:c,coordinator:v,adapter:a,owner,buyer,market:m}=f;const own=await owner.getAddress();
+ await(await c.requestMint({value:price})).wait();await(await v.fulfill(await a.getAddress(),1,0)).wait();await(await c.claim(1,own)).wait();
+ await(await c.approve(await m.getAddress(),1)).wait();await(await m.list(1,10000)).wait();const reviewed=await m.listingVersion(1);assert.equal(reviewed,1n);
+ await(await m.cancel(1)).wait();assert.equal(await m.listingVersion(1),reviewed);
+ await(await m.list(1,10000)).wait();assert.equal(await m.listingVersion(1),reviewed+1n);
+ await assert.rejects(m.connect(buyer).buy(1,own,reviewed,{value:10000}));assert.equal(await c.ownerOf(1),own);assert.equal(await m.isListingActive(1),true);
+ await(await m.connect(buyer).buy(1,own,reviewed+1n,{value:10000})).wait();assert.equal(await c.ownerOf(1),await buyer.getAddress());assert.equal(await m.listingVersion(1),reviewed+1n);
+ assert.equal(m.interface.getFunction('buy(uint256)'),null,'unbound buy selector is not available');
+ }finally{await f.rpc.disconnect();}
+});
+test('buy cannot accept a replacement seller at the reviewed price',async()=>{
+ const f=await fixture();try{
+ const {collection:c,coordinator:v,adapter:a,owner,buyer,other,market:m}=f;const own=await owner.getAddress(),next=await other.getAddress();
+ await(await c.requestMint({value:price})).wait();await(await v.fulfill(await a.getAddress(),1,0)).wait();await(await c.claim(1,own)).wait();
+ await(await c.approve(await m.getAddress(),1)).wait();await(await m.list(1,10000)).wait();const reviewed=await m.listingVersion(1);
+ await(await c.transferFrom(own,next,1)).wait();await(await c.connect(other).approve(await m.getAddress(),1)).wait();await(await m.connect(other).list(1,10000)).wait();
+ const current=await m.listingVersion(1);assert.equal(current,reviewed+1n);
+ await assert.rejects(m.connect(buyer).buy(1,own,reviewed,{value:10000}));
+ await assert.rejects(m.connect(buyer).buy(1,own,current,{value:10000}));
+ await assert.rejects(m.connect(buyer).buy(1,next,reviewed,{value:10000}));
+ assert.equal(await c.ownerOf(1),next);assert.equal(await m.isListingActive(1),true);
+ await(await m.connect(buyer).buy(1,next,current,{value:10000})).wait();assert.equal(await c.ownerOf(1),await buyer.getAddress());
  }finally{await f.rpc.disconnect();}
 });

@@ -11,7 +11,7 @@ export const nftAbi=parseAbi([
  'function payerRequestCount(address) view returns(uint256)','function payerRequests(address,uint256,uint256) view returns(uint256[])',
  'function tokenURI(uint256) view returns(string)','function contractURI() view returns(string)',
 ]);
-export const marketAbi=parseAbi(['function FEE_BPS() view returns(uint256)','function collection() view returns(address)','function listings(uint256) view returns(address seller,uint256 price)','function isListingActive(uint256) view returns(bool)','function listedTokenCount() view returns(uint256)','function listedTokenIds(uint256,uint256) view returns(uint256[])','function list(uint256,uint256)','function cancel(uint256)','function buy(uint256) payable']);
+export const marketAbi=parseAbi(['function FEE_BPS() view returns(uint256)','function collection() view returns(address)','function listings(uint256) view returns(address seller,uint256 price)','function isListingActive(uint256) view returns(bool)','function listedTokenCount() view returns(uint256)','function listedTokenIds(uint256,uint256) view returns(uint256[])','function list(uint256,uint256)','function cancel(uint256)','function listingVersion(uint256) view returns(uint256)','function buy(uint256,address,uint256) payable']);
 export type Deployment={enabled:boolean;chainId:number;collection:string;market:string;collectionCodeHash:string;marketCodeHash:string;assetBase:string;reason?:string};
 export function validateDeployment(d:Deployment){
  if(!d.enabled)throw Error(d.reason||'尚未开放链上交易');
@@ -44,7 +44,7 @@ export async function readState(account?:Address){
  if(candidateCount>7777n)throw Error('挂单数量异常');
  const ids:bigint[]=[];
  for(let offset=0n;offset<candidateCount;offset+=100n)ids.push(...await publicClient.readContract({address:d.market,abi:marketAbi,functionName:'listedTokenIds',args:[offset,100n]}));
- const rows=await chunks(ids,async id=>{const [l,active]=await Promise.all([publicClient.readContract({address:d.market,abi:marketAbi,functionName:'listings',args:[id]}),publicClient.readContract({address:d.market,abi:marketAbi,functionName:'isListingActive',args:[id]})]);return{id:Number(id),seller:l[0],price:l[1],active} as Listing;});
+ const rows=await chunks(ids,async id=>{const [l,active,version]=await Promise.all([publicClient.readContract({address:d.market,abi:marketAbi,functionName:'listings',args:[id]}),publicClient.readContract({address:d.market,abi:marketAbi,functionName:'isListingActive',args:[id]}),publicClient.readContract({address:d.market,abi:marketAbi,functionName:'listingVersion',args:[id]})]);return{id:Number(id),seller:l[0],price:l[1],active,version} as Listing;});
  const owned:number[]=[],pending:PendingMint[]=[];
  if(account){
   const count=await publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'balanceOf',args:[account]});if(count>7777n)throw Error('持仓数量异常');
@@ -57,7 +57,7 @@ export async function readState(account?:Address){
 }
 export type ChainState=Awaited<ReturnType<typeof readState>>;
 export const emptyState:ChainState={total:0,reserved:0,owned:[],pending:[],listings:[]};
-export async function transact(action:'mint'|'claim'|'approve'|'list'|'cancel'|'buy',account:Address,args:{id?:number;requestId?:bigint;price?:bigint},onHash:(hash:Hash)=>void){
+export async function transact(action:'mint'|'claim'|'approve'|'list'|'cancel'|'buy',account:Address,args:{id?:number;requestId?:bigint;price?:bigint;seller?:Address;version?:bigint},onHash:(hash:Hash)=>void){
  const d=await validateLive(),provider=walletProvider();if(!provider)throw Error('请连接钱包');
  const current=await provider.request({method:'eth_accounts'});if(current[0]?.toLowerCase()!==account.toLowerCase())throw Error('钱包地址已变化，请重新连接');
  if(await provider.request({method:'eth_chainId'})!=='0x38')throw Error('请重新连接并切换至 BNB Chain');
@@ -68,7 +68,7 @@ export async function transact(action:'mint'|'claim'|'approve'|'list'|'cancel'|'
  else if(action==='approve')request=await publicClient.simulateContract({address:d.collection,abi:nftAbi,functionName:'approve',args:[d.market,BigInt(args.id!)],account});
  else if(action==='list')request=await publicClient.simulateContract({address:d.market,abi:marketAbi,functionName:'list',args:[BigInt(args.id!),args.price!],account});
  else if(action==='cancel')request=await publicClient.simulateContract({address:d.market,abi:marketAbi,functionName:'cancel',args:[BigInt(args.id!)],account});
- else request=await publicClient.simulateContract({address:d.market,abi:marketAbi,functionName:'buy',args:[BigInt(args.id!)],value:args.price!,account});
+ else request=await publicClient.simulateContract({address:d.market,abi:marketAbi,functionName:'buy',args:[BigInt(args.id!),args.seller!,args.version!],value:args.price!,account});
  const hash=await client.writeContract(request.request as WriteContractParameters);onHash(hash);
  const receipt=await publicClient.waitForTransactionReceipt({hash,confirmations:2,timeout:180000});if(receipt.status!=='success')throw Error('链上交易失败，请查看交易记录');return receipt;
 }
