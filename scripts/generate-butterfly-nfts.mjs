@@ -32,7 +32,12 @@ export function makeNFT(id) {
   const rarityDraw=r(); const rarity=rarityDraw<0.025?'传说':rarityDraw<0.125?'史诗':rarityDraw<0.4?'稀有':'典藏';
   const [family,,light,color,dark]=palette;
   const topX=n(185+r()*60),topY=n(-210+r()*45),width=n(215+r()*30),lower=n(105+r()*48),tail=n(175+r()*70);
-  const path=`M 8 -6 C 40 -85 ${n(topX*.65)} ${topY-45} ${topX} ${topY} C ${width+35} ${topY+35} ${width+14} -64 ${width-25} -23 C ${width-65} 15 104 31 20 13 C 115 5 ${width-5} 17 ${width-38} 86 Q ${width-50} 119 ${wing%2?width-81:width-40} ${lower} Q ${wing===1?75:width-65} ${lower-10} ${wing===0||wing===2?110:75} ${wing===0||wing===2?tail:lower+15} Q ${wing===0||wing===2?87:44} ${wing===0||wing===2?tail+20:lower+22} 68 125 C 21 96 9 58 8 -6 Z`;
+  const lowerWing=wing===3
+    ?`Q ${width-46} 112 ${width-63} ${lower-8} Q ${width-88} ${lower+28} 128 ${lower+2} Q 82 ${lower+38} 55 116`
+    :wing===5
+      ?`Q ${width-30} 128 ${width-24} ${lower+18} L 92 ${tail+34} Q 73 ${tail+42} 68 125`
+      :`Q ${width-50} 119 ${wing%2?width-81:width-40} ${lower} Q ${wing===1?75:width-65} ${lower-10} ${wing===0||wing===2?110:75} ${wing===0||wing===2?tail:lower+15} Q ${wing===0||wing===2?87:44} ${wing===0||wing===2?tail+20:lower+22} 68 125`;
+  const path=`M 8 -6 C 40 -85 ${n(topX*.65)} ${topY-45} ${topX} ${topY} C ${width+35} ${topY+35} ${width+14} -64 ${width-25} -23 C ${width-65} 15 104 31 20 13 C 115 5 ${width-5} 17 ${width-38} 86 ${lowerWing} C 21 96 9 58 8 -6 Z`;
   let cells='',stars='',haloArt='';
   for(let i=0;i<13;i++) {
     const x=n(45+i*14+r()*15),y=n(-155+(i%4)*31+r()*21);
@@ -45,7 +50,10 @@ export function makeNFT(id) {
   }
   for(let i=0;i<25;i++){
     const x=n(40+r()*196),y=n(-190+r()*310),size=n(1.1+r()*3.6);
-    cells+=pattern===1?`<path d="M ${x} ${y-size*2} l ${size} ${size*2} l ${-size} ${size*2} l ${-size} ${-size*2} Z" fill="${light}" opacity=".45"/>`:`<circle cx="${x}" cy="${y}" r="${size}" fill="${light}" opacity="${n(.18+r()*.5)}"/>`;
+    if(pattern===1)cells+=`<path d="M ${x} ${y-size*2} l ${size} ${size*2} l ${-size} ${size*2} l ${-size} ${-size*2} Z" fill="${light}" opacity=".45"/>`;
+    else if(pattern===3)cells+=`<path d="M ${x-size*4} ${y+size*2} Q ${x} ${y-size*2} ${x+size*5} ${y-size*5}" fill="none" stroke="${light}" stroke-width="${n(size*.65)}" stroke-linecap="round" opacity=".55"/>`;
+    else if(pattern===4)cells+=`<path d="M ${x-size*2} ${y} H ${x+size*2} M ${x} ${y-size*2} V ${y+size*2} M ${x-size*1.4} ${y-size*1.4} L ${x+size*1.4} ${y+size*1.4} M ${x+size*1.4} ${y-size*1.4} L ${x-size*1.4} ${y+size*1.4}" fill="none" stroke="${light}" stroke-width="${n(size*.38)}" opacity=".65"/>`;
+    else cells+=`<circle cx="${x}" cy="${y}" r="${size}" fill="${light}" opacity="${n(.18+r()*.5)}"/>`;
   }
   if(pattern===2||pattern===0){
     for(const [x,y,s] of [[168,-100,25],[120,75,19]]) cells+=`<ellipse cx="${x}" cy="${y}" rx="${s*1.1}" ry="${s}" fill="${dark}" stroke="${light}" stroke-width="1.5"/><ellipse cx="${x}" cy="${y}" rx="${s*.7}" ry="${s*.67}" fill="url(#eye)"/><circle cx="${x+3}" cy="${y-3}" r="${s*.28}" fill="${dark}"/><circle cx="${x+6}" cy="${y-7}" r="2" fill="white"/>`;

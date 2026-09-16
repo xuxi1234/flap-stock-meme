@@ -32,8 +32,21 @@ export function list(state:Ledger,id:number,price:bigint){validId(id);if(!state.
 export function cancel(state:Ledger,id:number){const l=state.listings.find(x=>x.id===id);if(!l||l.seller!=='you')throw Error('只能撤销自己的挂单');return addActivity({...state,listings:state.listings.filter(x=>x.id!==id)},'cancel',id,BigInt(l.price));}
 export function buy(state:Ledger,id:number,expectedPrice:string){const l=state.listings.find(x=>x.id===id);if(!l)throw Error('挂单已失效');if(l.seller==='you'||state.owned.includes(id))throw Error('不能购买自己的 NFT');if(l.price!==expectedPrice)throw Error('价格发生变化，请重新确认');return addActivity({...state,owned:[...state.owned,id],listings:state.listings.filter(x=>x.id!==id)},'buy',id,BigInt(l.price),splitFee(BigInt(l.price)).fee);}
 export function loadLedger():Ledger{
- try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(!x||x.version!==1||!Array.isArray(x.owned)||!Array.isArray(x.minted)||!Array.isArray(x.listings)||!Array.isArray(x.activity))return initialLedger();
- if([...x.owned,...x.minted].some((id:unknown)=>typeof id!=='number'||!Number.isInteger(id)||id<1||id>NFT_SUPPLY)||new Set(x.owned).size!==x.owned.length||new Set(x.minted).size!==x.minted.length)return initialLedger();
- if(x.listings.some((l:Listing)=>!Number.isInteger(l.id)||l.id<1||l.id>NFT_SUPPLY||!['you','demo'].includes(l.seller)||!/^\d+$/.test(l.price)||BigInt(l.price)<=0n))return initialLedger();
- return x;}catch{return initialLedger();}
+ try{
+  const x:unknown=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(!x||typeof x!=='object')return initialLedger();
+  const ledger=x as Partial<Ledger>;
+  if(ledger.version!==1||!Array.isArray(ledger.owned)||!Array.isArray(ledger.minted)||!Array.isArray(ledger.listings)||!Array.isArray(ledger.activity))return initialLedger();
+  const ids=[...ledger.owned,...ledger.minted];
+  if(ids.some(id=>typeof id!=='number'||!Number.isInteger(id)||id<1||id>NFT_SUPPLY)||new Set(ledger.owned).size!==ledger.owned.length||new Set(ledger.minted).size!==ledger.minted.length)return initialLedger();
+  const owned=new Set(ledger.owned),minted=new Set(ledger.minted);
+  if(ledger.minted.some(id=>!owned.has(id)||DEMO_IDS.includes(id)))return initialLedger();
+  if(ledger.listings.some(l=>!l||typeof l!=='object'||!Number.isInteger(l.id)||l.id<1||l.id>NFT_SUPPLY||!['you','demo'].includes(l.seller)||typeof l.price!=='string'||!/^\d+$/.test(l.price)||BigInt(l.price)<=0n))return initialLedger();
+  if(new Set(ledger.listings.map(l=>l.id)).size!==ledger.listings.length)return initialLedger();
+  if(ledger.listings.some(l=>l.seller==='you'?!owned.has(l.id):!DEMO_IDS.includes(l.id)||owned.has(l.id)||minted.has(l.id)))return initialLedger();
+  const kinds=new Set<Activity['kind']>(['mint','list','cancel','buy']);
+  if(ledger.activity.some(a=>!a||typeof a!=='object'||typeof a.id!=='string'||!a.id||!kinds.has(a.kind)||!Number.isInteger(a.token)||a.token<1||a.token>NFT_SUPPLY||typeof a.price!=='string'||!/^\d+$/.test(a.price)||typeof a.fee!=='string'||!/^\d+$/.test(a.fee)||typeof a.time!=='number'||!Number.isFinite(a.time)||a.time<0))return initialLedger();
+  if(new Set(ledger.activity.map(a=>a.id)).size!==ledger.activity.length)return initialLedger();
+  return ledger as Ledger;
+ }catch{return initialLedger();}
 }

@@ -1,9 +1,27 @@
 import {describe,it,expect} from 'vitest';
-import {initialLedger,drawRandom,mint,list,cancel,buy,parseBNB,splitFee,DEMO_IDS,MINT_WEI,formatBNB} from './model';
+import {initialLedger,drawRandom,mint,list,cancel,buy,parseBNB,splitFee,DEMO_IDS,MINT_WEI,formatBNB,loadLedger,STORAGE_KEY} from './model';
 describe('NFT preview economic state',()=>{
  it('allocates remaining IDs without replacement including supply end',()=>{let s=initialLedger();s.minted=Array.from({length:7776},(_,i)=>i+1);expect(drawRandom(s,()=>new Uint32Array([0]))).toBe(7777);s=mint(s,7777);expect(()=>drawRandom(s)).toThrow();expect(()=>mint(s,7777)).toThrow();});
  it('excludes demo inventory from random mints and rejects invalid IDs',()=>{for(let i=0;i<30;i++)expect(DEMO_IDS).not.toContain(drawRandom(initialLedger(),()=>new Uint32Array([i])));expect(()=>mint(initialLedger(),0)).toThrow();expect(()=>mint(initialLedger(),7778)).toThrow();});
  it('checks ownership, listing, cancel and self purchase',()=>{let s=mint(initialLedger(),1);s=list(s,1,parseBNB('0.03'));expect(()=>list(s,1,1n)).toThrow();expect(()=>list(s,2,1n)).toThrow();expect(()=>buy(s,1,'30000000000000000')).toThrow();s=cancel(s,1);expect(s.owned).toContain(1);expect(s.listings.find(x=>x.id===1)).toBeUndefined();expect(()=>cancel(s,17)).toThrow();});
  it('purchases once with exact snapshot price and atomically changes ownership',()=>{const s=initialLedger(),l=s.listings[0];expect(()=>buy(s,l.id,'1')).toThrow();const next=buy(s,l.id,l.price);expect(next.owned).toContain(l.id);expect(next.listings.some(x=>x.id===l.id)).toBe(false);expect(()=>buy(next,l.id,l.price)).toThrow();expect(next.activity[0].fee).toBe((BigInt(l.price)*7n/100n).toString());expect(s.owned).toHaveLength(0);});
  it('preserves integer wei precision and 93/7 proceeds',()=>{const price=parseBNB('0.010000000000000001');expect(formatBNB(price)).toBe('0.010000000000000001');const split=splitFee(price);expect(split.fee+split.seller).toBe(price);expect(splitFee(MINT_WEI).fee).toBe(700000000000000n);for(const invalid of ['-1','0','NaN','1e-2','0.0000000000000000001','0x10'])expect(()=>parseBNB(invalid)).toThrow();});
+ it('recovers from malformed activity and contradictory persisted inventory',()=>{
+  const saved=initialLedger();
+  const storage={getItem:()=>JSON.stringify(saved)};
+  Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
+  for(const corrupt of [
+   {...saved,activity:[null]},
+   {...saved,activity:[{id:'a',kind:'buy',token:17,price:'NaN',fee:'0',time:1}]},
+   {...saved,owned:[1],minted:[2]},
+   {...saved,owned:[1],listings:[...saved.listings,{id:1,price:'1',seller:'demo'}]},
+   {...saved,listings:[saved.listings[0],{...saved.listings[0]}]},
+  ]){
+   storage.getItem=()=>JSON.stringify(corrupt);
+   expect(loadLedger()).toEqual(initialLedger());
+  }
+  const valid=mint(initialLedger(),1);
+  storage.getItem=()=>JSON.stringify(valid);
+  expect(loadLedger()).toEqual(valid);
+ });
 });
