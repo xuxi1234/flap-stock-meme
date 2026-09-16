@@ -1,4 +1,4 @@
-import { BOARD_CATEGORIES, BOARD_SORTS, ADDRESS, normalizeBoard, parsePublicBoard, isUnusual, sortBoard, type BoardCategory, type BoardSort, type BoardSnapshot } from '../src/swap/flapBoard.js'
+import { BOARD_CATEGORIES, BOARD_SORTS, ADDRESS, normalizeBoard, parsePublicBoard, isUnusual, sortBoard, indexedBoard, type BoardCategory, type BoardSort, type BoardSnapshot } from '../src/swap/flapBoard.js'
 type Request = { method?: string; query?: Record<string, string | string[] | undefined> }
 type Response = { setHeader: (key:string,value:string)=>void; status:(n:number)=>Response; json:(body:unknown)=>void }
 const paths: Record<BoardCategory,string> = {trending:'',unusual:'',stocks:'/tag=stocks',bonding:'/graduatinghot',listadao:'/tag=listadao',gifts:'/tag=gifttoken',innovation:'',fac:''}
@@ -16,6 +16,12 @@ export default async function handler(req:Request,res:Response){
   const q=req.query??{},category=q.category??'trending',sort=q.sort??'default',order=q.order??'desc',cursor=q.cursor,quote=q.quote
   if(typeof category!=='string'||!BOARD_CATEGORIES.some(c=>c.id===category)||typeof sort!=='string'||!Object.hasOwn(BOARD_SORTS,sort)||!['asc','desc'].includes(String(order))||typeof order!=='string'||cursor!==undefined&&(typeof cursor!=='string'||cursor.length>512)||quote!==undefined&&(typeof quote!=='string'||!ADDRESS.test(quote))){res.status(400).json({error:'Invalid filters'});return}
   const cat=category as BoardCategory;let result:BoardSnapshot
+  try {
+    const raw=JSON.parse(await read(`https://raw.githubusercontent.com/xuxi1234/flap-stock-meme/automation/flap-board-data/snapshot.json?minute=${Math.floor(Date.now()/60000)}`,2_000_000))
+    result=indexedBoard(raw,cat,sort as BoardSort,order as 'asc'|'desc',quote as string|undefined,cursor as string|undefined)
+    res.setHeader('Cache-Control','public, s-maxage=15, stale-while-revalidate=15');res.status(200).json(result);return
+  } catch { /* Preserve the independently available sources if the index is unavailable. */ }
+  if(typeof cursor==='string'&&cursor.startsWith('index:')){res.status(503).json({error:'链上快照暂不可用，请重试。'});return}
   try{
     const params=new URLSearchParams({limit:'40'})
     if(sort!=='default'){params.set('sortBy',sort);params.set('order',order)}

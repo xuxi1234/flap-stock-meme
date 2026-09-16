@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { BUTTERFLY } from './config'
-import { BOARD_CATEGORIES, normalizeBoard, parsePublicBoard, isUnusual, sortBoard } from './flapBoard'
+import { BOARD_CATEGORIES, normalizeBoard, parsePublicBoard, isUnusual, sortBoard, indexedBoard } from './flapBoard'
 import { FlapBoard } from './FlapBoard'
 import handler from '../../api/flap-board'
 const address='0x'+'1'.repeat(40), second='0x'+'2'.repeat(40)
@@ -33,11 +33,11 @@ function response(){const res={setHeader:vi.fn(),status:vi.fn(),json:vi.fn()};re
 it('bounds Flap API requests, validates the response and forwards safe cursor filters',async()=>{
  const fetch=vi.fn().mockImplementation(async()=>new Response(JSON.stringify({items:[item],nextCursor:'next'})));vi.stubGlobal('fetch',fetch)
  const res=response();await handler({method:'GET',query:{category:'fac',sort:'holders',order:'desc',quote:address,cursor:'20|token'}},res)
- const url=new URL(fetch.mock.calls[0][0]);expect(url.origin).toBe('https://bnb.taxed.fun');expect(url.searchParams.get('isLowRisk')).toBe('true');expect(url.searchParams.get('cursor')).toBe('20|token')
+ const url=new URL(fetch.mock.calls[1][0]);expect(url.origin).toBe('https://bnb.taxed.fun');expect(url.searchParams.get('isLowRisk')).toBe('true');expect(url.searchParams.get('cursor')).toBe('20|token')
  expect(res.json.mock.calls[0][0]).toMatchObject({source:'api',category:'fac',nextCursor:'next'})
 })
 it('labels bounded public-page fallback and never turns failed categories into empty successful boards',async()=>{
- const fetch=vi.fn().mockResolvedValueOnce(new Response('',{status:403})).mockResolvedValueOnce(new Response(publicPage([item,{...item,coin:{address:second},isLowRisk:false}])));vi.stubGlobal('fetch',fetch)
+ const fetch=vi.fn().mockResolvedValueOnce(new Response('',{status:404})).mockResolvedValueOnce(new Response('',{status:403})).mockResolvedValueOnce(new Response(publicPage([item,{...item,coin:{address:second},isLowRisk:false}])));vi.stubGlobal('fetch',fetch)
  const res=response();await handler({method:'GET',query:{category:'fac'}},res)
  expect(res.json.mock.calls[0][0]).toMatchObject({source:'page',nextCursor:null,items:[{address}]})
  fetch.mockResolvedValue(new Response('',{status:403}));await handler({method:'GET',query:{category:'bonding'}},res);expect(res.status).toHaveBeenLastCalledWith(503)
@@ -76,3 +76,23 @@ it('keeps the official contract ahead of every category and removes upstream dup
  fetch.mockResolvedValue({ok:false});fireEvent.click(screen.getByRole('button',{name:'热门'}));await screen.findByRole('alert')
  fireEvent.click(screen.getByRole('button',{name:'交易蝴蝶股票 ↗'}));expect(onTrade).toHaveBeenCalledWith(BUTTERFLY.address)
 })
+
+it('serves true chain categories, flags stale snapshots and rejects expired data',()=>{
+ const raw={version:1,chainId:56,updatedAt:Date.now()-240000,block:123,records:[{...item,tags:['trending','stocks']},{...item,coin:{address:second},tags:['trending','gifts']}]};
+ expect(indexedBoard(raw,'stocks','default','desc')).toMatchObject({source:'index',stale:true,items:[{address}]});
+ expect(indexedBoard(raw,'listadao','default','desc').items).toHaveLength(0);
+ expect(()=>indexedBoard({...raw,updatedAt:Date.now()-90000000},'stocks','default','desc')).toThrow();
+ expect(()=>indexedBoard(raw,'stocks','default','desc',undefined,'upstream-cursor')).toThrow();
+});
+it('uses the persistent snapshot before upstream and preserves the actual source time',async()=>{
+ const updatedAt=Date.now()-90000;
+ const fetch=vi.fn().mockResolvedValue(new Response(JSON.stringify({version:1,chainId:56,updatedAt,block:123,records:[{...item,tags:['stocks']}]})));vi.stubGlobal('fetch',fetch);
+ const res=response();await handler({method:'GET',query:{category:'stocks'}},res);
+ expect(fetch).toHaveBeenCalledTimes(1);expect(res.json.mock.calls[0][0]).toMatchObject({source:'index',sourceUpdatedAt:updatedAt,items:[{address}]});
+});
+it('keeps same-category rows visible when a refresh fails',async()=>{
+ const fetch=vi.fn().mockResolvedValue({ok:true,json:async()=>({category:'trending',items:normalizeBoard({items:[item]}).items,nextCursor:null,fetchedAt:Date.now(),source:'index',scope:'chain'})});vi.stubGlobal('fetch',fetch);
+ render(<FlapBoard favorites={[]} onFavorite={vi.fn()}/>);await screen.findByText('EX');
+ fetch.mockResolvedValue({ok:false});fireEvent.click(screen.getByRole('button',{name:'刷新 Flap 看板'}));
+ await screen.findByText('更新暂时失败，保留上次成功数据');expect(screen.getByText('EX')).toBeInTheDocument();
+});

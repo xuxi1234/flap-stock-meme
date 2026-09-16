@@ -37,3 +37,41 @@ Preview acceptance (2026-09-16): 185 frontend tests passed, 6 optional live test
 
 
 Official placement (2026-09-16): Butterfly Stock is permanently displayed first in every Flap category and in the curated ranking. Its contract comes from the existing project configuration. This placement is explicitly labelled official, independent of search, favorites, stage, quote, sorting, pagination, loading and source failures. The same address is removed from competitive rows. Placement does not assert FAC status or category membership. Reference market data remains sourced from the existing DEX Screener snapshot; missing or stale data is labelled.
+
+## Persistent chain snapshots (2026-09-16)
+
+`flap-board-refresh.yml` starts a single read-only collector using the existing
+`FLAP_BSC_RPC_URL` secret. It never receives a signer or calls transaction methods.
+Within each 23-minute job it targets a 60-second cycle. GitHub's five-minute cron
+queues the next job; scheduling delays and slow source responses can cause gaps.
+This is best-effort minute refresh, not a guaranteed realtime service.
+
+The worker atomically writes `state.json` and `snapshot.json` to the isolated
+`automation/flap-board-data` branch. That branch disables Vercel deployments.
+The UI reads the snapshot through `/api/flap-board`, polls every 60 seconds while
+visible, retains same-category data on refresh failure, and flags snapshots older
+than three minutes. Snapshots older than 24 hours are rejected. Source timestamps
+are not replaced with request timestamps. Historical ingestion advances only after
+successful complete range reads and publishing; the checkpoint survives runners.
+
+The bounded discovery universe includes recent launches, known active seed
+contracts, and supported vault factories. Historical events are backfilled over a
+bounded block window. It is not a full Flap leaderboard or full-chain index.
+Stocks/gift/Lista membership uses known factory addresses. Bonding status comes
+from Portal `getTokenV8Safe`. FAC uses current `tryGetVault` risk level 1. Innovation
+uses `getVaultCategory == 1` (AI/oracle vaults), explicitly distinguished from
+Flap's editorial collection. Unknown factories are not guessed from names.
+
+USD metrics come only from a DEX Screener BSC pair whose base token and pool match
+the verified Portal result. Bonding USD prices, holder counts, and four-hour
+changes remain unknown where no compatible source exists. There is no mock data.
+
+References:
+- https://docs.flap.sh/flap/developers/wallet-and-terminal-and-bot-developers/index-token-created-events
+- https://docs.flap.sh/flap/developers/wallet-and-terminal-and-bot-developers/indexing-vaults
+- https://docs.flap.sh/flap/developers/wallet-and-terminal-and-bot-developers/inspect-a-tax-token
+- https://docs.flap.sh/flap/developers/wallet-and-terminal-and-bot-developers/indexing-vaults/index-and-query-a-stocks-vault
+- Factory registry and read ABI: Flap's public BNB frontend, inspected 2026-09-16.
+
+To pause the collector, disable its workflow and cancel its active run. It does
+not share concurrency groups, checkpoints, or keys with the airdrop workflows.

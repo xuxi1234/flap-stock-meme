@@ -13,7 +13,7 @@ export type BoardCategory = typeof BOARD_CATEGORIES[number]['id']
 export const BOARD_SORTS = { default: '默认排行', marketcap: '市值', volume24h: '24H 成交额', holders: '持有人', liquidity: '流动性', '5m': '5M 涨跌', '1h': '1H 涨跌', '4h': '4H 涨跌', '24h': '24H 涨跌' } as const
 export type BoardSort = keyof typeof BOARD_SORTS
 export type BoardRow = { address: string; name: string; symbol: string; image: string | null; listed: boolean | null; quoteAddress: string; price: number | null; marketCap: number | null; volume24h: number | null; holders: number | null; liquidity: number | null; progress: number | null; change5m: number | null; change1h: number | null; change4h: number | null; change24h: number | null; buyTaxBps: number | null; sellTaxBps: number | null; fac: boolean; innovation: boolean }
-export type BoardSnapshot = { category: BoardCategory; items: BoardRow[]; nextCursor: string | null; fetchedAt: number; source: 'api' | 'page'; scope: string; sourceUpdatedAt?: number }
+export type BoardSnapshot = { category: BoardCategory; items: BoardRow[]; nextCursor: string | null; fetchedAt: number; source: 'api' | 'page' | 'index'; scope: string; sourceUpdatedAt?: number; stale?: boolean }
 export const ADDRESS = /^0x[\da-fA-F]{40}$/
 const ZERO = '0x' + '0'.repeat(40)
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {}
@@ -64,4 +64,18 @@ export function boardValue(r: BoardRow, sort: BoardSort) { return ({default:null
 export function sortBoard(rows: BoardRow[], sort: BoardSort, order: 'asc'|'desc') {
   if (sort === 'default') return [...rows]
   return [...rows].sort((a,b) => { const x=boardValue(a,sort),y=boardValue(b,sort); return x===null ? y===null ? 0 : 1 : y===null ? -1 : (x-y)*(order==='asc'?1:-1) })
+}
+export function indexedBoard(value:unknown,category:BoardCategory,sort:BoardSort,order:'asc'|'desc',quote?:string,cursor?:string):BoardSnapshot {
+  const data=object(value),now=Date.now()
+  if(data.version!==1||data.chainId!==56||typeof data.updatedAt!=='number'||!Number.isFinite(data.updatedAt)||data.updatedAt>now+60000||now-data.updatedAt>86400000||!Array.isArray(data.records)||!data.records.length||data.records.length>500)throw Error('Invalid or expired snapshot')
+  if(cursor&&!/^index:\d{1,4}$/.test(cursor))throw Error('Not an index cursor')
+  let raw=data.records.filter(v=>{const r=object(v);return Array.isArray(r.tags)&&r.tags.includes(category==='unusual'?'trending':category)})
+  // The source is bounded but can exceed one normalizer page.
+  let rows:BoardRow[]=[]
+  for(let i=0;i<raw.length;i+=200)rows.push(...normalizeBoard({items:raw.slice(i,i+200)}).items)
+  if(category==='unusual')rows=rows.filter(isUnusual)
+  if(quote)rows=rows.filter(r=>r.quoteAddress===quote.toLowerCase())
+  rows=sortBoard(rows,sort,order)
+  const start=cursor?Number(cursor.slice(6)):0,items=rows.slice(start,start+40)
+  return {category,items,nextCursor:start+40<rows.length?`index:${start+40}`:null,fetchedAt:now,source:'index',sourceUpdatedAt:data.updatedAt,stale:now-data.updatedAt>180000,scope:`Flap 链上分类快照 · 区块 ${data.block} · 每60秒尝试更新。当前为已索引资产范围，历史资产持续补录；热门按该范围成交额排序。行情来自 DEX Screener，缺失指标显示 —。${category==='innovation'?'创新筛选使用链上 AI / Oracle 金库类型，与原站策展范围可能不同。':''}${category==='fac'?'FAC 筛选使用 VaultPortal 当前 LOW_RISK 标记，不代表无风险。':''}`}
 }
