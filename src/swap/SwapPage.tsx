@@ -7,7 +7,18 @@ import { quoteRouter, approveExact, displayAmount, executeSwap, friendlySwapErro
 import { TokenIcon } from './TokenIcon'
 import { AssetExplorer, MarketDetail } from './AssetExplorer'
 import { useFavorites, useMarketSnapshot } from './useDiscovery'
+import { MarketChart } from './MarketChart'
+import { ReferralPanel } from './ReferralPanel'
+import { TREASURY, feeDeployment, parseReferrer, splitFee, withPlatformFee, resolveReferrer } from './fees'
+import { TokenPicker } from './TokenPicker'
+import { LiquidityPage } from './LiquidityPage'
+import { ExplorePage } from './ExplorePage'
+import { AboutPage } from './AboutPage'
 import './swap.css'
+import './product.css'
+
+type ProductSection = 'trade' | 'liquidity' | 'explore' | 'about'
+const currentSection = (): ProductSection => { const page = new URLSearchParams(window.location.search).get('section'); return page === 'liquidity' || page === 'explore' || page === 'about' ? page : 'trade' }
 
 type Transaction = { hash: Hash; account: Address; title: string; inputKey?: string; outputKey?: string; time: number; status: 'pending' | 'success' | 'reverted' | 'cancelled' | 'replaced' }
 const TX_KEY = 'butterfly-swap-transactions-v1'
@@ -23,6 +34,13 @@ function Dialog({ title, onClose, children, busy = false }: { title: string; onC
 
 export function SwapPage() {
   const client = useMemo(makeSwapClient, [])
+  const [section, setSection] = useState<ProductSection>(currentSection)
+  const [lpMounted, setLpMounted] = useState(currentSection() === 'liquidity')
+  const [lpBusy, setLpBusy] = useState(false)
+  const [globalSearch, setGlobalSearch] = useState(false)
+  const sectionHref = (page: ProductSection) => { const url = new URL(window.location.href); url.searchParams.set('view', 'swap'); if (page === 'trade') url.searchParams.delete('section'); else url.searchParams.set('section', page); return url.pathname + url.search }
+  const navigate = (page: ProductSection) => { if (lpBusy || busy) return; window.history.pushState({}, '', sectionHref(page)); setSection(page); if (page === 'liquidity') setLpMounted(true) }
+  useEffect(() => { const pop = () => { const page = currentSection(); setSection(page); if (page === 'liquidity') setLpMounted(true) }; window.addEventListener('popstate', pop); return () => window.removeEventListener('popstate', pop) }, [])
   const initialPair = useMemo(() => selectedPair(window.location.search), [])
   const { favorites, toggle: toggleFavorite, storageError } = useFavorites()
   const markets = useMarketSnapshot()
@@ -38,6 +56,8 @@ export function SwapPage() {
     if (!receivedQuote || tokenKey(receivedQuote.input) !== tokenKey(input) || tokenKey(receivedQuote.output) !== tokenKey(output)) return null
     try { return receivedQuote.amountIn === parseAmount(amount, input.decimals) ? receivedQuote : null } catch { return null }
   }, [receivedQuote, input, output, amount])
+  const latestQuote = useRef(quote)
+  latestQuote.current = quote
   const quoteRequestPending = useRef(false)
   const [quoteError, setQuoteError] = useState('')
   const [quoteBusy, setQuoteBusy] = useState(false)
@@ -46,8 +66,13 @@ export function SwapPage() {
   const [providers, setProviders] = useState<WalletProviderDetail[]>([])
   const [selectedWallet, setSelectedWallet] = useState<WalletProviderDetail | null>(null)
   const [account, setAccount] = useState<Address | null>(null)
+  const liquidityWallet = useMemo(() => selectedWallet ? createWalletClient({chain: bsc, transport: custom(selectedWallet.provider)}) : null, [selectedWallet])
   const [chainId, setChainId] = useState<number | null>(null)
   const [walletOpen, setWalletOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const candidate = parseReferrer(window.location.search, account)
+  const deploymentReady = Boolean(feeDeployment())
+  const chartToken = ['USDT','USDC','BUSD','WBNB','BNB'].includes(output.symbol) ? input : output
   const [balance, setBalance] = useState<bigint | null>(null)
   const [outBalance, setOutBalance] = useState<bigint | null>(null)
   const [balanceRefresh, setBalanceRefresh] = useState(0)
@@ -58,6 +83,7 @@ export function SwapPage() {
   const [importError, setImportError] = useState('')
   const [importBusy, setImportBusy] = useState(false)
   const [accepted, setAccepted] = useState(false)
+  const [boardSearch, setBoardSearch] = useState('')
   const [customTokens, setCustomTokens] = useState<SwapToken[]>([])
   const [review, setReview] = useState<SwapReview | null>(null)
   const [allowance, setAllowance] = useState<bigint | null>(null)
@@ -71,12 +97,13 @@ export function SwapPage() {
   const [shareLink, setShareLink] = useState('')
   const marketStale = markets.error || !!markets.snapshot && clock - markets.snapshot.fetchedAt > 180_000
   const copyText = async (text: string) => { try { await navigator.clipboard.writeText(text); setMessage('已复制。') } catch { setMessage('自动复制失败，请手动选择并复制。') } }
-  const chooseDiscovered = (token: SwapToken) => { setOutput(token); if (tokenKey(input) === tokenKey(token)) setInput(TOKENS[0]); setActiveTab('swap'); setMessage(''); document.getElementById('swap-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+  const chooseDiscovered = (token: SwapToken) => { navigate('trade'); setOutput(token); if (tokenKey(input) === tokenKey(token)) setInput(token.native ? TOKENS[1] : TOKENS[0]); setActiveTab('swap'); setMessage(''); document.getElementById('swap-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
   const pathToken = (address: string) => address.toLowerCase() === input.address.toLowerCase() ? input : address.toLowerCase() === output.address.toLowerCase() ? output : TOKENS.find(t => !t.native && t.address.toLowerCase() === address.toLowerCase())
   useEffect(() => setShareLink(''), [input, output])
+  useEffect(() => { const url = new URL(window.location.href); if (!input.custom && !output.custom) { url.searchParams.set('inputCurrency', tokenKey(input)); url.searchParams.set('outputCurrency', tokenKey(output)); } else { url.searchParams.delete('inputCurrency'); url.searchParams.delete('outputCurrency'); } window.history.replaceState({}, '', url.pathname + url.search); }, [input, output])
   const stale = !quote || clock >= quote.expiresAt
   const pending = transactions.find(t => t.status === 'pending' && t.account.toLowerCase() === account?.toLowerCase())
-  const canReview = Boolean(account && quote && !stale && !quoteBusy && quote.impactBps < 1000 && !pending && balance !== null && balance >= quote.amountIn)
+  const canReview = Boolean(account && quote && (quote.wrap || deploymentReady) && !stale && !quoteBusy && quote.impactBps < 1000 && !pending && balance !== null && balance >= quote.amountIn)
 
   useEffect(() => { document.body.classList.add('swap-route'); document.title = '蝴蝶swap · BNB Chain 代币兑换'; return () => document.body.classList.remove('swap-route') }, [])
   useEffect(() => discoverWalletProviders(setProviders), [])
@@ -88,15 +115,15 @@ export function SwapPage() {
     let cancelled = false
     quoteRequestPending.current = false
     setQuote(null); setQuoteError(''); setQuoteBusy(false)
-    if (!amount.trim()) return
+    if (section !== 'trade' || !amount.trim()) return
     let parsed: bigint
     try { parsed = parseAmount(amount, input.decimals) } catch (error) { setQuoteError(friendlySwapError(error)); return }
     setQuoteBusy(true); quoteRequestPending.current = true
     const timer = window.setTimeout(() => {
-      void getQuote(client, input, output, parsed).then(value => { if (!cancelled) { setQuote(value); setClock(Date.now()) } }).catch(error => { if (!cancelled) setQuoteError(friendlySwapError(error)) }).finally(() => { if (!cancelled) { setQuoteBusy(false); quoteRequestPending.current = false } })
+      void getQuote(client, input, output, parsed).then(value => { if (!cancelled) { setQuote(withPlatformFee(value)); setClock(Date.now()) } }).catch(error => { if (!cancelled) setQuoteError(friendlySwapError(error)) }).finally(() => { if (!cancelled) { setQuoteBusy(false); quoteRequestPending.current = false } })
     }, 400)
     return () => { cancelled = true; quoteRequestPending.current = false; clearTimeout(timer) }
-  }, [client, input, output, amount, refresh])
+  }, [client, input, output, amount, refresh, section])
   useEffect(() => {
     let cancelled = false
     setBalance(null); setOutBalance(null)
@@ -159,9 +186,15 @@ export function SwapPage() {
     if (token.custom && !customTokens.some(t => tokenKey(t) === tokenKey(token))) setCustomTokens(list => [...list, token])
     setTokenSide(null); setSearch(''); setMessage('')
   }
-  const openReview = () => {
+  const openReview = async () => {
     if (!canReview || !quote || !account) return
-    setMessage(''); setReview({ quote, account, slippageBps: slippage, minimumOut: quote.wrap ? quote.amountOut : minimumReceived(quote.amountOut, slippage) })
+    const currentSession = session.current
+    setBusy(true)
+    try {
+      const referrer = quote.platformFee ? await resolveReferrer(client, account, candidate) : null
+      if (currentSession !== session.current || latestQuote.current !== quote || Date.now() >= quote.expiresAt) return
+      setMessage(''); setReview({ quote, account, referrer, slippageBps: slippage, minimumOut: quote.wrap ? quote.amountOut : minimumReceived(quote.amountOut, slippage) })
+    } catch { setMessage('暂时无法核对邀请关系和收费合约，请重试。') } finally { setBusy(false) }
   }
   const transact = async (approval: boolean) => {
     if (!selectedWallet || !review || inFlight.current || pending) return
@@ -196,22 +229,21 @@ export function SwapPage() {
   const approvalRequired = review && allowance !== null && allowance < review.quote.amountIn
 
   return <div className="swap-page">
-    <a className="swap-skip" href="#swap-form">跳到兑换</a>
+    <a className="swap-skip" href="#product-main">跳到主要内容</a>
     <header className="swap-header">
-      <a className="swap-brand" href={home}><img src="/flap-stock-avatar.png" alt="" /><span>蝴蝶股票<small>FLAP STOCK</small></span></a>
-      <nav aria-label="主导航"><a href={home}>首页</a><a href={`${home}?view=markets`}>美股动态</a><a href="?view=swap" aria-current="page">蝴蝶swap <span>↗</span></a></nav>
-      <div className="swap-header-actions"><span className="swap-chain"><i /> BNB Chain</span><button className="swap-primary" onClick={() => setWalletOpen(true)}>{account ? short(account) : '连接钱包'}</button></div>
+      <a className="swap-brand" href={sectionHref('trade')} onClick={e=>{e.preventDefault();navigate('trade')}}><img src="/flap-stock-avatar.png" alt="" /><span>蝴蝶 Swap<small>BUTTERFLY SWAP</small></span></a>
+      <nav aria-label="主导航">{([['trade','交易'],['liquidity','流动性'],['explore','探索'],['about','关于']] as const).map(([page,label])=><a key={page} href={sectionHref(page)} aria-current={section===page?'page':undefined} aria-disabled={lpBusy||busy} onClick={e=>{e.preventDefault();navigate(page)}}>{label}</a>)}</nav>
+      <div className="swap-header-actions"><button className="product-search-button" aria-label="打开全站代币搜索" disabled={busy||lpBusy} onClick={()=>setGlobalSearch(true)}><span>⌕</span><span>搜索代币</span></button><button className="swap-invite-button" onClick={()=>setInviteOpen(true)}>邀请赚返佣 ↗</button><span className="swap-chain"><i /> BNB Chain</span><button className="swap-primary" disabled={lpBusy||busy} onClick={() => setWalletOpen(true)}>{account ? short(account) : '连接钱包'}</button></div>
     </header>
-    <main className="swap-main">
-      <div className="swap-topline"><span><i /> PANCAKESWAP V2 + V3 · BNB CHAIN</span><span className="swap-preview-label">BSC 主网</span></div>
+    <main className="swap-main" id="product-main">
+      <div hidden={section!=='trade'}>
+      <div className="swap-topline"><span><i /> PANCAKESWAP V2 + V3 · BNB CHAIN</span><span className="swap-preview-label">{deploymentReady ? 'BSC 主网' : '新版预览 · 收费交易未开放'}</span></div>
       <div className="swap-layout">
-        <section className="swap-intro">
-          <p className="swap-eyebrow">BUTTERFLY SWAP / 01</p><h1>美股灵感，<br /><span>链上轻松换。</span></h1>
-          <p className="swap-intro-copy">找到关注的公司，收藏喜欢的资产。<br />从一份清楚的报价开始。</p>
-          <div className="swap-art" aria-hidden="true"><span className="swap-orbit orbit-one" /><span className="swap-orbit orbit-two" /><img src="/flap-stock-avatar.png" alt="" /><span className="swap-art-star">✳</span><span className="swap-art-arrow">↗</span></div>
-          <div className="swap-hero-assets"><span>从美股七姐妹开始</span><div>{STOCK_TOKENS.filter(t => MAG7_SYMBOLS.includes(t.stockSymbol ?? '')).map(t => <button key={t.address} aria-label={`快捷选择 ${t.symbol}`} title={t.name} onClick={() => chooseDiscovered(t)}><TokenIcon token={t} /></button>)}</div><a href="#swap-discover">探索全部资产 ↓</a></div><div className="swap-principles"><span><b>01</b> 选择资产</span><span><b>02</b> 核对报价</span><span><b>03</b> 钱包确认</span></div>
-          <p className="swap-intro-foot">比较 PancakeSwap V2 / V3 流动性<br /><strong>蝴蝶swap 平台服务费 0%</strong> · 池费与网络费另计</p>
-        </section>
+        <div className="swap-market-workspace">
+          <MarketChart token={chartToken} market={markets.snapshot?.markets[chartToken.address.toLowerCase()]}/>
+          <div className="swap-invite-banner"><div><span>一起发现，分享价值</span><h2>邀请好友，获得 70% 手续费返佣。</h2><p>成功兑换后自动分账，奖励直接进入你的钱包。</p></div><button onClick={()=>setInviteOpen(true)}>查看邀请计划 ↗</button></div>
+          <div className="swap-hero-assets"><span>美股七姐妹 · 快捷选择</span><div>{STOCK_TOKENS.filter(t => MAG7_SYMBOLS.includes(t.stockSymbol ?? '')).map(t => <button key={t.address} aria-label={`快捷选择 ${t.symbol}`} title={t.name} onClick={() => chooseDiscovered(t)}><TokenIcon token={t} /></button>)}</div><a href="#swap-discover">探索全部资产 ↓</a></div>
+        </div>
         <section className="swap-workspace" id="swap-form" aria-label="代币兑换">
           <div className="swap-card">
             <div className="swap-card-toolbar"><div role="tablist" aria-label="兑换和记录"><button role="tab" aria-selected={activeTab === 'swap'} onClick={() => setActiveTab('swap')}>兑换</button><button role="tab" aria-selected={activeTab === 'history'} onClick={() => setActiveTab('history')}>交易记录{transactions.length > 0 && <small>{transactions.length}</small>}</button></div><div className="swap-toolbar-buttons"><button className="swap-icon-button" aria-label="分享兑换对" disabled={input.custom || output.custom} onClick={() => { const url = sharePairUrl(window.location.origin, input, output); if (url) { setShareLink(url); void copyText(url) } }}>↗</button><button className="swap-icon-button" aria-label="兑换设置" onClick={() => setSettings(true)}>⚙</button></div></div>
@@ -221,6 +253,7 @@ export function SwapPage() {
               <div className="swap-asset-box"><div className="swap-asset-label"><label htmlFor="swap-amount">你支付</label><button onClick={() => setBalanceRefresh(x => x + 1)} disabled={!account}>余额：{balance === null ? '—' : displayAmount(balance, input.decimals)} ↻</button></div><div className="swap-asset-main"><input id="swap-amount" inputMode="decimal" autoComplete="off" placeholder="0.0" value={amount} maxLength={100} onChange={e => setAmount(e.target.value.trim())} /><button className="swap-token-selector" onClick={() => { setTokenSide('input'); setSearch('') }} aria-label={`选择支付代币，当前 ${input.symbol}`}><TokenIcon token={input} /><strong>{input.symbol}</strong><span>⌄</span></button></div><div className="swap-percentages">{[25, 50, 75, 100].map(n => <button key={n} disabled={balance === null} onClick={() => availablePercent(n)}>{n === 100 ? 'MAX' : n + '%'}</button>)}</div></div>
               <div className="swap-direction"><button aria-label="交换支付与接收代币" onClick={() => { setInput(output); setOutput(input); setAmount(''); setMessage('') }}>↓</button></div>
               <div className="swap-asset-box swap-output"><div className="swap-asset-label"><span>你接收 <small>· 预计</small></span><span>余额：{outBalance === null ? '—' : displayAmount(outBalance, output.decimals)}</span></div><div className="swap-asset-main"><output aria-label="预计收到数量" className={!quote ? 'swap-placeholder' : ''}>{quoteBusy ? '…' : quote ? displayAmount(quote.amountOut, output.decimals) : '0.0'}</output><button className="swap-token-selector" onClick={() => { setTokenSide('output'); setSearch('') }} aria-label={`选择接收代币，当前 ${output.symbol}`}><TokenIcon token={output} /><strong>{output.symbol}</strong><span>⌄</span></button></div><div className="swap-asset-detail">{output.custom ? '自定义代币 · 请核对合约' : output.name}</div></div>
+              <FeeBreakdown quote={quote} referrer={candidate} />
               <MarketDetail token={output} market={markets.snapshot?.markets[output.address.toLowerCase()]} stale={marketStale} onCopy={text => void copyText(text)} />
               <div className="swap-slippage-row"><span>滑点上限</span><button onClick={() => setSettings(true)}>{(slippage / 100).toFixed(1)}% <span>调整</span></button></div>
               {quote && <div className="swap-quote-details"><div><span>兑换汇率</span><b>1 {input.symbol} ≈ {Number(formatUnits(quote.amountOut, output.decimals)) / Number(formatUnits(quote.amountIn, input.decimals)) > 0 ? (Number(formatUnits(quote.amountOut, output.decimals)) / Number(formatUnits(quote.amountIn, input.decimals))).toLocaleString('en-US', { maximumSignificantDigits: 7 }) : '—'} {output.symbol}</b></div><div><span>最低收到</span><b>{displayAmount(quote.wrap ? quote.amountOut : minimumReceived(quote.amountOut, slippage), output.decimals)} {output.symbol}</b></div><div><span>价格影响</span><b className={quote.impactBps >= 300 ? 'swap-danger' : ''}>{(quote.impactBps / 100).toFixed(2)}%</b></div><div><span>报价更新</span><button onClick={() => setRefresh(x => x + 1)}>{stale ? '已过期 · 刷新 ↻' : `${Math.ceil((quote.expiresAt - clock) / 1000)} 秒内有效 ↻`}</button></div></div>}
@@ -229,7 +262,8 @@ export function SwapPage() {
               {input.native && account && <p className="swap-small-note">MAX 会预留 0.0005 BNB；实际网络费以钱包为准。</p>}
               {!!(input.sellTaxBps || output.buyTaxBps) && <p className="swap-tax-note">蝴蝶股票 · 买入税 3% / 卖出税 3%<br/><small>预计到账已扣本次方向的3%代币税；滑点额外计算。实际以链上执行为准。</small></p>}
               {(input.custom || output.custom) && <p className="swap-small-note">代币可能收取转账税。预计输出未扣代币税费，最低到账仍受滑点限制。</p>}
-              <button className="swap-primary swap-submit" disabled={busy || (!!account && !canReview)} onClick={() => account ? openReview() : setWalletOpen(true)}>{!account ? '连接钱包' : pending ? '上一笔交易待确认' : quoteBusy ? '正在获取报价…' : !amount ? '输入兑换数量' : quote && balance !== null && balance < quote.amountIn ? '余额不足' : quote && stale ? '请刷新报价' : quote ? '预览兑换 →' : '等待有效报价'}</button>
+              <button className="swap-primary swap-submit" disabled={busy || (!!account && !canReview)} onClick={() => account ? void openReview() : setWalletOpen(true)}>{!account ? '连接钱包' : !deploymentReady && !quote?.wrap ? '收费兑换即将开放' : pending ? '上一笔交易待确认' : quoteBusy ? '正在获取报价…' : !amount ? '输入兑换数量' : quote && balance !== null && balance < quote.amountIn ? '余额不足' : quote && stale ? '请刷新报价' : quote ? '预览兑换 →' : '等待有效报价'}</button>
+              {!deploymentReady&&<p className="swap-small-note">当前可查看真实报价与费用预估，收费交易验证通过后开放。</p>}
               <p className="swap-card-foot">{account ? `${short(account)} · ${chainId === 56 ? 'BNB Smart Chain' : '请切换 BNB Chain'}` : '先查看报价，连接钱包后确认兑换'}</p>
             </> : <div className="swap-history"><div className="swap-history-head"><h2>交易记录</h2><button onClick={() => void checkTransactions()}>刷新状态 ↻</button></div><p>仅保存在当前浏览器，链上结果以 BscScan 为准。</p>{transactions.length ? transactions.map(t => <a href={`https://bscscan.com/tx/${t.hash}`} key={t.hash} target="_blank" rel="noopener noreferrer"><span className={`swap-tx-status ${t.status}`}>{t.status === 'success' ? '✓' : t.status === 'pending' ? '◷' : '×'}</span><div><strong className="swap-tx-title">{TOKENS.filter(token => tokenKey(token) === t.inputKey || tokenKey(token) === t.outputKey).map(token => <TokenIcon key={tokenKey(token)} token={token} />)}{t.title}</strong><small>{short(t.account)} · {new Date(t.time).toLocaleString('zh-CN')}</small><small>{short(t.hash)}</small></div><span>{t.status === 'success' ? '已确认' : t.status === 'pending' ? '待确认' : t.status === 'cancelled' ? '已取消' : t.status === 'replaced' ? '已替换' : '未成功'} ↗</span></a>) : <div className="swap-empty"><span>↔</span><h3>你的下一次兑换，从这里开始</h3><p>提交交易后，记录会显示在这里。</p><button onClick={() => setActiveTab('swap')}>开始兑换 →</button></div>}</div>}
             {message && <p className="swap-feedback" role="status">{message}</p>}
@@ -240,12 +274,25 @@ export function SwapPage() {
       </div>
       <AssetExplorer onSelect={chooseDiscovered} favorites={favorites} onFavorite={toggleFavorite} snapshot={markets.snapshot} loading={markets.loading} error={markets.error} onRefresh={markets.refresh} now={clock} storageError={storageError} />
       <section className="swap-bottom-strip"><div><span>01 / YOUR WALLET</span><h3>资产，在你手中。</h3><p>每次授权与兑换均由你的钱包确认。</p></div><div><span>02 / CLEAR QUOTES</span><h3>看清楚，再兑换。</h3><p>报价、滑点、最低收到数量逐项展示。</p></div><div><span>03 / ON-CHAIN</span><h3>每一笔，都有记录。</h3><p>通过 BscScan 查看交易执行结果。</p></div></section>
+      </div>
+      <div hidden={section!=='liquidity'}>{lpMounted&&<LiquidityPage client={client} wallet={liquidityWallet} account={account} onConnect={()=>setWalletOpen(true)} onBusy={setLpBusy}/>}</div>
+      {section==='explore'&&<ExplorePage snapshot={markets.snapshot} loading={markets.loading} error={markets.error} onRefresh={markets.refresh} onSelect={chooseDiscovered} favorites={favorites} onFavorite={toggleFavorite} now={clock} onBoardTrade={address=>{setBoardSearch(address);setGlobalSearch(true)}}/>}
+      {section==='about'&&<AboutPage/>}
     </main>
-    <footer className="swap-footer"><a href={home}>蝴蝶股票 <b>FLAP STOCK</b></a><p>流动性来源 PancakeSwap V2 / V3 · 平台服务费 0% · 池费、代币税与网络费另计</p><a href={`https://bscscan.com/address/${quote ? quoteRouter(quote) : ROUTER}`} target="_blank" rel="noopener noreferrer">查看路由合约 ↗</a></footer>
+    <footer className="swap-footer"><a href={home}>蝴蝶股票 <b>FLAP STOCK</b></a><a href={`${home}?view=markets`}>美股动态</a><p>流动性来源 PancakeSwap V2 / V3 · 兑换服务费 0.8% · 邀请返佣 70% · 池费、代币税与网络费另计</p><a href={`https://bscscan.com/address/${feeDeployment() ?? ROUTER}`} target="_blank" rel="noopener noreferrer">查看路由合约 ↗</a></footer>
 
+    {globalSearch&&<TokenPicker client={client} initialQuery={boardSearch} favorites={favorites} onClose={()=>{setGlobalSearch(false);setBoardSearch('')}} onSelect={token=>{if(token.custom&&!customTokens.some(t=>tokenKey(t)===tokenKey(token)))setCustomTokens(list=>[...list,token]);chooseDiscovered(token);setGlobalSearch(false);setBoardSearch('')}}/>}
+    {inviteOpen && <Dialog title="邀请好友，共享交易收益" onClose={()=>setInviteOpen(false)}><ReferralPanel account={account} client={client} token={output} candidate={candidate} onConnect={()=>{setInviteOpen(false);setWalletOpen(true)}}/></Dialog>}
     {walletOpen && <Dialog title={account ? '你的钱包' : '连接钱包'} onClose={() => setWalletOpen(false)} busy={busy}>{account && <div className="swap-wallet-current"><p>{account}</p><button onClick={() => { session.current++; setAccount(null); setSelectedWallet(null); setReview(null); setWalletOpen(false) }}>断开连接</button></div>}<p className="swap-dialog-description">使用 BNB Chain 钱包连接蝴蝶swap。</p><div className="swap-wallet-list">{providers.map(p => <button disabled={busy} key={p.info.uuid} onClick={() => void connect(p)}>{p.info.icon && <img src={p.info.icon} alt="" />}<span>{p.info.name}<small>{p.info.rdns}</small></span><b>↗</b></button>)}</div>{!providers.length && <div className="swap-wallet-help"><strong>在钱包的 DApp 浏览器中打开</strong><p>手机用户可复制当前链接，粘贴到 MetaMask、OKX 或 TokenPocket 的浏览器；电脑用户请启用浏览器钱包扩展。</p><button onClick={async () => { try { await navigator.clipboard.writeText(window.location.href); setMessage('页面链接已复制。') } catch { setMessage('请从浏览器地址栏复制当前网址。') } }}>复制当前页面链接</button></div>}{message && <p className="swap-feedback" role="status">{message}</p>}</Dialog>}
     {tokenSide && <Dialog title="选择代币" onClose={() => setTokenSide(null)}><input className="swap-token-search" autoFocus aria-label="搜索代币名称或合约地址" placeholder="苹果 / Apple / AAPL / 合约地址" value={search} onChange={e => setSearch(e.target.value)} maxLength={120} /><p className="swap-dialog-description">BNB Chain · 请以合约地址识别资产</p><div className="swap-token-filters"><button aria-pressed={tokenCategory === 'favorites'} onClick={() => setTokenCategory('favorites')}>☆ 收藏</button><button aria-pressed={tokenCategory === 'mag7'} onClick={() => setTokenCategory('mag7')}>美股七姐妹</button><button aria-pressed={tokenCategory === 'all'} onClick={() => setTokenCategory('all')}>全部资产</button><button aria-pressed={tokenCategory === 'stocks'} onClick={() => setTokenCategory('stocks')}>美股与 ETF · {STOCK_TOKENS.length}</button></div><div className="swap-token-list">{filteredTokens.map(t => <button key={tokenKey(t)} onClick={() => pickToken(t)}><TokenIcon token={t} /><span><strong>{t.symbol} {t.stockSymbol && <em className="swap-listed">已收录</em>}</strong><small>{t.name}</small></span><small>{t.native ? '原生 BNB' : short(t.address)}</small></button>)}</div>{importBusy && <p role="status">正在读取合约信息…</p>}{importError && <p className="swap-alert" role="alert">{importError}</p>}{imported && !filteredTokens.some(t => tokenKey(t) === tokenKey(imported)) && <div className="swap-import"><h3>{imported.symbol}</h3><p>{imported.name}</p><code>{imported.address}</code><p>任何人都可以创建同名代币。此资产不在常用列表中；元数据读取成功不代表资产安全或能够卖出。</p><label><input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} />我已核对合约地址，了解自定义代币风险</label><button className="swap-primary" disabled={!accepted} onClick={() => pickToken(imported)}>导入并选择</button></div>}{!filteredTokens.length && !imported && !importBusy && !importError && <p className="swap-dialog-description">{tokenCategory === 'favorites' ? '暂无匹配的收藏，在资产看板点击星标收藏。' : '未找到代币。可切换全部资产或粘贴完整合约地址。'}</p>}</Dialog>}
-    {settings && <Dialog title="兑换设置" onClose={() => setSettings(false)}><h3>滑点上限</h3><p className="swap-dialog-description">允许报价与实际成交之间的最大差异。</p><div className="swap-settings-options">{[10, 50, 100].map(n => <button key={n} aria-pressed={slippage === n} onClick={() => { setSlippage(n); setCustomSlippage('') }}>{n / 100}%</button>)}<label><input aria-label="自定义滑点百分比" placeholder="自定义" inputMode="decimal" value={customSlippage} onChange={e => { setCustomSlippage(e.target.value); const n = Number(e.target.value); if (/^\d*\.?\d{0,1}$/.test(e.target.value) && n >= .1 && n <= 5) setSlippage(Math.round(n * 100)) }} />%</label></div><p className="swap-dialog-description">当前生效：{slippage / 100}% · 支持 0.1%–5%</p>{slippage > 100 && <p className="swap-alert">较高滑点可能导致较差成交价格，请谨慎使用。</p>}<div className="swap-settings-note"><b>授权额度：仅本次数量</b><p>授权对象为本次报价选中的 PancakeSwap V2 或 V3 路由。BNB 兑换不需要代币授权。</p><b>交易有效期：2 分钟</b><p>报价 30 秒过期；确认窗口中的数量不会自动变化。</p></div><button className="swap-primary swap-submit" onClick={() => setSettings(false)}>完成设置</button></Dialog>}
-    {review && <Dialog title="确认兑换" onClose={() => setReview(null)} busy={busy}><div className="swap-review-assets"><div><TokenIcon token={review.quote.input} /><strong>{displayAmount(review.quote.amountIn, review.quote.input.decimals)} {review.quote.input.symbol}</strong></div><span>↓</span><div><TokenIcon token={review.quote.output} /><strong>≈ {displayAmount(review.quote.amountOut, review.quote.output.decimals)} {review.quote.output.symbol}</strong></div></div><dl className="swap-review-details"><div><dt>最低收到</dt><dd>{displayAmount(review.minimumOut, review.quote.output.decimals)} {review.quote.output.symbol}</dd></div><div><dt>滑点上限</dt><dd>{review.slippageBps / 100}%</dd></div><div><dt>收款钱包</dt><dd>{short(review.account)}</dd></div><div><dt>执行协议</dt><dd>{review.quote.wrap ? 'BNB / WBNB' : `PancakeSwap ${review.quote.protocol ?? 'V2'}`}</dd></div><div><dt>授权/路由合约</dt><dd><a href={`https://bscscan.com/address/${quoteRouter(review.quote)}`} target="_blank" rel="noreferrer">{short(quoteRouter(review.quote))} ↗</a></dd></div><div><dt>网络</dt><dd>BNB Smart Chain (56)</dd></div><div><dt>支付资产</dt><dd>{review.quote.input.native ? 'BNB' : short(review.quote.input.address)}</dd></div><div><dt>接收资产</dt><dd>{review.quote.output.native ? 'BNB' : short(review.quote.output.address)}</dd></div></dl>{review.quote.taxAdjusted && <p className="swap-tax-note">预计到账和最低收到已按3%代币税估算。</p>}{(review.quote.input.custom || review.quote.output.custom) && <p className="swap-alert">此兑换包含自定义代币，预计数量未扣代币税费。</p>}{clock >= review.quote.expiresAt && <p className="swap-alert">报价已过期。请关闭窗口，刷新后重新确认。</p>}{message && <p className="swap-feedback" role="status">{message}</p>}<button className="swap-primary swap-submit" disabled={busy || allowance === null || clock >= review.quote.expiresAt || Boolean(pending)} onClick={() => void transact(Boolean(approvalRequired))}>{busy ? '请等待钱包 / 链上确认…' : allowance === null ? '核对授权中…' : approvalRequired ? (allowance > 0n ? '先重置旧授权' : `授权 ${displayAmount(review.quote.amountIn, review.quote.input.decimals)} ${review.quote.input.symbol}`) : '在钱包中确认兑换'}</button><p className="swap-small-note">{approvalRequired ? '授权完成后会重新报价，再由你确认兑换。' : '提交前会模拟交易；网络费由钱包显示。'}</p></Dialog>}
+    {settings && <Dialog title="兑换设置" onClose={() => setSettings(false)}><h3>滑点上限</h3><p className="swap-dialog-description">允许报价与实际成交之间的最大差异。</p><div className="swap-settings-options">{[10, 50, 100].map(n => <button key={n} aria-pressed={slippage === n} onClick={() => { setSlippage(n); setCustomSlippage('') }}>{n / 100}%</button>)}<label><input aria-label="自定义滑点百分比" placeholder="自定义" inputMode="decimal" value={customSlippage} onChange={e => { setCustomSlippage(e.target.value); const n = Number(e.target.value); if (/^\d*\.?\d{0,1}$/.test(e.target.value) && n >= .1 && n <= 5) setSlippage(Math.round(n * 100)) }} />%</label></div><p className="swap-dialog-description">当前生效：{slippage / 100}% · 支持 0.1%–5%</p>{slippage > 100 && <p className="swap-alert">较高滑点可能导致较差成交价格，请谨慎使用。</p>}<div className="swap-settings-note"><b>授权额度：仅本次数量</b><p>授权对象以确认窗口为准：收费兑换使用已核验的蝴蝶收费合约；包装转换使用 WBNB。BNB 支付不需要代币授权。</p><b>交易有效期：2 分钟</b><p>报价 30 秒过期；确认窗口中的数量不会自动变化。</p></div><button className="swap-primary swap-submit" onClick={() => setSettings(false)}>完成设置</button></Dialog>}
+    {review && <Dialog title="确认兑换" onClose={() => setReview(null)} busy={busy}><div className="swap-review-assets"><div><TokenIcon token={review.quote.input} /><strong>{displayAmount(review.quote.amountIn, review.quote.input.decimals)} {review.quote.input.symbol}</strong></div><span>↓</span><div><TokenIcon token={review.quote.output} /><strong>≈ {displayAmount(review.quote.amountOut, review.quote.output.decimals)} {review.quote.output.symbol}</strong></div></div><FeeBreakdown quote={review.quote} referrer={review.referrer??null} confirmed/><dl className="swap-review-details"><div><dt>最低收到</dt><dd>{displayAmount(review.minimumOut, review.quote.output.decimals)} {review.quote.output.symbol}</dd></div><div><dt>滑点上限</dt><dd>{review.slippageBps / 100}%</dd></div><div><dt>收款钱包</dt><dd>{short(review.account)}</dd></div><div><dt>执行协议</dt><dd>{review.quote.wrap ? 'BNB / WBNB' : `PancakeSwap ${review.quote.protocol ?? 'V2'}`}</dd></div><div><dt>授权/路由合约</dt><dd><a href={`https://bscscan.com/address/${quoteRouter(review.quote)}`} target="_blank" rel="noreferrer">{short(quoteRouter(review.quote))} ↗</a></dd></div><div><dt>网络</dt><dd>BNB Smart Chain (56)</dd></div><div><dt>支付资产</dt><dd>{review.quote.input.native ? 'BNB' : short(review.quote.input.address)}</dd></div><div><dt>接收资产</dt><dd>{review.quote.output.native ? 'BNB' : short(review.quote.output.address)}</dd></div></dl>{review.quote.taxAdjusted && <p className="swap-tax-note">预计到账和最低收到已按3%代币税估算。</p>}{(review.quote.input.custom || review.quote.output.custom) && <p className="swap-alert">此兑换包含自定义代币，预计数量未扣代币税费。</p>}{clock >= review.quote.expiresAt && <p className="swap-alert">报价已过期。请关闭窗口，刷新后重新确认。</p>}{message && <p className="swap-feedback" role="status">{message}</p>}<button className="swap-primary swap-submit" disabled={busy || allowance === null || clock >= review.quote.expiresAt || Boolean(pending)} onClick={() => void transact(Boolean(approvalRequired))}>{busy ? '请等待钱包 / 链上确认…' : allowance === null ? '核对授权中…' : approvalRequired ? (allowance > 0n ? '先重置旧授权' : `授权 ${displayAmount(review.quote.amountIn, review.quote.input.decimals)} ${review.quote.input.symbol}`) : '在钱包中确认兑换'}</button><p className="swap-small-note">{approvalRequired ? '授权完成后会重新报价，再由你确认兑换。' : '提交前会模拟交易；网络费由钱包显示。'}</p></Dialog>}
   </div>
+}
+
+function FeeBreakdown({quote,referrer,confirmed=false}:{quote:SwapQuote|null;referrer:Address|null;confirmed?:boolean}) {
+  const gross=quote?.platformFee?.gross
+  const amounts=gross==null?null:splitFee(gross,Boolean(referrer))
+  const value=(n:bigint|undefined)=>n==null||!quote?'—':`${displayAmount(n,quote.output.decimals)} ${quote.output.symbol}`
+  return <details className="swap-fee-breakdown"><summary><span>平台服务费 <b>{quote?.wrap?'0% · 包装转换':'0.8%'}</b></span><strong>{value(amounts?.fee)}</strong></summary><dl><div><dt>邀请人分配{!confirmed?' · 预估':''}</dt><dd>{value(amounts?.inviter)}</dd></div><div><dt>平台收入</dt><dd>{value(amounts?.treasury)}</dd></div></dl>{referrer?<p>{confirmed?'本次邀请人':'链接邀请人'}：{referrer}</p>:<p>没有邀请人：全部服务费进入平台营收地址。</p>}{!confirmed&&<p>最终分配以确认时的链上绑定关系为准。</p>}<p>服务费按实际接收资产扣除，预计到账已扣服务费。代币转账税以链上结果为准。</p><a href={`https://bscscan.com/address/${TREASURY}`} target="_blank" rel="noreferrer">平台营收地址 ↗</a></details>
 }
