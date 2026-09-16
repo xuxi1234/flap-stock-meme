@@ -20,4 +20,5 @@ jobs:
       - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
       - run: node --test scripts/mint-acceptance/airdrop-tests.mjs scripts/mint-acceptance/timed-airdrop-tests.mjs scripts/mint-acceptance/timed-recovery-tests.mjs scripts/mint-acceptance/new72-tests.mjs scripts/mint-acceptance/new72-store-tests.mjs scripts/mint-acceptance/new72-integration-tests.mjs scripts/mint-acceptance/csv600-tests.mjs scripts/mint-acceptance/csv600-integration-tests.mjs scripts/mint-acceptance/resume72-tests.mjs scripts/mint-acceptance/resume72-integration-tests.mjs
       - run: node --test scripts/mint-acceptance/csv1196-tests.mjs scripts/mint-acceptance/resume72-csv1196-tests.mjs
+      - run: node --test scripts/mint-acceptance/holders18-tests.mjs scripts/mint-acceptance/holders18-budget-tests.mjs scripts/mint-acceptance/holders18-recovery-tests.mjs
       - run: npm test --prefix scripts/mint-acceptance
