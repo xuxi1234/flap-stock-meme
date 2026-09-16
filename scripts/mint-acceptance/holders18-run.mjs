@@ -20,7 +20,10 @@ export function verifyDelivery(e,logs){
  const c=completed[0].args;
  requireThat(equal(c.sender,ACCOUNT)&&equal(c.token,TOKEN)&&equal(c.batchId,batchId(e.batch))&&c.count===BigInt(plan()[e.batch].length)&&c.total===BigInt(plan()[e.batch].length)*AMOUNT,'批次汇总事件不匹配。');
  return delivered.map((l,i)=>{
-  const a=l.args;requireThat(equal(a.sender,ACCOUNT)&&equal(a.token,TOKEN)&&equal(a.batchId,batchId(e.batch))&&equal(a.recipient,plan()[e.batch][i])&&a.requested===AMOUNT&&a.received===AMOUNT,'逐地址实际到账并非固定 1 枚，已停止后续轮次。');
+  // User approved gross-one-token delivery on 2026-09-16: contract tax may
+  // reduce net receipt. Keep identity, order and exact requested amount checks.
+  const a=l.args;requireThat(equal(a.sender,ACCOUNT)&&equal(a.token,TOKEN)&&equal(a.batchId,batchId(e.batch))&&equal(a.recipient,plan()[e.batch][i])&&a.requested===AMOUNT,'逐地址发放事件与固定转出 1 枚的计划不符，已停止后续轮次。');
+  requireThat(a.received>0n&&a.received<=a.requested,'实际到账为零或超过转出数量，停止核查。');
   return {address:a.recipient,requested:a.requested.toString(),received:a.received.toString()};
  });
 }
@@ -104,7 +107,11 @@ export function report(j,directory){
  fs.writeFileSync(path.join(directory,'results.csv'),'\ufeff批次,地址,计划枚数,实际到账,交易哈希\n'+j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>(e.received||[]).map(r=>`${e.batch+1},${r.address},1,${formatEther(BigInt(r.received))},${e.hash}`)).join('\n')+'\n');
  fs.writeFileSync(path.join(directory,'journal.json'),stringify(j)+'\n');
  const count=j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success&&e.received?.length===plan()[e.batch].length).length;
- const text=`已核实 ${count}/${BATCHES} 轮，${j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).reduce((n,e)=>n+(e.received?.length||0),0)}/${Number(TOTAL/AMOUNT)} 地址；计划总量 ${Number(TOTAL/AMOUNT)} 枚。\n已核实转出本金及Gas：${j.rawSpentWei?formatEther(BigInt(j.rawSpentWei)):'尚未核实'} BNB。\n单独记录的自有钱包调拨本金：${j.excludedPrincipalWei?formatEther(BigInt(j.excludedPrincipalWei)):'尚未确认'} BNB；对应哈希 ${OWNED_RETURN.hash}。\n计入预算（含此前任务和全部Gas）：${j.spentWei?formatEther(BigInt(j.spentWei)):'尚未确认'} / 0.2 BNB。\n历史续跑及本次任务累计Gas：${j.campaignGasWei?formatEther(BigInt(j.campaignGasWei)):'尚未核实'} / 剩余累计预算。\n本次使用用户指定的9992地址：17个代币前600快照仅合并去重，VIRUS未纳入。\n`;
+ const deliveries=j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>e.received||[]);
+ const taxed=deliveries.filter(r=>BigInt(r.received)<BigInt(r.requested));
+ const net=deliveries.reduce((n,r)=>n+BigInt(r.received),0n);
+ const tax=taxed.reduce((n,r)=>n+BigInt(r.requested)-BigInt(r.received),0n);
+ const text=`已核实 ${count}/${BATCHES} 轮，${j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).reduce((n,e)=>n+(e.received?.length||0),0)}/${Number(TOTAL/AMOUNT)} 地址；计划总量 ${Number(TOTAL/AMOUNT)} 枚。\n发放口径：每地址转出 1 枚，税费按代币合约扣除；不补发、不重发。\n已核实实际到账合计 ${formatEther(net)} 枚；${taxed.length} 个地址发生扣税，合计 ${formatEther(tax)} 枚。\n已核实转出本金及Gas：${j.rawSpentWei?formatEther(BigInt(j.rawSpentWei)):'尚未核实'} BNB。\n单独记录的自有钱包调拨本金：${j.excludedPrincipalWei?formatEther(BigInt(j.excludedPrincipalWei)):'尚未确认'} BNB；对应哈希 ${OWNED_RETURN.hash}。\n计入预算（含此前任务和全部Gas）：${j.spentWei?formatEther(BigInt(j.spentWei)):'尚未确认'} / 0.2 BNB。\n历史续跑及本次任务累计Gas：${j.campaignGasWei?formatEther(BigInt(j.campaignGasWei)):'尚未核实'} / 剩余累计预算。\n本次使用用户指定的9992地址：17个代币前600快照仅合并去重，VIRUS未纳入。\n`;
  fs.writeFileSync(path.join(directory,'summary.txt'),text);
  if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,text+'\n');
 }

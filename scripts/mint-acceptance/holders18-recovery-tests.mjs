@@ -32,7 +32,7 @@ function previousLogs(batch){
 const PRIOR71=JSON.parse(fs.readFileSync(new URL('./data/holders18-prior71.json',import.meta.url),'utf8'));
 const source=Array.from({length:401},(_,i)=>'0x'+(i+1000000).toString(16).padStart(40,'0')).join('\n')+'\n';
 const sourceSha=createHash('sha256').update(source).digest('hex');
-function networkFixture(){
+function networkFixture({taxed=false}={}){
  configure(source,sourceSha,PRIOR71);
  const starting=PRIOR71,doneBefore=0;
  const receipts=new Map(),txs=new Map(),signed=new Map(),completed=new Set();let now=1789463840;const times=new Map();let nonce=131,allowance=20000000000000000000n,balance=20000000000000000000000n,drop=true,dropAt=1,broadcasts=0,durable;
@@ -81,7 +81,7 @@ function networkFixture(){
    if(decoded.functionName==='approve')allowance=decoded.args[1];
    else{
     const [token,id,recipients,amounts]=decoded.args;assert.equal(token.toLowerCase(),TOKEN.toLowerCase());assert.equal(recipients.length,plan()[completed.size].length);assert.ok(!completed.has(id));assert.equal(id,holderBatch(completed.size));assert.deepEqual(recipients.map(x=>x.toLowerCase()),plan()[completed.size]);
-    recipients.forEach((recipient,i)=>{assert.equal(amounts[i],AMOUNT);logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,amounts[i],amounts[i]])})});
+    recipients.forEach((recipient,i)=>{assert.equal(amounts[i],AMOUNT);logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,amounts[i],taxed&&i===0?970000000000000000n:amounts[i]])})});
     logs.push({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args:{sender:ACCOUNT,token:TOKEN,batchId:id}}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[BigInt(recipients.length),BigInt(recipients.length)*AMOUNT])});
     balance-=BigInt(recipients.length)*AMOUNT;allowance-=BigInt(recipients.length)*AMOUNT;completed.add(id);
    }
@@ -115,4 +115,20 @@ test('failed durable write blocks new signatures and transfers',async t=>{
  t.mock.method(console,'log',()=>{});const f=networkFixture(),store=f.store();store.save=async()=>{throw Error('durable write failed')};
  await assert.rejects(run({clients:[f.client,f.client],store,execute:true,ownedReturnConfirmed:true,accountProvider:async()=>{throw Error('must not sign')}}),/durable write failed/);
  assert.equal(f.stats().broadcasts,0);
+});
+
+test('recovers a mined taxed batch without rebroadcast and continues after 1800 seconds',async t=>{
+ t.mock.method(console,'log',()=>{});
+ const f=networkFixture({taxed:true}),args={clients:[f.client,f.client],execute:true,ownedReturnConfirmed:true,accountProvider:async()=>f.account};
+ await assert.rejects(()=>run({...args,store:f.store()}),/response was lost/);
+ assert.equal(f.stats().broadcasts,3);
+ const recovered=f.store();await run({...args,store:recovered});
+ assert.equal(f.stats().broadcasts,3);
+ const sent=recovered.journal.entries.find(e=>e.kind==='send');
+ assert.equal(sent.success,true);assert.equal(sent.received[0].requested,'1000000000000000000');
+ assert.equal(sent.received[0].received,'970000000000000000');
+ f.setNow(1789465639);await run({...args,store:f.store()});assert.equal(f.stats().completed,1);
+ f.setNow(1789465640);await run({...args,store:f.store()});assert.equal(f.stats().completed,2);
+ assert.equal(f.stats().broadcasts,4);
+ assert.ok(BigInt(f.store().journal.spentWei)<200000000000000000n);
 });

@@ -4,6 +4,9 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {buildPlan,reserve,configure,fresh,validate,callFor,BASE_NONCE} from './holders18-core.mjs';
 import {dueAt,isDue} from './holders18-schedule.mjs';
+import {encodeEventTopics,encodeAbiParameters} from 'viem';
+import {artifact,ACCOUNT,TOKEN,DISTRIBUTOR,batchId} from './holders18-core.mjs';
+import {verifyDelivery} from './holders18-run.mjs';
 const address=n=>'0x'+(BigInt(n)+1000000n).toString(16).padStart(40,'0');
 const source=Array.from({length:401},(_,i)=>address(i)).join('\n')+'\n';
 const sha=createHash('sha256').update(source).digest('hex');
@@ -38,4 +41,20 @@ test('new campaign continues wallet nonce and rejects duplicate batch and altere
  j.entries.push(e);validate(j);
  const bad=structuredClone(j);bad.entries.push({...e,transaction:{...e.transaction,nonce:132}});assert.throws(()=>validate(bad));
  e.transaction.data='0x';assert.throws(()=>validate(j));
+});
+
+test('records net delivery while still rejecting wrong recipients, amounts and batch events',()=>{
+ const one=address(0)+'\n';configure(one,createHash('sha256').update(one).digest('hex'),{version:3,entries:[{transaction:{nonce:130},settled:true,success:true}]});
+ const args={sender:ACCOUNT,token:TOKEN,batchId:batchId(0)};
+ const delivery=(recipient=address(0),requested=1000000000000000000n,received=970000000000000000n)=>({address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'Delivered',args}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,requested,received])});
+ const end={address:DISTRIBUTOR,topics:encodeEventTopics({abi:artifact.abi,eventName:'BatchCompleted',args}),data:encodeAbiParameters([{type:'uint256'},{type:'uint256'}],[1n,1000000000000000000n])};
+ const verify=logs=>verifyDelivery({kind:'send',batch:0},logs);
+ assert.equal(verify([delivery(),end])[0].received,'970000000000000000');
+ assert.throws(()=>verify([delivery(address(1)),end]));
+ assert.throws(()=>verify([delivery(address(0),970000000000000000n),end]));
+ assert.throws(()=>verify([delivery(address(0),1000000000000000000n,0n),end]));
+ assert.throws(()=>verify([delivery(address(0),1000000000000000000n,1000000000000000001n),end]));
+ assert.throws(()=>verify([delivery()]));
+ assert.throws(()=>verify([delivery(),delivery(),end]));
+ assert.throws(()=>verifyDelivery({kind:'send',batch:1},[delivery(),end]));
 });

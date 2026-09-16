@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: '固定9992地址：17代币快照仅去重；每地址1枚，每批200，间隔至少30分钟'
+        description: '固定9992地址：17代币快照仅去重；每地址转出1枚，税费按合约扣除，每批200，间隔至少30分钟'
         type: choice
         default: 只读检查
         options: [只读检查, 执行或继续持仓名单]
         required: true
       confirm:
-        description: '确认固定名单每地址1枚、200地址一批、至少30分钟一批；含历史支出的累计上限0.2 BNB'
+        description: '确认固定名单每地址转出1枚（税费按合约扣除、不补发）、200地址一批、至少30分钟一批；含历史支出的累计上限0.2 BNB'
         type: boolean
         default: false
         required: true
