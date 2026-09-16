@@ -34,3 +34,8 @@ Mainnet launch needs: identified authorized gas-paying wallet and cap; a native-
 ## Verified mainnet preflight
 GitHub run [35069675599](https://github.com/xuxi1234/flap-stock-meme/actions/runs/35069675599) completed read-only at block122183178 (2026-09-16T07:40:14Z). Gas price0.05gwei; adapter estimate606083gas (0.00003030415BNB); conservative all-deployment bound0.0004175BNB, excludes subscription funding. Wallet0x74a7…69aA held0.09190260835097736BNB; treasury held0BNB. Estimates vary with gas price. No keys loaded or transactions sent.
 Proposed launch budget, **not yet authorized**: use the0x74a7…69aA wallet with a cumulative0.02BNB cap including0.01BNB initial VRF funding. Subscription must be monitored/refilled as supply mints; initial funding is not a promise to cover all7777requests. Reuse the wallet's existing GitHub concurrency group to avoid collision with airdrops.
+
+## Published website verification
+Standalone website: https://flap-stock-butterfly-7777.vercel.app (independent from the official swap). Browser checks confirmed the 7,777-item gallery, 637 Morpho-inspired items after filtering, no invented market orders, and disabled payment until chain deployment. 390px and320px test frames had no horizontal overflow. GitHub UI test/build run35070859409 passed.
+
+The long team-scoped Vercel alias requires authentication even though the short production alias is public. All metadata, image URLs and the launch proposal therefore use only the short public alias. Never deploy immutable tokenURI using the protected team alias. A metadata-host correction is being published; recheck public token metadata and image accessibility before any on-chain funding.

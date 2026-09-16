@@ -4,8 +4,8 @@
   "payer": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
   "totalCapBNB": "0.02",
   "initialVRFFundingBNB": "0.01",
-  "assetBase": "https://flap-stock-butterfly-7777-xuxis-projects-7df64997.vercel.app/nft/",
-  "metadataBase": "https://flap-stock-butterfly-7777-xuxis-projects-7df64997.vercel.app/nft/metadata/",
+  "assetBase": "https://flap-stock-butterfly-7777.vercel.app/nft/",
+  "metadataBase": "https://flap-stock-butterfly-7777.vercel.app/nft/metadata/",
   "collectionHash": "fc6cbb6132de8a32de271c9282c43b61fb76274df2394742c281fcae18f875f7",
   "imageCollectionHash": "83147df7915b2dbdb1bb69f1e50c19f9be72c1d3b61eeb5edfd9ee173cf300c6",
   "samples": {

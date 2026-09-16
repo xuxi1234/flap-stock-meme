@@ -14,8 +14,8 @@ Set these explicitly in the operator environment or manual-only workflow:
 | `NFT_LAUNCH_MAX_SPEND_BNB` | `0.02` |
 | `NFT_VRF_INITIAL_FUND_BNB` | `0.01` |
 | `NFT_RPC_URL` | Operator-provided BNB Chain RPC |
-| `NFT_METADATA_BASE` | `https://flap-stock-butterfly-7777-xuxis-projects-7df64997.vercel.app/nft/metadata/` |
-| `NFT_ASSET_BASE` | `https://flap-stock-butterfly-7777-xuxis-projects-7df64997.vercel.app/nft/` |
+| `NFT_METADATA_BASE` | `https://flap-stock-butterfly-7777.vercel.app/nft/metadata/` |
+| `NFT_ASSET_BASE` | `https://flap-stock-butterfly-7777.vercel.app/nft/` |
 | `NFT_LAUNCH_JOURNAL` | Absolute path, for example `/operator-output/launch-56.json` |
 | `NFT_DEPLOY_JOURNAL` | Different absolute path, for example `/operator-output/deployment-56.json` |
 | `NFT_FRONTEND_CONFIG_OUTPUT` | Optional new path, for example `/operator-output/frontend-disabled.json` |
