@@ -8,6 +8,7 @@ export default defineConfig({
     allowedHosts: ['terminal.local'],
   },
   test: {
+    maxWorkers: 2,
     css: true,
     environment: 'jsdom',
     include: ['src/**/*.{test,spec}.{ts,tsx}'],

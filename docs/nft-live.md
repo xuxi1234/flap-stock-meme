@@ -30,3 +30,7 @@ Mainnet launch needs: identified authorized gas-paying wallet and cap; a native-
 - https://docs.chain.link/vrf/v2-5/supported-networks — BSC coordinator, keyhash and native payment.
 - https://www.nhm.ac.uk/discover/butterflies-moths.html — natural butterfly inspiration.
 - https://www.nhm.ac.uk/discover/butterfly-wings-science-behind-the-colour.html — pigment and structural coloration.
+
+## Verified mainnet preflight
+GitHub run [35069675599](https://github.com/xuxi1234/flap-stock-meme/actions/runs/35069675599) completed read-only at block122183178 (2026-09-16T07:40:14Z). Gas price0.05gwei; adapter estimate606083gas (0.00003030415BNB); conservative all-deployment bound0.0004175BNB, excludes subscription funding. Wallet0x74a7…69aA held0.09190260835097736BNB; treasury held0BNB. Estimates vary with gas price. No keys loaded or transactions sent.
+Proposed launch budget, **not yet authorized**: use the0x74a7…69aA wallet with a cumulative0.02BNB cap including0.01BNB initial VRF funding. Subscription must be monitored/refilled as supply mints; initial funding is not a promise to cover all7777requests. Reuse the wallet's existing GitHub concurrency group to avoid collision with airdrops.

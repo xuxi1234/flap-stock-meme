@@ -45,8 +45,12 @@ Concrete unresolved launch inputs:
 
 1. Publish and pin all 7,777 metadata JSON files, matching JPEG assets and `collection.json`; verify their availability. URI validation checks syntax, not hosting completeness or immutability.
 2. Select/fund the NFT deployment signer and supply an RPC and explicit gas budget.
-3. Create a **fresh dedicated VRF v2.5 subscription** using the official [subscription workflow](https://docs.chain.link/vrf/v2-5/subscription/create-manage), owned by that signer, and fund native BNB. Creation/funding is deliberately an explicit separate operator step; this script only registers the deployed adapter. The gas cap excludes this prior subscription funding. No subscription ID or funding amount is fabricated.
+3. Create a **fresh dedicated VRF v2.5 subscription** using the official [subscription workflow](https://docs.chain.link/vrf/v2-5/subscription/create-manage), owned by that signer, and fund native BNB. Standalone `deploy.mjs` only registers the deployed adapter. The separately gated `launch.mjs` can create/fund the dedicated subscription and run deployment under one combined cap; see [LAUNCH.md](LAUNCH.md). The gas cap excludes this prior subscription funding. No subscription ID or funding amount is fabricated.
 4. Verify authentic VRF fulfillment and callback gas on testnet, obtain contract review, and define subscription refill/monitoring responsibility before opening paid minting.
 5. After authorized deployment, verify source/constructor arguments on the explorer and provide the three resulting addresses to the UI. Live deployment itself remains unperformed.
 
 After all steps, the script reads back code, mint price, maximum supply, treasury, zero market fee, collection/adapter bindings, metadata base and funded consumer registration. It prints a frontend-compatible `frontendConfig` containing chain ID, contract addresses, runtime code hashes and HTTPS JPEG `assetBase`. Optional `NFT_FRONTEND_CONFIG_OUTPUT` writes that JSON to a new file (never overwrites an existing file). Output always has `enabled:false`; independent source/runtime-code verification, authentic VRF validation and hosting checks must precede a separately reviewed release that enables payments. The script never enables frontend transactions automatically.
+
+## Proposed combined launch
+
+[LAUNCH.md](LAUNCH.md) documents the check-only-by-default `scripts/launch.mjs` workflow, hard-pinned proposed payer, 0.02-BNB total cap including 0.01-BNB initial native VRF funding, verified public manifest/sample JPEGs, three-confirmation recovery, and exact execution gate. Funding-source/budget approval remains outstanding; preparation does not authorize execution.

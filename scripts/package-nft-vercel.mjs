@@ -1,0 +1,6 @@
+import {readFileSync,readdirSync,writeFileSync,mkdirSync} from 'node:fs';
+const files=['package.json','package-lock.json','tsconfig.json','vite.nft.config.ts','nft.html','src/vite-env.d.ts','api/swap-rpc.ts','scripts/generate-butterfly-nfts.mjs','scripts/verify-butterfly-nfts.mjs','scripts/nft-art/package.json','scripts/nft-art/package-lock.json','scripts/nft-art/raster-worker.mjs','public/nft-layout-check.html',...readdirSync('src/nft').filter(p=>!p.includes('.test.')).map(p=>`src/nft/${p}`)].map(file=>({file,data:readFileSync(file,'utf8')}));
+files.push({file:'public/nft-assets/nature-concept.webp',data:readFileSync('public/nft-assets/nature-concept.webp').toString('base64'),encoding:'base64'});
+files.push({file:'vercel.json',data:JSON.stringify({buildCommand:'NFT_ASSET_BASE_URL=https://flap-stock-butterfly-7777-xuxis-projects-7df64997.vercel.app/nft npm run build:nft',outputDirectory:'dist',headers:[{source:'/nft/(.*)',headers:[{key:'Access-Control-Allow-Origin',value:'*'},{key:'Cache-Control',value:'public, max-age=3600'}]}]})});
+mkdirSync('.superpowers/sdd/2026-09-16-nft-live-nature',{recursive:true});writeFileSync('.superpowers/sdd/2026-09-16-nft-live-nature/standalone-files.json',JSON.stringify(files));
+console.log(`Packaged ${files.length} source files; generated art is rebuilt and verified.`);
