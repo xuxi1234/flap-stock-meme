@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { normalizeBoard, parsePublicBoard, isUnusual, sortBoard } from './flapBoard'
+import { BUTTERFLY } from './config'
+import { BOARD_CATEGORIES, normalizeBoard, parsePublicBoard, isUnusual, sortBoard } from './flapBoard'
 import { FlapBoard } from './FlapBoard'
 import handler from '../../api/flap-board'
 const address='0x'+'1'.repeat(40), second='0x'+'2'.repeat(40)
@@ -57,4 +58,21 @@ it('does not render a previous category response after the category has changed'
  render(<FlapBoard favorites={[]} onFavorite={vi.fn()}/>);fireEvent.click(screen.getByRole('button',{name:'礼物代币'}));await screen.findByText('当前范围没有匹配代币')
  resolveFirst({ok:true,json:async()=>({category:'trending',items:normalizeBoard({items:[item]}).items,fetchedAt:Date.now(),source:'api'})})
  await waitFor(()=>expect(screen.queryByText('EX')).not.toBeInTheDocument())
+})
+
+it('keeps the official contract ahead of every category and removes upstream duplicates despite filters and failures',async()=>{
+ const items=normalizeBoard({items:[item,{...item,coin:{address:BUTTERFLY.address,name:'duplicate',symbol:'DUPLICATE'}}]}).items
+ const fetch=vi.fn().mockImplementation(async(url:string)=>({ok:true,json:async()=>({category:new URL(url,'https://example.com').searchParams.get('category'),items,nextCursor:null,fetchedAt:Date.now(),source:'api',scope:'Flap'})}));vi.stubGlobal('fetch',fetch)
+ const onTrade=vi.fn();render(<FlapBoard favorites={[]} onFavorite={vi.fn()} onTrade={onTrade}/>)
+ for(const c of BOARD_CATEGORIES){
+  fireEvent.click(screen.getByRole('button',{name:c.label}));await screen.findByRole('button',{name:'选择 EX 交易'})
+  const pin=screen.getByRole('region',{name:'蝴蝶股票官方置顶'})
+  expect(pin).toHaveTextContent(BUTTERFLY.address);expect(pin.compareDocumentPosition(screen.getByRole('table'))&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.queryByRole('button',{name:'选择 DUPLICATE 交易'})).not.toBeInTheDocument()
+ }
+ fireEvent.click(screen.getByRole('button',{name:'卡片视图'}));fireEvent.click(screen.getByRole('button',{name:'☆ 收藏'}));fireEvent.change(screen.getByLabelText('搜索看板已加载代币'),{target:{value:'no-match'}})
+ fireEvent.change(screen.getByLabelText('Flap 排行排序'),{target:{value:'marketcap'}})
+ expect(screen.getByRole('region',{name:'蝴蝶股票官方置顶'})).toBeInTheDocument()
+ fetch.mockResolvedValue({ok:false});fireEvent.click(screen.getByRole('button',{name:'热门'}));await screen.findByRole('alert')
+ fireEvent.click(screen.getByRole('button',{name:'交易蝴蝶股票 ↗'}));expect(onTrade).toHaveBeenCalledWith(BUTTERFLY.address)
 })
