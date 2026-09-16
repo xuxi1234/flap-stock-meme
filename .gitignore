@@ -18,3 +18,5 @@ contracts/nft/artifacts/
 node_modules
 node_modules.partial/
 public/nft-assets/atelier-concept.png
+public/nft-assets/nature-concept.png
+contracts/nft/preflight-public.json

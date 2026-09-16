@@ -4,7 +4,7 @@ interface Callback {function rawFulfillRandomWords(uint256, uint256[] calldata) 
 contract Coordinator {
  struct RandomWordsRequest {bytes32 keyHash;uint256 subId;uint16 requestConfirmations;uint32 callbackGasLimit;uint32 numWords;bytes extraArgs;}
  uint256 public nextId;
- function requestRandomWords(RandomWordsRequest calldata r) external returns(uint256){require(r.numWords==1 && r.subId!=0 && r.keyHash!=bytes32(0));return ++nextId;}
+ function requestRandomWords(RandomWordsRequest calldata r) external returns(uint256){require(keccak256(r.extraArgs)==keccak256(abi.encodeWithSelector(bytes4(keccak256('VRF ExtraArgsV1')),true)),'Native billing required');require(r.numWords==1 && r.subId!=0 && r.keyHash!=bytes32(0));return ++nextId;}
  function fulfill(address target,uint256 requestId,uint256 word) external {uint256[] memory words=new uint256[](1);words[0]=word;Callback(target).rawFulfillRandomWords(requestId,words);}
 }
 contract RejectNFT {}
@@ -32,4 +32,10 @@ contract AdversarialReceiver {
  }
  function onERC721Received(address,address,uint256,bytes calldata) external returns(bytes4){attack();return 0x150b7a02;}
  receive() external payable {require(!rejectPayment,'Rejected payment');attack();}
+}
+contract RejectingBuyer {
+ function buy(address market,uint256 tokenId) external payable {
+  (bool ok,bytes memory data)=market.call{value:msg.value}(abi.encodeWithSignature('buy(uint256)',tokenId));
+  if(!ok)assembly{revert(add(data,32),mload(data))}
+ }
 }

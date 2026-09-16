@@ -1,45 +1,51 @@
-# Butterfly Genesis contracts — preview, not deployed
+# Butterfly Genesis contracts
 
-This is an isolated package. No RPC URL, signer, deployment script, deployed address, or mainnet write is included. Existing airdrop/swap contracts are unrelated.
+Local implementation and deployment preparation. No production contracts have been deployed by this package's implementation work.
 
-## Fixed economics
+## Economics and interfaces
 
-- OpenZeppelin ERC721, 7,777 maximum, token IDs 1–7,777, one token per request, exactly **0.01 BNB** on BNB Chain (the Solidity `ether` denomination is 10^18 native-token wei).
-- Mint proceeds and market fees go only to **0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF**. No owner withdrawal or treasury setter.
-- Market escrow supports only the collection chosen once at construction. Sale price must be exact. Seller receives 93%, treasury 7%; fee rounds down to whole wei, remainder goes to seller. No self-purchases. Only the seller can cancel.
-- No upgrades, mutable metadata base, supply expansion, administrative mint, timestamp RNG, or user-controlled randomness.
+- ERC721Enumerable: 7,777 IDs, exactly **0.01 BNB** per mint request; mint proceeds go to **0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF** on claim. No royalties/ERC2981, platform sale fee, admin mint or mutable metadata.
+- `requestMint()` reserves capacity, `requests(id)` returns `(payer,tokenId,claimed)`, and only the payer can `claim(id,recipient)` after assignment. The authenticated VRF callback makes no external payments or receiver calls. Allocation remains the original constant-time sparse Fisher–Yates algorithm.
+- `payerRequestCount(payer)` and `payerRequests(payer,offset,limit)` expose stable append-only request IDs. Limit is at most 100; pages include claimed requests, so clients read `requests(id)` and filter status. `totalSupply`, `tokenByIndex`, `tokenOfOwnerByIndex` support wallet inventory.
+- `contractURI()` is fixed base + `collection.json`; `tokenURI(id)` is fixed base + decimal ID + `.json`.
+- Market `list(id,price)` requires current ownership and market approval. The NFT **stays in the seller wallet**. Listing again updates its price and transfer snapshot. `listings(id)` returns `(seller,price)`; clients must check `isListingActive(id)`.
+- `listedTokenCount()` and `listedTokenIds(offset,limit)` (max 100) expose append-once historical listing candidates; filter with `isListingActive`. Relisting does not duplicate an ID.
+- `buy(id)` requires the exact BNB price and atomically safe-transfers the NFT and pays **100% to the seller**. `FEE_BPS=0`; `Sold` retains its fee argument with zero. Receiver or payout rejection restores ownership, approval, nonce and listing. `cancel(id)` only clears the listing and does not transfer the NFT.
+- Every NFT ownership update increments `transferNonce(id)`. The market snapshots `listingNonce(id)`: a transfer away and back cannot resurrect a listing. Revoked approvals disable sales; reapproval can reactivate an unchanged-owner listing. Cancel to remove it permanently.
 
-## Lifecycle and integration
+Pending requests reserve funds/capacity indefinitely; no cancellation or reroll path exists. A maintained VRF subscription and monitoring are operational requirements. There is no rescue for NFTs forcibly sent with unsafe ERC721 transfers. A seller contract must accept BNB.
 
-1. `requestMint()` with `10^16` wei reserves capacity immediately and asks the adapter for VRF. Failed requests revert the reservation/payment atomically.
-2. `MintRequested(requestId,payer)` identifies the request. Read `requests(requestId)`; zero `tokenId` means pending.
-3. The immutable Chainlink coordinator calls the adapter's `rawFulfillRandomWords`. The adapter authenticates sender/request and calls collection `fulfill`. A sparse Fisher–Yates draw assigns an unused ID in constant time. Modulo reduction introduces negligible (<7777/2^256) statistical bias. Fulfillment order, not submission order, determines draw order.
-4. `MintAssigned` signals readiness. Only the payer calls `claim(requestId,recipient)`. NFT receiver acceptance and treasury payment are atomic; failure leaves the claim retriable with a different recipient. Fulfillment itself never calls recipient or treasury.
-5. Approve the market for a token, then `list(tokenId,priceWei)`. Escrow receives the NFT. `buy(tokenId)` transfers NFT and pays seller/treasury atomically; rejected transfer/payment restores the listing. `cancel(tokenId)` returns it to the seller.
-
-`reserved` counts all accepted requests permanently (pending + assigned + claimed), `assigned` counts fulfilled randomness, `minted` counts successful claims. No request cancellations, rerolls, or admin-selected outcomes. Pending/failed VRF can lock funds and capacity indefinitely: this deliberately avoids a refund/reroll mechanism that could undermine allocation fairness. Monitor funding and gas limits before opening minting. A seller contract that rejects BNB cannot complete sales; cancel and transfer to a receiving wallet first. ERC721 `transferFrom` can forcibly send unlisted tokens into any contract; only normal `list` deposits are supported and there is no privileged rescue.
-
-## Reproduce locally
-
-Use Node 22+ (also tested with Node 24):
+## Local verification
 
 ```sh
 cd contracts/nft
 npm ci --ignore-scripts --no-audit --no-fund
 npm run compile
-npm test
+node --test --test-skip-pattern='all 7777' test/*.test.mjs
 ```
 
-Pinned OpenZeppelin 5.4.0, solc 0.8.30, ethers 6.15.0, Ganache 7.9.2; optimizer 200 runs, Shanghai EVM target. Tests use only an in-process EVM and ephemeral generated accounts. The coordinator fixture supplies deterministic words solely to exercise the real adapter/collection/market; it is not a VRF proof-verification test or production randomness source. Ganache may print a native µWS compatibility warning and use its JS fallback on newer Node.
+`npm test` also runs the slower full 7,777-reservation capacity test. OpenZeppelin 5.4.0, solc 0.8.30, optimizer 200, Shanghai; ethers 6.15.0 and Ganache 7.9.2. Local tests use ephemeral accounts and a deterministic coordinator mock that explicitly rejects LINK-billed requests. Ganache's optional native µWS warning falls back to JavaScript.
 
-## Deployment runbook — future explicit approval required
+## BNB Chain VRF
 
-1. Obtain independent smart-contract review/audit. Decide and publish metadata for all 7,777 IDs and an immutable content-addressed base URI; upload/pin it before construction. Token URI is base URI + decimal token ID + `.json`, matching the generated metadata filenames. The base URI must end with `/`.
-2. Verify the intended chain, current official Chainlink VRF v2.5 coordinator address, key hash/gas lane, coordinator confirmation bounds and maximum callback gas. Create/fund a LINK subscription. These values are intentionally absent from preview configuration.
-3. Deploy `ButterflyVRF(coordinator,keyHash,subscriptionId,confirmations,callbackGasLimit)` first. Constructor rejects a non-contract coordinator, zero key/subscription, fewer than 3 confirmations, or less than 200,000 callback gas. These minimums do not replace network-specific validation. Coordinator is immutable; no migration/admin redirection.
-4. Deploy `ButterflyNFT(adapter,baseURI)`, then use the adapter deployer to `bindCollection(collection)` once. Binding validates the collection's adapter reference; it cannot be changed. Register the **adapter** as the VRF subscription consumer. Until binding/funding/consumer registration are valid, minting fails closed or fulfillment remains pending according to coordinator behavior.
-5. Deploy `ButterflyMarket(collection)`. Independently verify constructor args, exact treasury, all bytecode and source on the explorer. Deployment of a malicious or wrong coordinator/adapter cannot be made safe by constructor code-length checks.
-6. Complete a BNB testnet lifecycle: request, oracle fulfillment, claim, receiver rejection/retry, list, buy, cancel; measure real callback gas and keep a margin. Test authentic VRF fulfillment, subscription accounting and operational recovery/monitoring. This package's local fixture does not establish those properties.
-7. Only after explicit production authorization, configure the frontend with verified addresses and chain ID. Until then, leave live transaction controls disabled and label all artwork/mints/listings as simulations. Never use fixtures for deployment.
+`config/bsc-vrf.json` pins the official chain-56 coordinator, 200-gwei gas-lane hash, 3 confirmations, and 300,000 callback gas. Adapter requests use `ExtraArgsV1({nativePayment:true})`. Parameters were checked against [Chainlink's supported-networks documentation](https://docs.chain.link/vrf/v2-5/supported-networks#bnb-chain-mainnet) on 2026-09-16; deployment also reads coordinator configuration. BNB VRF costs are **separate from mint price**, paid by the project's native BNB subscription. The immutable coordinator/binding cannot be migrated.
 
-Chainlink request ABI and extra-args encoding follow [VRF v2.5 documentation](https://docs.chain.link/vrf/v2-5/getting-started) and [VRFV2PlusClient](https://github.com/smartcontractkit/chainlink/blob/contracts-v1.3.0/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol). The small local interface avoids bundling unrelated Chainlink packages; live coordinator compatibility remains a testnet deployment gate. Source is production-oriented, **not audited or approved for mainnet**.
+## Guarded deployment preparation
+
+`node scripts/deploy.mjs` is check-only by default. Missing configuration produces a concrete missing-input report and sends nothing. It never loads dotenv, looks up airdrop/shared keys, or creates a signer in check-only mode.
+
+Required public inputs: `NFT_RPC_URL`, explicit `NFT_SIGNER_ADDRESS`, final absolute HTTPS/IPFS `NFT_METADATA_BASE` ending `/`, HTTPS `NFT_ASSET_BASE` ending `/`, `NFT_VRF_SUBSCRIPTION_ID`, and explicit `NFT_MAX_SPEND_BNB`. The script verifies chain 56, coordinator code/configuration, subscription ownership/native balance, signer balance, compiler/source hash and budget. It estimates each executable step, adds 20% gas headroom, and uses conservative bounds for dependent steps before they exist. It does not claim to estimate unavailable dependent constructors.
+
+Execution additionally requires `--execute`, the dedicated `NFT_DEPLOY_PRIVATE_KEY`, and `NFT_DEPLOY_CONFIRM=DEPLOY_BUTTERFLY_ON_56:<checksummed signer address>`. It deploys adapter, collection and market, binds the collection once, and adds the adapter as consumer. Each transaction has a bounded legacy gas price and gas limit; cumulative gas spend cannot exceed the explicit cap. Three confirmations are required for new, recovered and previously recorded transactions; shallow receipts stop the run until the operator retries. Canonical receipts are re-read after checking confirmation height. No transaction or secret was used to test this preparation.
+
+`NFT_DEPLOY_JOURNAL` optionally changes the receipt journal path (default `deployment-56.json`). Resume uses the same source/configuration identity and verifies canonical receipts. Intent is persisted before broadcast and hash immediately afterwards. If a crash falls between broadcast and hash persistence, the script stops for nonce/receipt reconciliation instead of duplicating a deployment. Never delete an unresolved journal merely to bypass that stop. Use a dedicated signer without concurrent transactions. Retain the journal outside source control.
+
+Concrete unresolved launch inputs:
+
+1. Publish and pin all 7,777 metadata JSON files, matching JPEG assets and `collection.json`; verify their availability. URI validation checks syntax, not hosting completeness or immutability.
+2. Select/fund the NFT deployment signer and supply an RPC and explicit gas budget.
+3. Create a **fresh dedicated VRF v2.5 subscription** using the official [subscription workflow](https://docs.chain.link/vrf/v2-5/subscription/create-manage), owned by that signer, and fund native BNB. Creation/funding is deliberately an explicit separate operator step; this script only registers the deployed adapter. The gas cap excludes this prior subscription funding. No subscription ID or funding amount is fabricated.
+4. Verify authentic VRF fulfillment and callback gas on testnet, obtain contract review, and define subscription refill/monitoring responsibility before opening paid minting.
+5. After authorized deployment, verify source/constructor arguments on the explorer and provide the three resulting addresses to the UI. Live deployment itself remains unperformed.
+
+After all steps, the script reads back code, mint price, maximum supply, treasury, zero market fee, collection/adapter bindings, metadata base and funded consumer registration. It prints a frontend-compatible `frontendConfig` containing chain ID, contract addresses, runtime code hashes and HTTPS JPEG `assetBase`. Optional `NFT_FRONTEND_CONFIG_OUTPUT` writes that JSON to a new file (never overwrites an existing file). Output always has `enabled:false`; independent source/runtime-code verification, authentic VRF validation and hosting checks must precede a separately reviewed release that enables payments. The script never enables frontend transactions automatically.
