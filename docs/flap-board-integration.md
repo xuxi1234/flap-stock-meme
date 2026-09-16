@@ -75,3 +75,13 @@ References:
 
 To pause the collector, disable its workflow and cancel its active run. It does
 not share concurrency groups, checkpoints, or keys with the airdrop workflows.
+
+Minute-named immutable snapshots avoid GitHub Raw's mutable-path CDN delay.
+The API reads the last closed minute, with the canonical snapshot as a stale
+fallback. Five minute files are retained. Expect roughly one minute of delivery
+latency in addition to the browser polling interval; timestamps remain visible.
+Historical Lista candidates were also discovered on official token pages and are
+revalidated against the factory allowlist every cycle:
+https://flap.sh/bnb/0xdc5dfd5ca7fa66a29e1ebecda410566bcaa07777/taxinfo
+https://flap.sh/bnb/0x0598075dc4d1c9484daa80c62313aad39fc77777/taxinfo
+No off-chain seed name is used to infer category membership.

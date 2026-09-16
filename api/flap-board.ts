@@ -17,7 +17,14 @@ export default async function handler(req:Request,res:Response){
   if(typeof category!=='string'||!BOARD_CATEGORIES.some(c=>c.id===category)||typeof sort!=='string'||!Object.hasOwn(BOARD_SORTS,sort)||!['asc','desc'].includes(String(order))||typeof order!=='string'||cursor!==undefined&&(typeof cursor!=='string'||cursor.length>512)||quote!==undefined&&(typeof quote!=='string'||!ADDRESS.test(quote))){res.status(400).json({error:'Invalid filters'});return}
   const cat=category as BoardCategory;let result:BoardSnapshot
   try {
-    const raw=JSON.parse(await read(`https://raw.githubusercontent.com/xuxi1234/flap-stock-meme/automation/flap-board-data/snapshot.json?minute=${Math.floor(Date.now()/60000)}`,2_000_000))
+    // Raw GitHub caches a mutable branch file for minutes, even with query strings.
+    // Time-named files are immutable; request the last closed minute to avoid
+    // caching a 404 before the producer has published the current minute.
+    const root='https://raw.githubusercontent.com/xuxi1234/flap-stock-meme/automation/flap-board-data'
+    let json:string
+    try { json=await read(`${root}/snapshots/${Math.floor(Date.now()/60000)-1}.json`,2_000_000) }
+    catch { json=await read(`${root}/snapshot.json`,2_000_000) }
+    const raw=JSON.parse(json)
     result=indexedBoard(raw,cat,sort as BoardSort,order as 'asc'|'desc',quote as string|undefined,cursor as string|undefined)
     res.setHeader('Cache-Control','public, s-maxage=15, stale-while-revalidate=15');res.status(200).json(result);return
   } catch { /* Preserve the independently available sources if the index is unavailable. */ }

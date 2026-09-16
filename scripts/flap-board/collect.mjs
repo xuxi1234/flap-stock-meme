@@ -23,9 +23,14 @@ async function loadState(){
  return {ref:ref.object.sha,state:JSON.parse(Buffer.from(file.content,'base64').toString())}
 }
 async function publish(state,snapshot,oldRef){
- const tree=await github('git/trees','POST',{tree:[
+ const minute=Math.floor(snapshot.updatedAt/60000),previous=state.snapshotMinutes||[]
+ state.snapshotMinutes=[...new Set([...previous,minute])].filter(m=>m>=minute-4)
+ const parent=oldRef?await github(`git/commits/${oldRef}`):null
+ const tree=await github('git/trees','POST',{...(parent?{base_tree:parent.tree.sha}:{}),tree:[
   {path:'state.json',mode:'100644',type:'blob',content:JSON.stringify(state)},
   {path:'snapshot.json',mode:'100644',type:'blob',content:JSON.stringify(snapshot)},
+  {path:`snapshots/${minute}.json`,mode:'100644',type:'blob',content:JSON.stringify(snapshot)},
+  ...previous.filter(m=>m<minute-4).map(m=>({path:`snapshots/${m}.json`,mode:'100644',type:'blob',sha:null})),
   {path:'vercel.json',mode:'100644',type:'blob',content:JSON.stringify({git:{deploymentEnabled:false}})},
  ]})
  const commit=await github('git/commits','POST',{message:`Refresh Flap chain snapshot ${new Date(snapshot.updatedAt).toISOString()} [skip ci]`,tree:tree.sha,parents:oldRef?[oldRef]:[]})
@@ -116,7 +121,7 @@ async function cycle(state,oldRef){
  records.sort((a,b)=>(b.volume24h||0)-(a.volume24h||0))
  const snapshot={version:1,chainId:56,updatedAt:Date.now(),block:Number(head),indexedThrough:state.cursor,historyFrom:state.historyCursor,records,marketOk,diagnostics}
  // Bound the checkpoint while preserving all known supported vault categories.
- const keep=all.filter(t=>t.factory).slice(0,2500).concat(all.slice(0,1500),seeds.map(t=>state.tokens[t.address]||t))
+ const keep=all.filter(t=>t.factory).slice(0,2500).concat(all.slice(0,1500),selected,seeds.map(t=>state.tokens[t.address]||t))
  state.tokens=Object.fromEntries(keep.map(t=>[t.address,t]))
  const ref=await publish(state,snapshot,oldRef)
  await mkdir('flap-board-output',{recursive:true});await writeFile('flap-board-output/status.json',JSON.stringify({...snapshot,records:undefined,count:records.length},null,2))

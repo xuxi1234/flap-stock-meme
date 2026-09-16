@@ -37,7 +37,7 @@ it('bounds Flap API requests, validates the response and forwards safe cursor fi
  expect(res.json.mock.calls[0][0]).toMatchObject({source:'api',category:'fac',nextCursor:'next'})
 })
 it('labels bounded public-page fallback and never turns failed categories into empty successful boards',async()=>{
- const fetch=vi.fn().mockResolvedValueOnce(new Response('',{status:404})).mockResolvedValueOnce(new Response('',{status:403})).mockResolvedValueOnce(new Response(publicPage([item,{...item,coin:{address:second},isLowRisk:false}])));vi.stubGlobal('fetch',fetch)
+ const fetch=vi.fn().mockResolvedValueOnce(new Response('',{status:404})).mockResolvedValueOnce(new Response('',{status:404})).mockResolvedValueOnce(new Response('',{status:403})).mockResolvedValueOnce(new Response(publicPage([item,{...item,coin:{address:second},isLowRisk:false}])));vi.stubGlobal('fetch',fetch)
  const res=response();await handler({method:'GET',query:{category:'fac'}},res)
  expect(res.json.mock.calls[0][0]).toMatchObject({source:'page',nextCursor:null,items:[{address}]})
  fetch.mockResolvedValue(new Response('',{status:403}));await handler({method:'GET',query:{category:'bonding'}},res);expect(res.status).toHaveBeenLastCalledWith(503)
