@@ -12,13 +12,13 @@ export const STOCK_TOKENS = stockTokens as SwapToken[]
 export const MAG7_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA']
 export const BUTTERFLY: SwapToken = { address: projectConfig.token.contractAddress!, symbol: '蝴蝶股票', name: '蝴蝶股票 / FLAP STOCK', decimals: 18, color: '#6020ff', logoURI: '/flap-stock-avatar.png', buyTaxBps: 300, sellTaxBps: 300, source: 'https://gupiao.sh/', issuer: '蝴蝶股票', category: 'community' }
 export const TOKENS: SwapToken[] = [
-  { address: WBNB, symbol: 'BNB', name: 'BNB · 原生资产', decimals: 18, native: true, color: '#f0b90b' },
-  { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Binance-Peg BSC-USD', decimals: 18, color: '#219b83' },
-  { address: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', symbol: 'CAKE', name: 'PancakeSwap', decimals: 18, color: '#28b8cc' },
-  { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', name: 'Binance-Peg USD Coin', decimals: 18, color: '#2775ca' },
-  { address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', symbol: 'BTCB', name: 'Binance-Peg Bitcoin', decimals: 18, color: '#f7931a' },
-  { address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', symbol: 'ETH', name: 'Binance-Peg Ethereum', decimals: 18, color: '#627eea' },
-  { address: WBNB, symbol: 'WBNB', name: 'Wrapped BNB', decimals: 18, color: '#c89b0a' },
+  { address: WBNB, symbol: 'BNB', name: 'BNB · 原生资产', decimals: 18, native: true, color: '#f0b90b', logoURI: '/token-icons/bnb.svg' },
+  { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Binance-Peg BSC-USD', decimals: 18, color: '#219b83', logoURI: '/token-icons/usdt.svg' },
+  { address: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', symbol: 'CAKE', name: 'PancakeSwap', decimals: 18, color: '#28b8cc', logoURI: '/token-icons/cake.png' },
+  { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', name: 'Binance-Peg USD Coin', decimals: 18, color: '#2775ca', logoURI: '/token-icons/usdc.svg' },
+  { address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', symbol: 'BTCB', name: 'Binance-Peg Bitcoin', decimals: 18, color: '#f7931a', logoURI: '/token-icons/btcb.svg' },
+  { address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', symbol: 'ETH', name: 'Binance-Peg Ethereum', decimals: 18, color: '#627eea', logoURI: '/token-icons/eth.svg' },
+  { address: WBNB, symbol: 'WBNB', name: 'Wrapped BNB', decimals: 18, color: '#c89b0a', logoURI: '/token-icons/bnb.svg' },
   ...STOCK_TOKENS,
   BUTTERFLY,
 ]
