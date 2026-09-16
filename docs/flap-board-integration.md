@@ -85,3 +85,10 @@ revalidated against the factory allowlist every cycle:
 https://flap.sh/bnb/0xdc5dfd5ca7fa66a29e1ebecda410566bcaa07777/taxinfo
 https://flap.sh/bnb/0x0598075dc4d1c9484daa80c62313aad39fc77777/taxinfo
 No off-chain seed name is used to infer category membership.
+
+After its first successful publication, each job queues one `workflow_dispatch`
+successor. The concurrency group permits one active job and one pending job;
+cron is a recovery trigger rather than the only handover mechanism. The workflow
+has `actions: write` for dispatch and `contents: write` for snapshots only.
+Checkpoints larger than the Contents API inline limit are read through the Git
+Blobs API; they are never silently reset.

@@ -13,14 +13,16 @@ async function github(path,method='GET',body){
  const r=await fetch(`https://api.github.com/repos/${repo}/${path}`,{method,headers:{Authorization:`Bearer ${process.env.GITHUB_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)})
  if(r.status===404&&method==='GET')return null
  if(!r.ok)throw Error(`Snapshot storage HTTP ${r.status}`)
+ if(r.status===204)return null
  return r.json()
 }
 async function loadState(){
  const ref=await github(`git/ref/heads/${branch}`)
  if(!ref)return {ref:null,state:{tokens:Object.fromEntries(seeds.map(t=>[t.address,t]))}}
  const file=await github(`contents/state.json?ref=${branch}`)
- if(!file?.content)throw Error('Existing checkpoint cannot be read')
- return {ref:ref.object.sha,state:JSON.parse(Buffer.from(file.content,'base64').toString())}
+ const blob=file?.content?file:file?.sha?await github(`git/blobs/${file.sha}`):null
+ if(!blob?.content)throw Error('Existing checkpoint cannot be read')
+ return {ref:ref.object.sha,state:JSON.parse(Buffer.from(blob.content,'base64').toString())}
 }
 async function publish(state,snapshot,oldRef){
  const minute=Math.floor(snapshot.updatedAt/60000),previous=state.snapshotMinutes||[]
@@ -129,10 +131,19 @@ async function cycle(state,oldRef){
  return ref
 }
 let {state,ref}=await loadState()
+let successorQueued=false
 const stop=Date.now()+Number(process.env.COLLECT_MINUTES||23)*60000
 do{
  const started=Date.now()
- try{const next=structuredClone(state);ref=await cycle(next,ref);state=next}
+ try{
+  const next=structuredClone(state);ref=await cycle(next,ref);state=next
+  // Queue one successor behind this job. Cron remains the recovery mechanism.
+  // GitHub's concurrency group keeps one active and at most one pending run.
+  if(!successorQueued&&process.env.COLLECT_ONCE!=='1'){
+   await github('actions/workflows/flap-board-refresh.yml/dispatches','POST',{ref:'main'})
+   successorQueued=true;console.log('Successor queued; cron remains enabled for recovery.')
+  }
+ }
  catch {console.error('Collection failed; last published snapshot and checkpoint retained.');({state,ref}=await loadState())}
  if(process.env.COLLECT_ONCE==='1')break
  await new Promise(r=>setTimeout(r,Math.max(1000,60000-(Date.now()-started))))
