@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { STOCK_TOKENS } from './config'
+import { ADDRESS } from './flapBoard'
 import type { MarketSnapshot } from './marketData'
 const KEY = 'butterfly-swap-favorites-v1'
-const allowed = new Set(STOCK_TOKENS.map(t => t.address.toLowerCase()))
+const allowed = { has: (address: string) => ADDRESS.test(address) && address !== '0x' + '0'.repeat(40) }
 export function readFavorites(): string[] {
   try { const value: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]'); return Array.isArray(value) ? [...new Set(value.filter((v): v is string => typeof v === 'string' && allowed.has(v)))].slice(0, 100) : [] } catch { return [] }
 }
@@ -12,7 +12,7 @@ export function useFavorites() {
   useEffect(() => { const onStorage = (e: StorageEvent) => { if (e.key === KEY || e.key === null) setFavorites(readFavorites()) }; window.addEventListener('storage', onStorage); return () => window.removeEventListener('storage', onStorage) }, [])
   const toggle = (address: string) => {
     const key = address.toLowerCase()
-    if (!allowed.has(key)) return
+    if (!allowed.has(key) || !favorites.includes(key) && favorites.length >= 100) return
     const next = favorites.includes(key) ? favorites.filter(a => a !== key) : [...favorites, key]
     setFavorites(next)
     try { localStorage.setItem(KEY, JSON.stringify(next)); setStorageError(false) } catch { setStorageError(true) }

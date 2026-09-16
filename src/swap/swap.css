@@ -190,3 +190,54 @@ body.swap-route { background:#f2f2e9; padding-bottom:0; }
 @media(max-width:760px){.swap-art{height:90px;width:90px;margin:0;top:8px}.swap-art img{width:62px;height:62px}.swap-orbit{width:107px}.orbit-two{width:88px}.swap-art-star{font-size:20px}.swap-intro-copy{position:relative;z-index:1}}
 @media(max-width:360px){.swap-art{width:84px}.swap-explorer-grid{grid-template-columns:1fr}.swap-explorer-card{padding:15px}.swap-explorer-card-head .swap-token-icon{width:34px;height:34px}.swap-explorer-card h3{font-size:14px}.swap-explorer-card-head>div>span{font-size:10px}.swap-explorer-price>strong{font-size:27px}.swap-explorer-price>span{font-size:12px}.swap-explorer-metrics{font-size:10px}.swap-explorer-metrics b{font-size:12px}.swap-explorer-card-foot{flex-direction:row;align-items:center}.swap-explorer-card-foot>span{font-size:9px}.swap-favorite{position:static;font-size:24px}.swap-explorer h2{font-size:21px}}
 .swap-tax-note{padding:12px 14px;border:1px solid #ddcffb;border-radius:12px;background:#f4effe;color:#5123a8;font-size:12px;line-height:1.7}.swap-tax-note small{color:#7a6b94}.swap-pool-list{display:grid;gap:7px;margin:16px 0}.swap-pool-list>a{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px;border:1px solid #e8e2f1;border-radius:9px;font-size:12px}.swap-pool-list small{display:block;color:#827590;font-size:10px;margin-top:4px}.swap-pool-list b{white-space:nowrap}
+/* Trading workspace: a readable chart, a focused swap, and explicit fee details. */
+.swap-market-workspace { min-width:0; }
+.swap-chart-card { border:1px solid #e9e3f4; border-radius:24px; padding:25px 25px 16px; background:#fff; box-shadow:0 8px 36px #35126508; }
+.swap-chart-heading,.swap-chart-token,.swap-chart-controls,.swap-chart-source { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.swap-chart-token { justify-content:flex-start; }
+.swap-chart-token img,.swap-chart-token>.swap-token-icon { width:38px; height:38px; }
+.swap-chart-heading h1 { font-size:20px; letter-spacing:-.6px; margin:0; }
+.swap-chart-heading h1 span { color:#9a94a9; font-weight:500; }
+.swap-chart-heading p { font-size:11px; color:#948a9f; margin:5px 0 0; }
+.swap-chart-network { font-size:9px; letter-spacing:1px; border:1px solid #eee6fa; padding:7px 9px; border-radius:8px; color:#897998; white-space:nowrap; }
+.swap-chart-price { display:flex; align-items:baseline; gap:12px; margin:25px 0 22px; }
+.swap-chart-price>strong { font-size:34px; letter-spacing:-1px; }
+.swap-chart-price>span { font-size:13px; font-weight:650; }
+.swap-chart-price small { color:#9c96a7; font-weight:400; margin-left:4px; }
+.swap-chart-price .positive { color:#159c7c; }.swap-chart-price .negative { color:#d94167; }
+.swap-chart-controls { margin-bottom:16px; border-bottom:1px solid #f2edf8; padding-bottom:12px; }
+.swap-chart-controls>div { display:flex; gap:3px; }
+.swap-chart-controls button { border:0; background:transparent; color:#81738e; padding:7px 11px; border-radius:7px; font-size:11px; cursor:pointer; }
+.swap-chart-controls button[aria-pressed=true] { background:#eee5ff; color:#7539e7; }
+.swap-chart-canvas { height:340px; position:relative; min-width:0; }
+.swap-chart-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:linear-gradient(180deg,#faf8ff,#fff); border-radius:12px; padding:20px; box-sizing:border-box; color:#92839f; }
+.swap-chart-empty>span { display:grid; place-items:center; width:50px; height:50px; border:1px solid #eee3fc; border-radius:50%; color:#8150d9; font-size:24px; margin-bottom:18px; }
+.swap-chart-empty strong { font-size:14px; color:#756582; }.swap-chart-empty p { font-size:12px; line-height:1.8; max-width:270px; }
+.swap-chart-empty button { border:1px solid #d8c8f4; border-radius:8px; padding:8px 15px; color:#7137d5; background:#fff; cursor:pointer; }
+.swap-chart-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; border-top:1px solid #f1ecf8; margin-top:18px; padding-top:18px; }
+.swap-chart-stats span { display:block; font-size:10px; color:#9a91a5; margin-bottom:7px; }.swap-chart-stats strong { font-size:13px; }
+.swap-chart-source { font-size:9px; color:#a89db4; margin-top:21px; flex-wrap:wrap; }.swap-chart-source a { color:#8761bb; }
+.swap-chart-disclaimer { font-size:9px; line-height:1.7; color:#9b91a7; margin:10px 0 0; }
+.swap-invite-button { border:1px solid #e0d2f8; color:#6b33ca; background:#fff; padding:11px 14px; border-radius:12px; font-size:12px; font-weight:650; cursor:pointer; }
+.swap-invite-banner { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:23px 25px; border-radius:18px; background:#ede4fb; margin-top:18px; }
+.swap-invite-banner span { color:#8c61b6; font-size:10px; }.swap-invite-banner h2 { font-size:17px; margin:9px 0; color:#55228c; }.swap-invite-banner p { font-size:11px; color:#9374b1; margin:0; }
+.swap-invite-banner button { flex-shrink:0; border:0; background:#7639db; color:#fff; border-radius:10px; font-size:11px; padding:12px 15px; cursor:pointer; }
+.swap-fee-breakdown { border:1px solid #e8e0f4; border-radius:12px; margin:12px 0; padding:12px; color:#766980; font-size:11px; }
+.swap-fee-breakdown summary { display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; list-style:none; }.swap-fee-breakdown summary b { color:#7844c7; margin-left:5px; }.swap-fee-breakdown summary strong { font-size:10px; text-align:right; }
+.swap-fee-breakdown dl>div { display:flex; justify-content:space-between; margin:8px 0; }.swap-fee-breakdown dd { margin:0; }.swap-fee-breakdown p { line-height:1.7; overflow-wrap:anywhere; }.swap-fee-breakdown a { color:#7242bd; }
+.swap-referral-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0; }.swap-referral-stats>div { border:1px solid #e9ddfa; border-radius:14px; padding:17px; text-align:center; }
+.swap-referral-stats span,.swap-referral-earnings>span { display:block; font-size:11px; color:#8e7b9e; }.swap-referral-stats strong { display:block; font-size:32px; margin-top:9px; color:#7936e2; }.swap-referral-stats small { font-size:19px; }
+.swap-referral-earnings { background:#f7f2fd; border-radius:12px; padding:16px; margin-bottom:18px; }.swap-referral-earnings>strong { display:block; font-size:23px; margin:10px 0; }.swap-referral-earnings>small { font-size:10px; color:#9b8eaa; }
+.swap-referral-panel .swap-share-field input { width:100%; box-sizing:border-box; }.swap-referral-panel .swap-share-field button { margin-top:10px; width:100%; }.swap-referral-panel .swap-small-note { overflow-wrap:anywhere; }
+.swap-referral-steps { display:flex; justify-content:space-between; padding:0; list-style:none; font-size:11px; color:#8e74aa; margin:24px 0; }.swap-referral-steps b { display:block; font-size:19px; margin-bottom:8px; color:#8052b4; }
+.swap-fee-rules { font-size:11px; line-height:1.9; color:#897794; }.swap-fee-rules summary { font-weight:650; color:#634779; cursor:pointer; }.swap-fee-rules a { overflow-wrap:anywhere; color:#8150b8; }
+/* Override the earlier landing-page grid after its responsive rules. */
+.swap-layout { grid-template-columns:minmax(0,1.45fr) minmax(365px,1fr); gap:24px; }
+.swap-main { max-width:1360px; }
+.swap-topline { margin-block:24px; }
+.swap-market-workspace .swap-hero-assets { margin:22px 0 12px; padding:0 8px; }
+@media(max-width:1100px) { .swap-layout { gap:18px; grid-template-columns:minmax(0,1fr) minmax(350px,410px); }.swap-chart-card { padding:18px; }.swap-invite-banner { flex-direction:column; align-items:flex-start; }.swap-header { gap:12px; }.swap-invite-button { padding:10px; font-size:11px; } }
+@media(max-width:760px) { .swap-layout { display:flex; flex-direction:column; gap:20px; }.swap-workspace { order:0; width:100%; }.swap-market-workspace { order:1; width:100%; }.swap-topline { font-size:8px; gap:10px; line-height:1.7; }.swap-preview-label { text-align:right; }.swap-chart-card { padding:18px 14px 14px; border-radius:18px; }.swap-chart-heading h1 { font-size:18px; }.swap-chart-price>strong { font-size:30px; }.swap-chart-stats { gap:8px; }.swap-chart-stats strong { font-size:11px; }.swap-chart-stats span { font-size:9px; }.swap-header-actions { gap:6px; }.swap-invite-button { font-size:10px; padding:10px 8px; }.swap-invite-banner { padding:20px; }.swap-invite-banner h2 { font-size:16px; }.swap-referral-stats { gap:8px; }.swap-chart-controls button { padding:7px 9px; } }
+@media(max-width:380px) { .swap-brand small { display:none; }.swap-brand { font-size:13px; }.swap-brand img { width:30px; height:30px; }.swap-header-actions .swap-primary { padding:10px; }.swap-chart-network { display:none; } }
+.swap-chart-heading h1 { line-height:1.35; font-family:inherit; }
+.swap-chart-heading h1 span { display:inline; text-shadow:none; }
