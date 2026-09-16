@@ -1,0 +1,257 @@
+[
+  {
+    "type": "event",
+    "name": "TokenCreated",
+    "inputs": [
+      {
+        "name": "ts",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "meta",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "getTokenV8Safe",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IPortalTypes.TokenStateV8Safe",
+        "components": [
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "reserve",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "circulatingSupply",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "price",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tokenVersion",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "r",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "h",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "k",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "dexSupplyThresh",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "quoteTokenAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "nativeToQuoteSwapEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "extensionID",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "buyTaxRate",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sellTaxRate",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "pool",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "progress",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lpFeeProfile",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "dexId",
+            "type": "uint8",
+            "internalType": "uint8"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tryGetVault",
+    "inputs": [
+      {
+        "name": "taxToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "found",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "info",
+        "type": "tuple",
+        "internalType": "struct IVaultPortalTypes.VaultInfo",
+        "components": [
+          {
+            "name": "vault",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "vaultFactory",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "isOfficial",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "riskLevel",
+            "type": "uint8",
+            "internalType": "enum IVaultPortalTypes.RiskLevel"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getVaultCategory",
+    "inputs": [
+      {
+        "name": "taxToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum IVaultPortalTypes.VaultCategory"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "FlapTaxVaultTokenCreated",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "vault",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "vaultFactory",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  }
+]
