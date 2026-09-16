@@ -9,7 +9,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -24,8 +24,14 @@ jobs:
         env:
           NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
         run: node contracts/nft/scripts/preflight-public.mjs
+      - name: Verify publicly accessible metadata and JPEG hashes (no credentials)
+        env:
+          NFT_ASSET_CHECK_ATTEMPTS: '30'
+        run: node contracts/nft/scripts/assets-public.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: nft-mainnet-check
-          path: contracts/nft/preflight-public.json
+          path: |
+            contracts/nft/preflight-public.json
+            contracts/nft/assets-public.json
           retention-days: 90
