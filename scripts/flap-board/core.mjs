@@ -23,12 +23,12 @@ export function marketFields(pairs, address, pool) {
   const n = v => v !== undefined && v !== null && Number.isFinite(Number(v)) ? Number(v) : null
   return {price:n(p.priceUsd),marketCap:n(p.marketCap),liquidity:n(p.liquidity?.usd),volume24h:n(p.volume?.h24),change5m:n(p.priceChange?.m5),change1h:n(p.priceChange?.h1),change4h:null,change24h:n(p.priceChange?.h24),coinImage:p.info?.imageUrl??null}
 }
-export async function scanLogs(client, address, event, fromBlock, toBlock) {
+export async function scanLogs(client, address, event, fromBlock, toBlock, args) {
   if (fromBlock > toBlock) return []
-  try { return await client.getLogs({address,event,fromBlock,toBlock,strict:true}) }
+  try { return await client.getLogs({address,event,fromBlock,toBlock,args,strict:true}) }
   catch {
     if (toBlock-fromBlock < 10n) throw Error('RPC log range unavailable')
     const mid=(fromBlock+toBlock)/2n
-    return [...await scanLogs(client,address,event,fromBlock,mid),...await scanLogs(client,address,event,mid+1n,toBlock)]
+    return [...await scanLogs(client,address,event,fromBlock,mid,args),...await scanLogs(client,address,event,mid+1n,toBlock,args)]
   }
 }

@@ -62,10 +62,25 @@ async function cycle(state,oldRef){
  if(!state.historyCursor)state.historyCursor=Number(from)
  const backTo=BigInt(state.historyCursor)-1n,backFrom=backTo>20000n?backTo-19999n:0n
  if(backTo>=0n && head-backTo<3_000_000n){await ingest(state,backFrom,backTo);state.historyCursor=Number(backFrom)}
+ // Rare vault classes need a deeper, topic-filtered history than recent launches.
+ let targetTo=BigInt(state.factoryCursor||Number(head))
+ if(head-targetTo<10_000_000n){
+  const event=abi.find(a=>a.name==='FlapTaxVaultTokenCreated')
+  const known=[...Object.values(factories).flat(),'0x7c8781b21fb004308a5a2bb7f9cb1e2e6bd1fc7e']
+  for(let i=0;i<10;i++){
+   const start=targetTo>19999n?targetTo-19999n:0n
+   for(const l of await scanLogs(client,vaultPortal,event,start,targetTo,{vaultFactory:known})){
+    const a=l.args.token.toLowerCase();state.tokens[a]={...state.tokens[a],address:a,block:Number(l.blockNumber),factory:l.args.vaultFactory.toLowerCase()}
+   }
+   targetTo=start-1n;if(targetTo<0n)break
+  }
+  state.factoryCursor=Number(targetTo)
+ }
  const all=Object.values(state.tokens).sort((a,b)=>(b.block||0)-(a.block||0))
  // Retain recent launches plus independently selected factory categories and known active seeds.
  const chosen=new Map(seeds.map(t=>[t.address,state.tokens[t.address]||t]))
  for(const list of Object.values(factories))for(const t of all.filter(t=>list.includes(t.factory)).slice(0,35))chosen.set(t.address,t)
+ for(const factory of new Set(all.map(t=>t.factory).filter(Boolean)))for(const t of all.filter(t=>t.factory===factory).slice(0,2))chosen.set(t.address,t)
  for(const t of all.slice(0,100))chosen.set(t.address,t)
  const selected=[...chosen.values()].slice(0,240)
  const calls=selected.flatMap(t=>[
@@ -75,12 +90,16 @@ async function cycle(state,oldRef){
   {address:t.address,abi:erc20Abi,functionName:'name'},
   {address:t.address,abi:erc20Abi,functionName:'symbol'},
  ])
- const results=await multicall(calls,head),records=[]
+ const results=await multicall(calls,head),records=[],diagnostics={selected:selected.length,stateFailures:0,vaultFailures:0,categoryFailures:0,statuses:{}}
  for(let i=0;i<selected.length;i++){
   const [s,v,c,n,y]=results.slice(i*5,i*5+5),t=selected[i]
-  if(s.status!=='success'||![1,4].includes(s.result.status)||v.status!=='success'||c.status!=='success')continue
-  const state=s.result,tags=categories(state,v.result,c.result)
-  if(v.result[0])t.factory=v.result[1].vaultFactory.toLowerCase()
+  if(s.status!=='success'){diagnostics.stateFailures++;continue}
+  diagnostics.statuses[s.result.status]=(diagnostics.statuses[s.result.status]||0)+1
+  if(v.status!=='success')diagnostics.vaultFailures++
+  if(c.status!=='success')diagnostics.categoryFailures++
+  if(![1,4].includes(s.result.status))continue
+  const state=s.result,tags=categories(state,v.status==='success'?v.result:undefined,c.status==='success'?c.result:undefined)
+  if(v.status==='success'&&v.result[0])t.factory=v.result[1].vaultFactory.toLowerCase()
   records.push({tags,pool:state.pool,coin:{address:t.address,name:n.result||t.name||t.address,symbol:y.result||t.symbol||t.address.slice(0,8)},listed:state.status===4,quoteToken:state.quoteTokenAddress,progress:Number(state.progress)/1e16,tax:{buyTaxBps:Number(state.buyTaxRate),sellTaxBps:Number(state.sellTaxRate)},isLowRisk:tags.includes('fac'),isInnovation:tags.includes('innovation')})
  }
  if(records.length<Math.min(5,selected.length))throw Error('Too few verified chain records; preserve last good snapshot')
@@ -95,7 +114,7 @@ async function cycle(state,oldRef){
   }catch{/* Unknown market fields stay null, never pretend old prices are fresh. */}
  }
  records.sort((a,b)=>(b.volume24h||0)-(a.volume24h||0))
- const snapshot={version:1,chainId:56,updatedAt:Date.now(),block:Number(head),indexedThrough:state.cursor,historyFrom:state.historyCursor,records,marketOk}
+ const snapshot={version:1,chainId:56,updatedAt:Date.now(),block:Number(head),indexedThrough:state.cursor,historyFrom:state.historyCursor,records,marketOk,diagnostics}
  // Bound the checkpoint while preserving all known supported vault categories.
  const keep=all.filter(t=>t.factory).slice(0,2500).concat(all.slice(0,1500),seeds.map(t=>state.tokens[t.address]||t))
  state.tokens=Object.fromEntries(keep.map(t=>[t.address,t]))
