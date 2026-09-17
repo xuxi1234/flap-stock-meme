@@ -21,7 +21,7 @@ async function main(){
   try{
    // Reuse only a completed result from this exact snapshot. A failed token
    // is retried independently; previously verified token results are retained.
-   if(tokenIndex!==undefined){
+   if(tokenIndex!==undefined&&process.env.GITHUB_TOKEN){
     try{
      const f=await api('GET',`/contents/data/holders18/${token}.json?ref=${encodeURIComponent(BRANCH)}`);
      if(f.encoding!=='base64')throw new Error('Invalid previous token result');
