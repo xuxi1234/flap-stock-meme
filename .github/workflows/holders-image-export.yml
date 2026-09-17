@@ -4,7 +4,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: holders-image-export
+  group: holders-image-export-correct-last
   cancel-in-progress: false
 jobs:
   snapshot:
