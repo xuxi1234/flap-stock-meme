@@ -11,3 +11,13 @@ Approved scope: add company themes to the existing NFT collection and publish th
 - Mainnet remains disabled pending its separate launch gate. Referral binding, 20% single-generation mint reward, batch quantity 1–20, mint price 0.01 BNB and zero secondary-market fee are unchanged.
 
 Verification: `node scripts/verify-company-themes.mjs`, `npx vitest run src/nft`, `npx tsc --noEmit`. Deployment build runs full 7,777-image integrity and metadata verification before Vite publication.
+
+## Published verification
+
+- Public site: https://flap-stock-butterfly-7777.vercel.app/
+- Final deployment: `dpl_AXZ11qLetRuqYST95ZZ5fseVcxzh`, READY; public alias assigned without error. Runtime source commit: `3b98f41be2efe04d83892efbcdc649cbbf4a2e95`.
+- Final build passed all 7,777 unique art/JPEG, ID and metadata checks. Artwork hashes are unchanged; company names/traits are new metadata.
+- Browser found and fixed stale cached catalogs: catalog requests now include a snapshot version and `cache: no-cache`; asset responses revalidate. Returning visitor search then displayed all 15 NVDA editions.
+- Live filters: 7,500 company editions, 277 originals; NVDA and AAPL searches each show 15. Mobile frames at 390/320 outer pixels had equal document scroll/client widths (375/305 after scrollbar), and the narrow gallery was visually checked.
+- Public company JSON contains 500 companies; CSV has 501 lines including its header. Sample metadata IDs 1 and 7777 expose the expected company/original themes.
+- No mainnet transaction was performed; paid minting remains disabled.
