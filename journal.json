@@ -342,16 +342,19 @@
         "gas": "13595858",
         "gasPrice": "60000000"
       },
-      "settled": false,
-      "hash": "0x3071d40d2f218ecf30c1f188f5f6db84de5c7346ed5a89ea8201bbd7a79c94f5"
+      "settled": true,
+      "hash": "0x3071d40d2f218ecf30c1f188f5f6db84de5c7346ed5a89ea8201bbd7a79c94f5",
+      "success": true,
+      "feeWei": "621431100000000",
+      "confirmedAt": 1789714421
     }
   ],
   "active": true,
   "authorization": "image10x1:200:1200seconds:budget0.2:lifetime",
   "startedBy": "xuxi1234",
   "startedRun": "35293928754",
-  "rawSpentWei": "215812091462635913",
-  "spentWei": "141826549209141262",
+  "rawSpentWei": "216433522562635913",
+  "spentWei": "142447980309141262",
   "excludedPrincipalWei": "73985542253494651",
-  "campaignGasWei": "87944326740000000"
+  "campaignGasWei": "88565757840000000"
 }
