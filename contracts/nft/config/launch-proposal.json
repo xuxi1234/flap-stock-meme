@@ -1,0 +1,17 @@
+{
+  "status": "Proposed; requires explicit payer and total budget approval before execution",
+  "chainId": 56,
+  "payer": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+  "totalCapBNB": "0.02",
+  "initialVRFFundingBNB": "0.01",
+  "assetBase": "https://flap-stock-butterfly-7777.vercel.app/nft/",
+  "metadataBase": "https://flap-stock-butterfly-7777.vercel.app/nft/metadata/",
+  "collectionHash": "fc6cbb6132de8a32de271c9282c43b61fb76274df2394742c281fcae18f875f7",
+  "imageCollectionHash": "83147df7915b2dbdb1bb69f1e50c19f9be72c1d3b61eeb5edfd9ee173cf300c6",
+  "samples": {
+    "1": {"name": "Butterfly 7777 #1 · 虎纹凤蝶", "artworkHash": "bd48d15278fb64a88c66bab7187cae081c3ba17f364fa0c24da072d708d4ccad", "imageHash": "d6e269439efdf3dd8d1c77057d1f8d9790022670f8589bcc7bc1634fb95c4e7d"},
+    "7777": {"name": "Butterfly 7777 #7777 · 孔雀蛱蝶", "artworkHash": "3e528d1bd2d6a0531b97c7cc0c137b90957d9331e39c2365988379158558514f", "imageHash": "6cbc151c5259f9843c03a0440a32a8bd472d4fa4e78cd591d4df542e1047b2ff"}
+  },
+  "subscriptionAbiSource": "https://github.com/smartcontractkit/chainlink/blob/contracts-v1.3.0/contracts/src/v0.8/vrf/dev/SubscriptionAPI.sol",
+  "subscriptionGuide": "https://docs.chain.link/vrf/v2-5/subscription/create-manage"
+}

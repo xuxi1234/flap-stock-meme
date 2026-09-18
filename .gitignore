@@ -11,4 +11,12 @@ test-results/
 contracts/cache/
 contracts/out/
 contracts/broadcast/
+public/nft/
+contracts/nft/node_modules/
+contracts/nft/artifacts/
 
+node_modules
+node_modules.partial/
+public/nft-assets/atelier-concept.png
+public/nft-assets/nature-concept.png
+contracts/nft/preflight-public.json

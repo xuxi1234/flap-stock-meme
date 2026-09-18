@@ -1,0 +1,21 @@
+// Public reads only: this script has no wallet, private key or send method.
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+process.chdir(path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'));
+import {JsonRpcProvider,formatEther,ContractFactory} from 'ethers';
+import {compile} from '../test/compile.mjs';
+const cfg=JSON.parse(fs.readFileSync(new URL('../config/bsc-vrf.json',import.meta.url)));
+const provider=new JsonRpcProvider(process.env.NFT_RPC_URL||'https://bsc-dataseed.bnbchain.org');
+if((await provider.getNetwork()).chainId!==56n)throw Error('Wrong chain');
+const addresses=['0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA','0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF'];
+const balances=await Promise.all(addresses.map(async address=>({address,balanceBNB:formatEther(await provider.getBalance(address))})));
+const gasPrice=(await provider.getFeeData()).gasPrice;
+if(!gasPrice)throw Error('No gas price');
+const contracts=compile(),a=contracts['src/ButterflyVRF.sol'].ButterflyVRF;
+const request=await new ContractFactory(a.abi,a.evm.bytecode.object).getDeployTransaction(cfg.coordinator,cfg.keyHash,1,cfg.confirmations,cfg.callbackGasLimit);
+const adapterGas=await provider.estimateGas({...request,from:addresses[0]});
+const report={chainId:56,checkedAt:new Date().toISOString(),block:await provider.getBlockNumber(),balances,gasPriceWei:gasPrice.toString(),adapterEstimatedGas:adapterGas.toString(),adapterEstimatedBNB:formatEther(adapterGas*gasPrice),conservativeAllDeploymentGasBNB:formatEther(8350000n*gasPrice),oracleFundingIncluded:false,transactionsSent:0,signerLoaded:false,missing:['NFT-specific funding source and cumulative budget','Funded native-BNB VRF subscription owned by deployment signer','Stable publicly accessible metadata host']};
+fs.writeFileSync(new URL('../preflight-public.json',import.meta.url),JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));
+if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`## NFT mainnet read-only check\n\n\`\`\`json\n${JSON.stringify(report,null,2)}\n\`\`\`\n`);
