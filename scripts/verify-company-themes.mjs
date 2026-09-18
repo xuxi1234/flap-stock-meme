@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import {companyTheme,snapshot} from './nft-company-themes.mjs';
+import {companyTheme,snapshot,specialIds,requestedSpecialIds} from './nft-company-themes.mjs';
 import {makeNFT} from './generate-butterfly-nfts.mjs';
 assert.equal(snapshot.companies.length,500);
 assert.equal(new Set(snapshot.companies.map(c=>c.name)).size,500);
+assert.equal(specialIds.length,277);assert.equal(new Set(specialIds).size,277);for(const id of requestedSpecialIds)assert(specialIds.includes(id));
 const counts=new Map();
 for(let id=1;id<=7777;id++){
  const t=companyTheme(id);counts.set(t.ticker,(counts.get(t.ticker)||0)+1);

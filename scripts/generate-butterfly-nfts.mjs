@@ -3,7 +3,7 @@ import {mkdirSync,writeFileSync,readFileSync,existsSync,rmSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
 import {Worker} from 'node:worker_threads';
-import {companyTheme,themeAttributes,snapshot} from './nft-company-themes.mjs';
+import {companyTheme,themeAttributes,snapshot,specialIds,mappingVersion} from './nft-company-themes.mjs';
 export const SUPPLY=7777;
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const VERSION='butterfly-nature-v3';
@@ -59,10 +59,11 @@ export function makeNFT(id){
  const base=process.env.NFT_ASSET_BASE_URL?.replace(/\/$/,'')|| (process.env.VERCEL_URL?`https://${process.env.VERCEL_URL}/nft`:'http://localhost:5173/nft');
  const metadata={name:`Butterfly 7777 #${id} · ${family}`,description:'Original nature-inspired generative butterfly artwork. A fixed collection of 7,777 unique editions, inspired by 12 natural butterfly families; artistic interpretations, not scientific specimens.',image:`${base}/art/${id}.jpg`,external_url:`${base.replace(/\/nft$/,'')}/?view=nft&token=${id}`,attributes:[{trait_type:'Family',value:family},{trait_type:'Inspiration',value:palette},{trait_type:'Wings',value:shape},{trait_type:'Pattern',value:pattern},{trait_type:'Rarity',value:rarity}],properties:{edition:id,artwork_sha256:dna,generator:VERSION}};
  const theme=companyTheme(id);
+ item.familyEn=palette.replace(/-inspired$/,'');item.nameEn=`${theme.nameEn} · ${item.familyEn} #${String(id).padStart(4,'0')}`;
  item.theme=theme;item.name=`${theme.name} · ${family} #${String(id).padStart(4,'0')}`;
- metadata.name=`Butterfly #${id} · ${theme.name} · ${family}`;
+ metadata.name=`Butterfly #${id} · ${theme.nameEn} | ${theme.name} · ${family}`;
  metadata.description+=' 500 company-inspired themes with 15 unique butterflies each, plus 277 Butterfly originals. Independent artwork: no affiliation, endorsement, equity, dividends or company rights. Company names and reference symbols identify creative themes only.';
- metadata.attributes.push(...themeAttributes(theme));metadata.properties.theme_snapshot=snapshot.version;
+ metadata.attributes.push(...themeAttributes(theme));metadata.properties.theme_snapshot=snapshot.version;metadata.properties.mapping_version=mappingVersion;metadata.properties.localization={zh:{name:item.name},en:{name:item.nameEn}};
  return{art,item,metadata};
 }
 export async function generate(output=resolve(ROOT,'public/nft')){
@@ -88,8 +89,9 @@ export async function generate(output=resolve(ROOT,'public/nft')){
   writeFileSync(`${output}/metadata/${id}.json`,JSON.stringify(metadata));
   if(id%1000===0)console.log(`Nature artwork ${id}/${SUPPLY}`);
  }
- const manifest={themeVersion:snapshot.version,companyThemes:500,editionsPerCompany:15,originalEditions:277,version:VERSION,supply:SUPPLY,uniqueArtworkHashes:seen.size,collectionHash:hash(catalog.map(x=>x.dna).join('\n')),imageCollectionHash:hash(catalog.map(x=>x.imageHash).join('\n')),rarityCounts,familyCounts,artFormat:'JPEG',width:640,height:640,metadataBase:makeNFT(1).metadata.image.replace('/art/1.jpg','/metadata/'),hosting:configuredBase?'Configured absolute HTTPS hosting; permanence requires continued hosting.':'Deployment-local artwork URLs; mainnet deployment requires a stable public asset host.',license:'Original artwork, Butterfly 7777 project'};
+ const manifest={mappingVersion,specialIds,themeVersion:snapshot.version,companyThemes:500,editionsPerCompany:15,originalEditions:277,version:VERSION,supply:SUPPLY,uniqueArtworkHashes:seen.size,collectionHash:hash(catalog.map(x=>x.dna).join('\n')),imageCollectionHash:hash(catalog.map(x=>x.imageHash).join('\n')),rarityCounts,familyCounts,artFormat:'JPEG',width:640,height:640,metadataBase:makeNFT(1).metadata.image.replace('/art/1.jpg','/metadata/'),hosting:configuredBase?'Configured absolute HTTPS hosting; permanence requires continued hosting.':'Deployment-local artwork URLs; mainnet deployment requires a stable public asset host.',license:'Original artwork, Butterfly 7777 project'};
  writeFileSync(`${output}/metadata/collection.json`,JSON.stringify({name:'Butterfly 7777 · Company & Nature Edition',description:'7,777 original nature-inspired butterflies. Zero marketplace fees.',image:makeNFT(7777).metadata.image,external_link:makeNFT(1).metadata.external_url,seller_fee_basis_points:0,fee_recipient:'0x0000000000000000000000000000000000000000'}));
+ writeFileSync(`${output}/special-ids.json`,JSON.stringify({version:mappingVersion,count:specialIds.length,ids:specialIds}));
  writeFileSync(`${output}/companies.json`,JSON.stringify(snapshot));
  const csvCell=value=>'"'+String(value).replaceAll('"','""')+'"';
  writeFileSync(`${output}/companies.csv`,'\uFEFF'+[['Theme Rank','Company','Ticker','Source Rank','Snapshot'],...snapshot.companies.map(c=>[c.rank,c.name,c.ticker,c.sourceRank,snapshot.version])].map(row=>row.map(csvCell).join(',')).join('\r\n'));

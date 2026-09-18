@@ -2,8 +2,8 @@ import {isAddress,zeroAddress,type Address} from 'viem';
 export const NFT_SUPPLY=7777;
 export const MINT_WEI=10_000_000_000_000_000n;
 export const TREASURY='0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF';
-export type CompanyTheme={kind:string;name:string;legalName?:string;ticker:string;rank?:number;edition:number;total:number;snapshot:string};
-export type NFT={theme?:CompanyTheme;id:number;name:string;family:string;palette:string;color:string;rarity:string;wing:string;pattern:string;halo:string;dna:string;image:string};
+export type CompanyTheme={kind:string;name:string;nameEn?:string;legalName?:string;ticker:string;rank?:number;edition:number;total:number;snapshot:string};
+export type NFT={nameEn?:string;familyEn?:string;theme?:CompanyTheme;id:number;name:string;family:string;palette:string;color:string;rarity:string;wing:string;pattern:string;halo:string;dna:string;image:string};
 export type Listing={id:number;price:bigint;seller:`0x${string}`;active:boolean;version:bigint};
 export function parseBNB(input:string):bigint{
  if(!/^(?:0|[1-9]\d{0,5})(?:\.\d{1,18})?$/.test(input))throw Error('请输入有效的 BNB 价格，最多 18 位小数');
@@ -30,5 +30,5 @@ export function effectiveReferrer(bound:Address|null|undefined,draft:string,acco
 
 export function matchesNFT(nft:NFT,query:string,series:string){
  const text=query.trim().toLocaleLowerCase();
- return (series==='all'||nft.theme?.kind===series)&&(!text||String(nft.id)===text.replace(/^#/,'')||[nft.name,nft.family,nft.palette,nft.theme?.name,nft.theme?.legalName,nft.theme?.ticker].some(value=>value?.toLocaleLowerCase().includes(text)));
+ return (series==='all'||nft.theme?.kind===series)&&(!text||String(nft.id)===text.replace(/^#/,'')||[nft.name,nft.nameEn,nft.family,nft.familyEn,nft.palette,nft.theme?.name,nft.theme?.legalName,nft.theme?.ticker].some(value=>value?.toLocaleLowerCase().includes(text)));
 }

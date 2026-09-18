@@ -4,7 +4,7 @@ Approved scope: add company themes to the existing NFT collection and publish th
 
 - Frozen snapshot: `data/nft-companies.json`, retrieved 2026-09-18 from https://stockanalysis.com/list/biggest-companies/.
 - Source covers US exchange-listed issuers, including foreign companies. It is not the S&P 500 or Fortune Global 500. Ranking and listing information are provider-reported, not independently audited. Identical issuer names are merged; first symbol retained. Source rows 1–503 yield 500 unique company names after three documented merges.
-- IDs 1–7500: company index `(id-1) % 500`, edition `floor((id-1)/500)+1`. Each company has exactly 15 distinct nature artworks. IDs 7501–7777 are 277 Butterfly originals. Ranking does not set price or rarity.
+- Mapping `lucky-277-v1` supersedes the original contiguous allocation: the 277 fixed special IDs in `/nft/special-ids.json` are Butterfly Originals. All user-requested IDs are included after deduplication. Remaining candidates are ordered by repeated digits, sequences, palindromes and round numbers using a fixed score and ascending-ID tie break. The other 7,500 IDs are sorted ascending; their zero-based ordinal maps to company `ordinal % 500`, edition `floor(ordinal / 500)+1`. Every company still has exactly 15 artworks. This mapping does not alter draw probabilities.
 - Company names and symbols appear in NFT names, JSON attributes, website cards and details; the existing original nature JPEGs stay free of third-party logos. Company themes do not confer equity, dividends, affiliation or endorsement.
 - Current nature JPEG/SVG art remains unchanged. Company metadata and catalog are versioned by snapshot; do not reuse the old collection metadata validation as evidence for this release. No live mainnet tokens have been issued by this deployment.
 - CSV/JSON downloads expose the full 500-company list. Search supports English names, available Chinese aliases, ticker, family and token ID. Series filter separates company and original editions, intersecting wallet/listing and family filters.
@@ -21,3 +21,7 @@ Verification: `node scripts/verify-company-themes.mjs`, `npx vitest run src/nft`
 - Live filters: 7,500 company editions, 277 originals; NVDA and AAPL searches each show 15. Mobile frames at 390/320 outer pixels had equal document scroll/client widths (375/305 after scrollbar), and the narrow gallery was visually checked.
 - Public company JSON contains 500 companies; CSV has 501 lines including its header. Sample metadata IDs 1 and 7777 expose the expected company/original themes.
 - No mainnet transaction was performed; paid minting remains disabled.
+
+## Special IDs and bilingual experience
+
+The UI supports persisted Chinese/English switching, including company titles, family names, forms and dialogs. Metadata exposes both names under `properties.localization`; original artwork remains unchanged. The free-reveal dialog uses browser randomness without replacement within a batch of 1–20. It never connects a wallet, pays, reserves chain supply, changes holdings, or creates a marketplace listing. Experience results are explicitly not on-chain NFTs. Paid minting remains disabled.
