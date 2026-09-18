@@ -30,5 +30,6 @@ export function effectiveReferrer(bound:Address|null|undefined,draft:string,acco
 
 export function matchesNFT(nft:NFT,query:string,series:string){
  const text=query.trim().toLocaleLowerCase();
+ if(/^#?\d+$/.test(text))return (series==='all'||nft.theme?.kind===series)&&nft.id===Number(text.replace('#',''));
  return (series==='all'||nft.theme?.kind===series)&&(!text||String(nft.id)===text.replace(/^#/,'')||[nft.name,nft.nameEn,nft.family,nft.familyEn,nft.palette,nft.theme?.name,nft.theme?.legalName,nft.theme?.ticker].some(value=>value?.toLocaleLowerCase().includes(text)));
 }
