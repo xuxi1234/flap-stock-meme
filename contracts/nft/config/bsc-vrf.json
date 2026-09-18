@@ -4,8 +4,9 @@
   "keyHash": "0x130dba50ad435d4ecc214aad0d5820474137bd68e7e77724144f27c3c377d3d4",
   "gasLaneGwei": 200,
   "confirmations": 3,
-  "callbackGasLimit": 300000,
+  "callbackGasLimit": 2000000,
   "nativePayment": true,
   "source": "https://docs.chain.link/vrf/v2-5/supported-networks#bnb-chain-mainnet",
   "verifiedOn": "2026-09-16"
 }
+

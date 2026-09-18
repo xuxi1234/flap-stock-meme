@@ -4,8 +4,9 @@ Local implementation and deployment preparation. No production contracts have be
 
 ## Economics and interfaces
 
-- ERC721Enumerable: 7,777 IDs, exactly **0.01 BNB** per mint request; mint proceeds go to **0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF** on claim. No royalties/ERC2981, platform sale fee, admin mint or mutable metadata.
-- `requestMint()` reserves capacity, `requests(id)` returns `(payer,tokenId,claimed)`, and only the payer can `claim(id,recipient)` after assignment. The authenticated VRF callback makes no external payments or receiver calls. Allocation remains the original constant-time sparse Fisher–Yates algorithm.
+- ERC721Enumerable: 7,777 IDs, exactly **0.01 BNB per NFT**, batches of **1–20**. Successful claims credit **20% (0.002 BNB per NFT)** to the immutable one-generation inviter and pay **80% (0.008 BNB per NFT)** to **0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF**. No royalties/ERC2981, platform sale fee, admin mint or mutable metadata.
+- `requestMint(uint256 quantity,address inviter)` atomically binds an unbound payer and reserves a whole batch for exact payment. `bindReferrer(address)` supports separate permanent binding. Zero, self, collection and `0xdead` inviters are rejected; existing bindings cannot change. `requestMint()` remains for already-bound payers and requests one NFT. `requests(id)` returns `(payer,tokenId,claimed,quantity,referrer)` with the original first three fields unchanged; `tokenId` is the first assigned ID. `requestTokenIds(id)` returns all IDs (empty before assignment). Only the payer can `claim(id,recipient)` for the entire batch. The authenticated VRF callback makes no external payments or receiver calls. Allocation uses sparse Fisher–Yates draws without replacement; batches expand the VRF word using `keccak256(abi.encode(word,requestId,index))`. Legacy single requests retain their original draw. Callback work is bounded by `MAX_BATCH=20`.
+- `referrers(payer)`, `invitedCount(inviter)`, `referralMintCount(inviter)`, `referralEarned(inviter)` (lifetime wei), and `referralRewards(inviter)` (withdrawable wei) expose chain-backed state. Rewards accrue once on successful full claim; failed NFT receivers or treasury payment roll back all claim accounting. `withdrawReferralRewards(address payable recipient)` lets the inviter withdraw to a chosen nonzero recipient, uses checks-effects-interactions and blocks reentrancy. A rejecting inviter cannot prevent claims. No automatic inviter, second-generation reward or NFT-holding requirement exists. Binding does not prove unique humans.
 - `payerRequestCount(payer)` and `payerRequests(payer,offset,limit)` expose stable append-only request IDs. Limit is at most 100; pages include claimed requests, so clients read `requests(id)` and filter status. `totalSupply`, `tokenByIndex`, `tokenOfOwnerByIndex` support wallet inventory.
 - `contractURI()` is fixed base + `collection.json`; `tokenURI(id)` is fixed base + decimal ID + `.json`.
 - Market `list(id,price)` requires current ownership and market approval. The NFT **stays in the seller wallet**. Listing again updates its price and transfer snapshot. `listings(id)` returns `(seller,price)`; clients must check `isListingActive(id)`.
@@ -22,14 +23,14 @@ Pending requests reserve funds/capacity indefinitely; no cancellation or reroll 
 cd contracts/nft
 npm ci --ignore-scripts --no-audit --no-fund
 npm run compile
-node --test --test-skip-pattern='all 7777' test/*.test.mjs
+npm test
 ```
 
-`npm test` also runs the slower full 7,777-reservation capacity test. OpenZeppelin 5.4.0, solc 0.8.30, optimizer 200, Shanghai; ethers 6.15.0 and Ganache 7.9.2. Local tests use ephemeral accounts and a deterministic coordinator mock that explicitly rejects LINK-billed requests. Ganache's optional native µWS warning falls back to JavaScript.
+`npm test` covers full 7,777 capacity with batch reservations, full20 callback gas, referral accounting/withdrawals and adversarial receivers alongside marketplace regressions. OpenZeppelin 5.4.0, solc 0.8.30, optimizer 200, Shanghai; ethers 6.15.0 and Ganache 7.9.2. Local tests use ephemeral accounts and a deterministic coordinator mock that explicitly rejects LINK-billed requests. Ganache's optional native µWS warning falls back to JavaScript.
 
 ## BNB Chain VRF
 
-`config/bsc-vrf.json` pins the official chain-56 coordinator, 200-gwei gas-lane hash, 3 confirmations, and 300,000 callback gas. Adapter requests use `ExtraArgsV1({nativePayment:true})`. Parameters were checked against [Chainlink's supported-networks documentation](https://docs.chain.link/vrf/v2-5/supported-networks#bnb-chain-mainnet) on 2026-09-16; deployment also reads coordinator configuration. BNB VRF costs are **separate from mint price**, paid by the project's native BNB subscription. The immutable coordinator/binding cannot be migrated.
+`config/bsc-vrf.json` pins the official chain-56 coordinator, 200-gwei gas-lane hash, 3 confirmations, and 2,000,000 callback gas. Adapter requests use `ExtraArgsV1({nativePayment:true})`. Parameters were checked against [Chainlink's supported-networks documentation](https://docs.chain.link/vrf/v2-5/supported-networks#bnb-chain-mainnet) on 2026-09-16; deployment also reads coordinator configuration. BNB VRF costs are **separate from mint price**, paid by the project's native BNB subscription. The immutable coordinator/binding cannot be migrated.
 
 ## Guarded deployment preparation
 
@@ -49,8 +50,9 @@ Concrete unresolved launch inputs:
 4. Verify authentic VRF fulfillment and callback gas on testnet, obtain contract review, and define subscription refill/monitoring responsibility before opening paid minting.
 5. After authorized deployment, verify source/constructor arguments on the explorer and provide the three resulting addresses to the UI. Live deployment itself remains unperformed.
 
-After all steps, the script reads back code, mint price, maximum supply, treasury, zero market fee, collection/adapter bindings, metadata base and funded consumer registration. It prints a frontend-compatible `frontendConfig` containing chain ID, contract addresses, runtime code hashes and HTTPS JPEG `assetBase`. Optional `NFT_FRONTEND_CONFIG_OUTPUT` writes that JSON to a new file (never overwrites an existing file). Output always has `enabled:false`; independent source/runtime-code verification, authentic VRF validation and hosting checks must precede a separately reviewed release that enables payments. The script never enables frontend transactions automatically.
+After all steps, the script reads back code, mint price, maximum supply, treasury, referral rate (2000 bps), batch cap (20), callback gas (2,000,000), zero market fee, collection/adapter bindings, metadata base and funded consumer registration. It prints a frontend-compatible `frontendConfig` containing chain ID, contract addresses, runtime code hashes and HTTPS JPEG `assetBase`. Optional `NFT_FRONTEND_CONFIG_OUTPUT` writes that JSON to a new file (never overwrites an existing file). Output always has `enabled:false`; independent source/runtime-code verification, authentic VRF validation and hosting checks must precede a separately reviewed release that enables payments. The script never enables frontend transactions automatically.
 
 ## Proposed combined launch
 
 [LAUNCH.md](LAUNCH.md) documents the check-only-by-default `scripts/launch.mjs` workflow, hard-pinned proposed payer, 0.02-BNB total cap including 0.01-BNB initial native VRF funding, verified public manifest/sample JPEGs, three-confirmation recovery, and exact execution gate. Funding-source/budget approval remains outstanding; preparation does not authorize execution.
+

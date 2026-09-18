@@ -5,13 +5,14 @@ Source includes real BSC wallet transactions; simulation and demo inventory have
 
 ## Economics
 - Fixed 7,777 ERC-721 IDs, 1–7777, random assignment without replacement via Chainlink VRF v2.5 native-BNB subscription.
-- Exact mint payment 0.01 BNB. On claim, the entire mint payment goes to `0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF`.
+- Exact mint payment 0.01 BNB per NFT, quantity 1–20 per paid request. On successful full-batch claim, 0.008 BNB per NFT goes to `0x764dBCD80ca3E5d50CBAe986e2b6F507Dc47CfcF` and 0.002 BNB becomes the inviter’s withdrawable credit.
 - Marketplace fee permanently zero. Asking 0.15777 BNB pays seller exactly 0.15777 BNB. Gas is paid separately by the transaction sender.
 - Noncustodial listings: NFT remains with seller until purchase. Ownership transfer nonce invalidates old orders even if ownership later returns. Revoked approval stops purchase. ERC-2981 royalties are not configured.
-- Mint requires request + oracle allocation + claim. Unfulfilled oracle requests cannot currently be cancelled or refunded. Funding and monitoring the oracle is essential.
+- A valid one-generation inviter must be bound permanently, separately or in the first paid batch request. Zero, self, collection and `0xdead` are rejected. There is no default inviter and no second-generation reward. Binding does not demonstrate unique human participation. Inviter rewards use pull withdrawals to a chosen recipient, so an inviter rejecting BNB cannot block claims.
+- Mint requires one batch request + oracle allocation + one atomic full-batch claim. VRF assigns all distinct IDs before claim, with a 2,000,000 callback gas limit. Failed recipient or treasury calls leave claims retriable without accruing rewards. Unfulfilled oracle requests cannot currently be cancelled or refunded. Funding and monitoring the oracle is essential.
 
 ## Art and wallet format
-Twelve natural butterfly inspirations, not 7,777 actual species. Original deterministic wing geometry, patterns and color palettes. Images are 640×640 JPEG, each separately hashed; 7,777 unique art hashes and image hashes validated. AI-generated naturalist concept image is labelled as concept, not the actual NFT render.
+Twelve natural butterfly inspirations, not 7,777 actual species. Original deterministic wing geometry, patterns and color palettes. Images are 640×640 JPEG, each separately hashed; 7,777 unique art hashes and image hashes validated. Actual NFT artwork #7777 is displayed and labelled as the actual work, matching the gallery and metadata.
 `tokenURI(id)` resolves `{fixedMetadataBase}{id}.json`, with absolute image URL, name, description, attributes. `contractURI()` resolves `collection.json`, zero fee metadata. Production metadata base must be fixed before deploying (the contract has no base-URI setter). Public HTTPS hosting still requires ongoing maintenance; this is not claimed as permanent decentralized storage.
 Set `NFT_ASSET_BASE_URL=https://<stable-public-host>/nft` during build. Without it deployment-local URLs are generated only for review; the chain deployment gate remains disabled.
 TokenPocket supports adding a custom NFT by contract address. Format compliance does not guarantee immediate wallet indexing or automatic logo inclusion. Verify BscScan source and actual TP import before advertising wallet display as tested.
@@ -39,3 +40,4 @@ Proposed launch budget, **not yet authorized**: use the0x74a7…69aA wallet with
 Standalone website: https://flap-stock-butterfly-7777.vercel.app (independent from the official swap). Browser checks confirmed the 7,777-item gallery, 637 Morpho-inspired items after filtering, no invented market orders, and disabled payment until chain deployment. 390px and320px test frames had no horizontal overflow. GitHub UI test/build run35070859409 passed.
 
 The long team-scoped Vercel alias requires authentication even though the short production alias is public. All metadata, image URLs and the launch proposal therefore use only the short public alias. Never deploy immutable tokenURI using the protected team alias. A metadata-host correction is being published; recheck public token metadata and image accessibility before any on-chain funding.
+

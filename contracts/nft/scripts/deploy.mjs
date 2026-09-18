@@ -93,13 +93,14 @@ async function main(){
  await step('consumer',await coordinator.addConsumer.populateTransaction(subId,adapter));
  // Read back the final deployment and economics before producing the disabled handoff.
  const nft=new Contract(collection,artifact('ButterflyNFT').abi,p),exchange=new Contract(market,artifact('ButterflyMarket').abi,p),vrf=new Contract(adapter,artifact('ButterflyVRF').abi,p);
- const [nftCode,marketCode,mintPrice,supply,treasury,fee,marketCollection,randomness,boundCollection,uri,registered]=await Promise.all([
-  p.getCode(collection),p.getCode(market),nft.MINT_PRICE(),nft.MAX_SUPPLY(),nft.TREASURY(),exchange.FEE_BPS(),exchange.collection(),nft.randomness(),vrf.collection(),nft.contractURI(),coordinator.getSubscription(subId)
+ const [nftCode,marketCode,mintPrice,supply,treasury,fee,marketCollection,randomness,boundCollection,uri,registered,referralBps,maxBatch,callbackGas]=await Promise.all([
+  p.getCode(collection),p.getCode(market),nft.MINT_PRICE(),nft.MAX_SUPPLY(),nft.TREASURY(),exchange.FEE_BPS(),exchange.collection(),nft.randomness(),vrf.collection(),nft.contractURI(),coordinator.getSubscription(subId),nft.REFERRAL_BPS(),nft.MAX_BATCH(),vrf.callbackGasLimit()
  ]);
- if(mintPrice!==parseEther('0.01')||supply!==7777n||treasury.toLowerCase()!=='0x764dbcd80ca3e5d50cbae986e2b6f507dc47cfcf'||fee!==0n||getAddress(marketCollection)!==getAddress(collection)||getAddress(randomness)!==getAddress(adapter)||getAddress(boundCollection)!==getAddress(collection)||uri!==`${base}collection.json`||!registered.consumers.some(a=>getAddress(a)===getAddress(adapter))||registered.nativeBalance===0n)fail('Final deployment economics/binding/subscription verification failed');
+ if(referralBps!==2000n||maxBatch!==20n||callbackGas!==2000000n||mintPrice!==parseEther('0.01')||supply!==7777n||treasury.toLowerCase()!=='0x764dbcd80ca3e5d50cbae986e2b6f507dc47cfcf'||fee!==0n||getAddress(marketCollection)!==getAddress(collection)||getAddress(randomness)!==getAddress(adapter)||getAddress(boundCollection)!==getAddress(collection)||uri!==`${base}collection.json`||!registered.consumers.some(a=>getAddress(a)===getAddress(adapter))||registered.nativeBalance===0n)fail('Final deployment economics/binding/subscription verification failed');
  const frontend=frontendConfig({collection,market,collectionCode:nftCode,marketCode:marketCode,assetBase});
  // This script intentionally cannot enable payments. Independent release verification is required.
  if(process.env.NFT_FRONTEND_CONFIG_OUTPUT){const out=path.resolve(process.env.NFT_FRONTEND_CONFIG_OUTPUT);if(out===filename)fail('Frontend output cannot overwrite receipt journal');fs.writeFileSync(out,JSON.stringify(frontend,null,2)+'\n',{flag:'wx'});}
  console.log(JSON.stringify({adapter,collection,market,totalDeploymentGasBNB:formatEther(spent),frontendConfig:frontend,note:'Subscription funding is separate; frontend remains disabled pending independent verification.'},null,2));
 }
 if(process.argv[1]===fileURLToPath(import.meta.url))main().catch(e=>{console.error(e.message);process.exitCode=1;});
+

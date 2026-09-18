@@ -66,6 +66,9 @@ Before a bootstrap broadcast, the script persists its complete public intent (se
 
 On crash, verify the original process/workflow is no longer active, recover both journals, reconcile on-chain nonces/receipts, and only then remove a stale `.lock`. Never delete a journal, change its identity, or clear an unresolved intent to force a retry. A frontend output path is written only once; for a resume after an already-created output, use a new output filename or omit the optional output variable and retain the prior disabled config.
 
+The revised collection requires immutable valid inviters, batches of 1–20 at 0.01 BNB each, 20% one-generation pull rewards and 80% treasury payment on full claim. The configured callback limit is 2,000,000 gas. Deployment readbacks verify referral rate, batch cap and callback limit along with existing economics. This change invalidates older source/configuration journal identities; do not reuse an old identity to bypass review.
+
 Final output stays `enabled:false` even after successful deployment. The separate release decision must verify compiled runtime code/source, contract economics, genuine VRF fulfillment and hosting. This launcher was exercised with offline mocked providers/fetchers; no mainnet transaction or actual secret was used during preparation.
 
 The bootstrap ABI is pinned to the official [Chainlink SubscriptionAPI source](https://github.com/smartcontractkit/chainlink/blob/contracts-v1.3.0/contracts/src/v0.8/vrf/dev/SubscriptionAPI.sol), including `createSubscription`, `fundSubscriptionWithNative(uint256)` and `SubscriptionCreated(uint256 indexed subId,address owner)`. The official [subscription guide](https://docs.chain.link/vrf/v2-5/subscription/create-manage) explains subscription ownership and separate native-token funding.
+
