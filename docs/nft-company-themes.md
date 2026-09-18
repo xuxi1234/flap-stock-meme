@@ -25,3 +25,14 @@ Verification: `node scripts/verify-company-themes.mjs`, `npx vitest run src/nft`
 ## Special IDs and bilingual experience
 
 The UI supports persisted Chinese/English switching, including company titles, family names, forms and dialogs. Metadata exposes both names under `properties.localization`; original artwork remains unchanged. The free-reveal dialog uses browser randomness without replacement within a batch of 1–20. It never connects a wallet, pays, reserves chain supply, changes holdings, or creates a marketplace listing. Experience results are explicitly not on-chain NFTs. Paid minting remains disabled.
+
+### 2026-09-18 special-number release checks
+
+- Runtime source: `bc202b0d7fd6f70e927d00b9ce57a33804300fc0` (includes narrow-dialog correction).
+- Special allocation verifier passed: 277 distinct originals, all requested IDs included, 500 company themes with exactly 15 editions each.
+- TypeScript and all 35 NFT tests passed, including language/filter preservation and free draws without replacement.
+- Initial release `dpl_JAujxUeuSKwLE6p2T3PQ3JxLX7aL` reached READY. Production build passed all 7,777 artwork/JPEG/ID/metadata checks.
+- Public `special-ids.json` returned 200 with 277 IDs; metadata 1 and 7777 returned original themes and both Chinese/English localized names.
+- Live Chinese and English free draws each produced five distinct results with no wallet or chain interaction. Chinese/English switching updates navigation, card names, filters and dialogs.
+- Mobile QA found preset overflow in the English 320px dialog; preset columns now use zero-minimum grid tracks, result figures shrink, and narrow result cards use one column.
+- Final deployment `dpl_J2oUr8X9gn4UaN3YkhXfGQw55oHw` reached READY with the public alias. Final 320px English free-reveal dialog has equal client/scroll widths (254px), and all five result images loaded at 208px width. Screenshot confirmed presets and artwork fit without horizontal scrolling.
