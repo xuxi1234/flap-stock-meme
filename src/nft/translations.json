@@ -287,5 +287,6 @@
   "购买这张 NFT": "Buy this NFT",
   "只授权当前作品，发布后可随时撤单；授权、挂单和撤单均需网络 Gas。": "Approve only this NFT. Cancel your listing any time. Approval, listing and cancellation require network gas.",
   "网络 Gas": "Network gas",
-  "钱包确认时显示": "Shown in your wallet"
+  "钱包确认时显示": "Shown in your wallet",
+  "当前筛选": "Active filters"
 }

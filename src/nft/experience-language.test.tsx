@@ -1,4 +1,4 @@
-import {render,screen,fireEvent,cleanup} from '@testing-library/react';
+import {render,screen,fireEvent,cleanup,within} from '@testing-library/react';
 import {afterEach,beforeEach,it,expect,vi} from 'vitest';
 import NFTPage from './NFTPage';
 import {drawExperience} from './components/FreeOpen';
@@ -22,4 +22,12 @@ it('switches language without losing canonical filters, and free results remain 
  fireEvent.click(screen.getByRole('button',{name:'Close dialog'}));
  fireEvent.click(screen.getByRole('button',{name:'Language / 语言'}));
  expect(screen.getByRole('combobox',{name:'筛选蝶类'})).toHaveValue('蓝闪蝶');
+});
+
+it('saves free results to the wishlist without creating wallet holdings',async()=>{
+ render(<NFTPage/>);await screen.findByRole('button',{name:'查看 蝴蝶股票原创特别款 · 蓝闪蝶 #1'});
+ fireEvent.click(screen.getByRole('button',{name:'免费开蝶 ↗'}));fireEvent.click(screen.getByRole('button',{name:'随机开出 ↗'}));
+ const results=screen.getByRole('region',{name:'体验结果'});const save=within(results).getByRole('button',{name:/加入心愿单/});fireEvent.click(save);
+ expect(save).toHaveAttribute('aria-pressed','true');expect(JSON.parse(localStorage.getItem('butterfly-nft-favorites')!)).toHaveLength(1);
+ expect(screen.getByRole('button',{name:'我的收藏0'})).toBeInTheDocument();fireEvent.click(save);expect(JSON.parse(localStorage.getItem('butterfly-nft-favorites')!)).toEqual([]);
 });
