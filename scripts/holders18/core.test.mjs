@@ -1,12 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { candidates, selectTop, mergeRecipients, scanRanges, rpcError } from './core.mjs';
+import { candidates, selectTop, proveTopCoverage, mergeRecipients, scanRanges, rpcError } from './core.mjs';
 const a=n=>'0x'+n.toString(16).padStart(40,'0');
 test('Transfer candidates include previous and current owners, never zero',()=>{
  assert.deepEqual(candidates([{topics:['topic','0x'+a(2).slice(2).padStart(64,'0'),'0x'+a(3).slice(2).padStart(64,'0')]},{topics:['topic','0x'+'0'.repeat(64),'0x'+a(2).slice(2).padStart(64,'0')]}]),[a(2),a(3)]);
 });
 test('ranking uses exact integers and address ties; excludes zero balance',()=>{
  assert.deepEqual(selectTop([{address:a(3),balance:'9007199254740993'},{address:a(2),balance:'9007199254740993'},{address:a(1),balance:'9007199254740992'},{address:a(4),balance:'0'}],2).map(x=>x.address),[a(2),a(3)]);
+});
+test('coverage proof permits harmless dust but rejects gaps that can change top 600',()=>{
+ const top=Array.from({length:600},(_,i)=>({address:a(i+1),balance:String(1000-i),rank:i+1}));
+ assert.deepEqual(proveTopCoverage(999994n,1000000n,top),{coverageGap:'6',coverageMode:'rank-proven',topCutoffBalance:'401'});
+ assert.throws(()=>proveTopCoverage(999599n,1000000n,top),/can affect/);
+ assert.throws(()=>proveTopCoverage(99n,100n,top.slice(0,599)),/fewer than 600/);
+ assert.deepEqual(proveTopCoverage(100n,100n,[]),{coverageGap:'0',coverageMode:'exact'});
 });
 test('filter happens after top selection, preserves provenance and excludes sender',()=>{
  const top=selectTop([{address:a(1),balance:'100'},{address:a(2),balance:'90'},{address:a(3),balance:'80'}],2);
