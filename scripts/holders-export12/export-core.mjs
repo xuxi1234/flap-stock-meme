@@ -6,7 +6,8 @@ export function mergeSnapshot(tokens,results,snapshot,hash){
  const sources={};let rawTopCount=0;
  for(const [i,r] of results.entries()){
   check(r.token===tokens[i]&&r.snapshotBlock===snapshot&&r.snapshotHash===hash,'Mixed snapshot or token');
-  check(BigInt(r.totalSupply)>0n&&r.verifiedBalanceSum===r.totalSupply,'Unverified holder coverage');
+  const supply=BigInt(r.totalSupply),sum=BigInt(r.verifiedBalanceSum),gap=supply-sum;
+  check(supply>0n&&sum<=supply&&r.coverageGap===gap.toString(),'Unverified holder coverage');
   check(Number.isSafeInteger(r.positiveHolders)&&r.positiveHolders>=0&&r.top.length===Math.min(600,r.positiveHolders),'Incomplete top holders');
   let next=r.creationBlock,count=0;
   for(const span of r.ranges){check(span.from===next&&span.to>=span.from&&span.to<=snapshot,'Incomplete log range');next=span.to+1;count+=span.count;}
@@ -17,6 +18,7 @@ export function mergeSnapshot(tokens,results,snapshot,hash){
    check(n===0||BigInt(r.top[n-1].balance)>=BigInt(row.balance),'Invalid ranking');
    seen.add(row.address);(sources[row.address]??=[]).push({token:r.token,rank:row.rank,balance:row.balance});rawTopCount++;
   }
+  check(gap===0n||(r.top.length===600&&gap<BigInt(r.top[599].balance)),'Uncovered balance can affect top 600 ranking');
  }
  return {addresses:Object.keys(sources).sort(),sources,rawTopCount};
 }
