@@ -77,6 +77,20 @@
       "success": true,
       "feeWei": "617327820000000",
       "confirmedAt": 1789906179
+    },
+    {
+      "kind": "send",
+      "batch": 3,
+      "transaction": {
+        "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+        "value": "0",
+        "nonce": 217,
+        "type": "legacy",
+        "chainId": 56,
+        "gas": "13595795",
+        "gasPrice": "60000000"
+      },
+      "settled": false
     }
   ],
   "active": true,
