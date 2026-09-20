@@ -9,5 +9,9 @@
   "active": true,
   "authorization": "image12x0.1:200:1800seconds:budget0.2:lifetime",
   "startedBy": "xuxi1234",
-  "startedRun": "35506924098"
+  "startedRun": "35506924098",
+  "rawSpentWei": "223206794882635913",
+  "spentWei": "149221252629141262",
+  "excludedPrincipalWei": "73985542253494651",
+  "campaignGasWei": "95339030160000000"
 }
