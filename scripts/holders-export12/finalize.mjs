@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import {mergeSnapshot} from './export-core.mjs';
+const tokens=JSON.parse(fs.readFileSync(new URL('./tokens.json',import.meta.url)));
+const input=process.env.HOLDERS_INPUT||'holder-input',output='holder-export';
+const results=tokens.map(t=>JSON.parse(fs.readFileSync(`${input}/${t}.json`)));
+const snapshot=Number(process.env.HOLDERS_SNAPSHOT),hash=process.env.HOLDERS_SNAPSHOT_HASH;
+const merged=mergeSnapshot(tokens,results,snapshot,hash);
+fs.mkdirSync(output,{recursive:true});
+const csv='\ufeffaddress\r\n'+merged.addresses.join('\r\n')+'\r\n';
+fs.writeFileSync(`${output}/top600-deduplicated.csv`,csv);
+fs.writeFileSync(`${output}/sources.json`,JSON.stringify(merged.sources,null,2)+'\n');
+const summary={complete:true,chainId:56,snapshotBlock:snapshot,snapshotHash:hash,tokenCount:tokens.length,rawTopCount:merged.rawTopCount,uniqueAddresses:merged.addresses.length,duplicatesRemoved:merged.rawTopCount-merged.addresses.length,deduplicationOnly:true,excludedAddresses:0,sha256:createHash('sha256').update(csv).digest('hex'),tokens:results.map(({top,ranges,...r})=>r)};
+fs.writeFileSync(`${output}/summary.json`,JSON.stringify(summary,null,2)+'\n');
+console.log(JSON.stringify(summary));
+if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`已核实 ${tokens.length} 个代币，区块 ${snapshot}；前600共 ${merged.rawTopCount} 条，去重后 ${merged.addresses.length} 个地址。仅去重，不过滤合约/池子/黑洞。\n`);
