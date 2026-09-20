@@ -1,7 +1,7 @@
 import {verifyMulticall,readBalances} from './multicall.mjs';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {candidates,selectTop,mergeRecipients,scanRanges,rpcError} from './core.mjs';
+import {candidates,selectTop,proveTopCoverage,mergeRecipients,scanRanges,rpcError} from './core.mjs';
 const TOKENS=JSON.parse(fs.readFileSync(new URL('./tokens.json',import.meta.url)));
 import {OUT,hex,digest,pause,safe,calls,rpc,rpcBatch,mapLimit,api,publish,BRANCH} from './io.mjs';
 const tokenIndex=process.env.HOLDERS_TOKEN_INDEX;
@@ -26,7 +26,8 @@ async function main(){
      const f=await api('GET',`/contents/data/holders18/${token}.json?ref=${encodeURIComponent(BRANCH)}`);
      if(f.encoding!=='base64')throw new Error('Invalid previous token result');
      const prior=JSON.parse(Buffer.from(f.content,'base64').toString('utf8'));
-     if(prior.token!==token||prior.snapshotBlock!==snapshot||prior.snapshotHash!==block.hash||prior.verifiedBalanceSum!==prior.totalSupply||prior.top.length!==Math.min(600,prior.positiveHolders))throw new Error('Previous result does not match snapshot');
+     const priorProof=proveTopCoverage(prior.verifiedBalanceSum,prior.totalSupply,prior.top);
+     if(prior.token!==token||prior.snapshotBlock!==snapshot||prior.snapshotHash!==block.hash||prior.coverageGap!==priorProof.coverageGap||prior.top.length!==Math.min(600,prior.positiveHolders))throw new Error('Previous result does not match snapshot');
      status.tokens.push(prior);write(token+'.json',prior);
      await publish({[statusName]:write('status.json',{...status,tokens:status.tokens.map(({top,ranges,...r})=>r),reused:true})});
      console.log('TOKEN_REUSED',token,'holders',prior.positiveHolders);continue;
@@ -64,10 +65,9 @@ async function main(){
     return group.map((address,n)=>({address,balance:BigInt(results[n]).toString()}));
    },2)).flat();
    const sum=balances.reduce((s,x)=>s+BigInt(x.balance),0n);
-   // A mismatch means Transfer-based discovery is not demonstrably complete.
-   if(sum!==supply)throw new Error('Holder coverage balance sum '+sum+' differs from totalSupply '+supply);
    const top=selectTop(balances);
-   const result={token,symbol,decimals,creationBlock,snapshotBlock:snapshot,snapshotHash:block.hash,totalSupply:supply.toString(),verifiedBalanceSum:sum.toString(),candidateCount:addresses.length,positiveHolders:balances.filter(x=>BigInt(x.balance)>0n).length,logCount,balanceSha256:digest(balances),ranges,top};
+   const coverage=proveTopCoverage(sum,supply,top);
+   const result={token,symbol,decimals,creationBlock,snapshotBlock:snapshot,snapshotHash:block.hash,totalSupply:supply.toString(),verifiedBalanceSum:sum.toString(),...coverage,candidateCount:addresses.length,positiveHolders:balances.filter(x=>BigInt(x.balance)>0n).length,logCount,balanceSha256:digest(balances),ranges,top};
    write(token+'-all-balances.json',balances);
    status.tokens.push(result);
    await publish({[token+'.json']:write(token+'.json',result),[statusName]:write('status.json',{...status,tokens:status.tokens.map(({top,ranges,...r})=>r),requests:calls})});
