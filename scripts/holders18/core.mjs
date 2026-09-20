@@ -5,6 +5,18 @@ export function candidates(logs){
  return [...out].sort();
 }
 export function selectTop(rows,n=600){return rows.filter(x=>BigInt(x.balance)>0n).sort((a,b)=>BigInt(a.balance)>BigInt(b.balance)?-1:BigInt(a.balance)<BigInt(b.balance)?1:a.address.localeCompare(b.address)).slice(0,n).map((r,i)=>({...r,rank:i+1}));}
+export function proveTopCoverage(sum,supply,top,n=600){
+ sum=BigInt(sum);supply=BigInt(supply);
+ if(sum>supply)throw new Error('Holder coverage balance sum exceeds totalSupply');
+ const gap=supply-sum;
+ if(gap===0n)return {coverageGap:'0',coverageMode:'exact'};
+ if(top.length<n)throw new Error('Holder coverage is incomplete and fewer than '+n+' holders were found');
+ const cutoff=BigInt(top[n-1].balance);
+ // Every undiscovered holder is bounded by the total undiscovered balance.
+ // A strict gap < cutoff therefore proves none can enter the reported top N.
+ if(gap>=cutoff)throw new Error('Uncovered balance can affect top '+n+' ranking');
+ return {coverageGap:gap.toString(),coverageMode:'rank-proven',topCutoffBalance:cutoff.toString()};
+}
 export function mergeRecipients(tokens,codes,sender){
  const excluded=[],sources={};
  const deny=new Set([ZERO,'0x000000000000000000000000000000000000dead',sender.toLowerCase(),...tokens.map(x=>x.token.toLowerCase())]);
