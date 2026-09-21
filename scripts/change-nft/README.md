@@ -10,9 +10,9 @@ The collection consists of original generative vector portraits rendered to 512�
 ## Commands
 `npm ci --ignore-scripts`; `npm test`; `npm run compile`; `npm run generate` (website checkout); `npm run deploy:check` (published artwork required).
 
-Mint quantity is 1–50 per transaction; larger purchases use separate transactions. Allocation is sequential, not randomized. ERC-721 transfer/approval/metadata are standard OpenZeppelin implementations. No owner, upgrade, admin mint, price change, recipient change or metadata URI change functions exist.
+Mint quantity is 1–50 per transaction; larger purchases use separate transactions. Allocation uses Chainlink VRF v2.5 and a shrinking Fisher–Yates pool. All IDs 1–7777 participate without preallocation. Requests are fixed at payment and settled in request order, regardless of callback order. No cancellation, reroll or user-picked ID. The oracle callback stores randomness only; anyone may settle the next ready request. Buyer, quantity and random seed cannot change; caller/timing do not change the result. Settlement directly mints to the fixed buyer without a receiver callback, so a hostile buyer cannot block the queue. Smart-contract buyers must support managing ERC721 tokens. ERC-721 transfer/approval/metadata are standard OpenZeppelin implementations. No owner, upgrade, admin mint, price change, recipient change or metadata URI change functions exist.
 
-The GitHub workflow is manual only. Its check mode does not receive the private-key secret. Deploy mode requires the explicit checkbox and validates the secret's derived signer against the authorized wallet. It saves a public deployment checkpoint before broadcasting and refuses a second deployment. A separate concurrency group protects this deployment without evicting queued airdrops. The signer check refuses to proceed while another airdrop or mint workflow is active or queued. Never cancel an unrelated airdrop to deploy this project.
+The GitHub workflow automatically performs read-only checks on source updates. Financial deployment remains manual only. Its check mode does not receive the private-key secret. Deploy mode requires the explicit checkbox and validates the secret's derived signer against the authorized wallet. It saves a public deployment checkpoint before broadcasting and refuses a second deployment. A separate concurrency group protects this deployment without evicting queued airdrops. The signer check refuses to proceed while another airdrop or mint workflow is active or queued. Never cancel an unrelated airdrop to deploy this project.
 
 After deployment, the website reads the public deployment receipt, verifies chain ID, expected bytecode hash, mint terms and manifest commitment, then enables minting. A failing read always disables purchase. No server-side private key is exposed to the website.
 
@@ -29,3 +29,10 @@ The published NFT listing guide requests a separate TPT donation and verificatio
 - https://eips.ethereum.org/EIPS/eip-721
 
 Local tests verify fixed terms, exact payment, direct revenue transfer, arbitrary batch amounts, supply boundary, metadata queries, transfers, receiver rollback and reentrancy protection. Local simulation is not an independent external security audit.
+
+## Random mint funding and liveness
+Chainlink native fees are paid from a separately sponsored BNB reserve. Each request is capped at 0.0001 BNB. Exactly 0.001 BNB per NFT is still forwarded to the fixed revenue address; buyers pay their purchase and settlement network gas. This deployment workflow does NOT fund the reserve, so minting remains paused until a sponsor funds the contract. Anyone can top up by sending native BNB. Reserve cannot be withdrawn before the entire collection is allocated; after sellout anyone can sweep leftover reserve to REVENUE.
+
+Chainlink outages or unfulfilled early requests stall the FIFO queue. There is deliberately no admin entropy override, reroll or cancellation/refund function. Buyers see this before paying. There is no promise of a particular number or resale value. Mock-based tests validate integration and allocation, but a live VRF request and TokenPocket display still require post-deployment verification.
+
+MIT vendor sources are from smartcontractkit/chainlink tag contracts-v1.3.0, contracts/src/v0.8. They are kept unmodified. BSC wrapper address and native payment support were checked against https://docs.chain.link/vrf/v2-5/supported-networks . Security approach: https://docs.chain.link/vrf/v2-5/security .

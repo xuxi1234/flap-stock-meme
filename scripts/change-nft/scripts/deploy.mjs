@@ -18,6 +18,9 @@ async function main(){
  const {artifact,input}=compile();
  const release=JSON.parse(fs.readFileSync(path.join(root,'collection-release.json')));
  const digest=release.manifestSha256;
+ if(release.randomness!=='chainlink-vrf-v2.5-fifo')throw Error('Random release required');
+ const vrf=new Contract(release.wrapper,['function link() view returns(address)','function estimateRequestPriceNative(uint32,uint32,uint256) view returns(uint256)'],provider);
+ if((await vrf.link()).toLowerCase()!=='0x404460c6a5ede2d891e8297795264fde62adbb75')throw Error('VRF wrapper mismatch');
  const hosted=await fetch('https://zhongqiu.sh/nft/manifest.json');if(!hosted.ok)throw Error('Hosted manifest unavailable');
  const manifestBytes=Buffer.from(await hosted.arrayBuffer());if(hash(manifestBytes)!==digest)throw Error('Hosted collection does not match tested source');
  const manifest=JSON.parse(manifestBytes);if(manifest.count!==7777||manifest.entries.length!==7777||new Set(manifest.entries.map(x=>x.imageSha256)).size!==7777)throw Error('Incomplete or duplicate art');
@@ -36,9 +39,10 @@ async function main(){
  const fee=await provider.getFeeData();const gasPrice=fee.gasPrice;if(!gasPrice)throw Error('Gas price unavailable');
  const maximum=gasLimit*gasPrice;if(maximum>budget)throw Error('Deployment exceeds 0.003 BNB gas cap');
  const balance=await provider.getBalance(EXPECTED);if(balance<maximum)throw Error('Insufficient BNB for deployment');
- console.log(JSON.stringify({mode:process.env.NFT_OPERATION||'check',chainId:56,deployer:EXPECTED,revenue:REVENUE,supply:7777,priceBNB:'0.001',nonce:pending,estimatedGas:estimate.toString(),maxGasBNB:formatEther(maximum),hardBudgetBNB:'0.003',manifestHash:'0x'+digest},null,2));
+ const vrfQuote=await vrf.estimateRequestPriceNative(100000,1,gasPrice);
+ console.log(JSON.stringify({randomness:release.randomness,randomnessRequestBNB:formatEther(vrfQuote),reserveFunding:'Separate sponsor reserve required before sales; this workflow does not fund it',mode:process.env.NFT_OPERATION||'check',chainId:56,deployer:EXPECTED,revenue:REVENUE,supply:7777,priceBNB:'0.001',nonce:pending,estimatedGas:estimate.toString(),maxGasBNB:formatEther(maximum),hardBudgetBNB:'0.003',manifestHash:'0x'+digest},null,2));
  if(process.env.NFT_OPERATION!=='deploy')return;
- if(process.env.GITHUB_EVENT_NAME!=='workflow_dispatch'||process.env.GITHUB_REF!=='refs/heads/main'||process.env.GITHUB_REPOSITORY!==REPO||process.env.NFT_CONFIRM!=='7777:0.001:revenue23898:gas0.003')throw Error('Manual main-branch confirmation required');
+ if(process.env.GITHUB_EVENT_NAME!=='workflow_dispatch'||process.env.GITHUB_REF!=='refs/heads/main'||process.env.GITHUB_REPOSITORY!==REPO||process.env.NFT_CONFIRM!=='7777:0.001:random-vrf:revenue23898:gas0.003')throw Error('Manual main-branch confirmation required');
  // Do not displace another queued workflow; GitHub concurrency groups can evict pending runs.
  const runResponse=await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=100`,{headers:{Authorization:`Bearer ${process.env.GITHUB_TOKEN}`,Accept:'application/vnd.github+json'}});
  if(!runResponse.ok)throw Error('Cannot check other wallet workflows');

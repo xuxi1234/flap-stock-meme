@@ -12,7 +12,7 @@ on:
         default: 只读检查
         required: true
       confirm:
-        description: '确认7777张、每张0.001 BNB、收入进入0x23898…93cDC；授权钱包部署Gas上限0.003 BNB'
+        description: '确认VRF随机编号、7777张、每张0.001 BNB、收入进入0x23898…93cDC；授权钱包部署Gas上限0.003 BNB'
         type: boolean
         default: false
         required: true
@@ -63,7 +63,7 @@ jobs:
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           NFT_OPERATION: deploy
-          NFT_CONFIRM: '7777:0.001:revenue23898:gas0.003'
+          NFT_CONFIRM: '7777:0.001:random-vrf:revenue23898:gas0.003'
         run: node scripts/change-nft/scripts/deploy.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
