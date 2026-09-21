@@ -1,4 +1,4 @@
-name: 图片12代币｜前600持仓合并去重｜只读CSV
+name: 0921图片10代币｜前600持仓合并去重｜只读CSV
 on:
   workflow_dispatch:
 permissions:
@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        token: [0,1,2,3,4,5,6,7,8,9,10,11]
+        token: [0,1,2,3,4,5,6,7,8,9]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
