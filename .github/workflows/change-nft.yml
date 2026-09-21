@@ -1,0 +1,71 @@
+name: 嫦娥NFT｜7777张·0.001BNB
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: '只读检查不花 Gas；部署主网会从授权钱包支付部署 Gas，最多 0.003 BNB'
+        type: choice
+        options: [只读检查, 部署主网]
+        default: 只读检查
+        required: true
+      confirm:
+        description: '确认7777张、每张0.001 BNB、收入进入0x23898…93cDC；授权钱包部署Gas上限0.003 BNB'
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: change-nft-mainnet-deployment
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/change-nft
+      - run: npm test --prefix scripts/change-nft
+      - name: 校验作品、链和部署预算（只读）
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          NFT_OPERATION: check
+        run: node scripts/change-nft/scripts/deploy.mjs
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && inputs.operation == '部署主网' && inputs.confirm == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/change-nft
+      - name: 仅部署一次嫦娥NFT合约
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          NFT_OPERATION: deploy
+          NFT_CONFIRM: '7777:0.001:revenue23898:gas0.003'
+        run: node scripts/change-nft/scripts/deploy.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: change-nft-deployment
+          path: scripts/change-nft/build/
+          retention-days: 90
+          if-no-files-found: ignore
