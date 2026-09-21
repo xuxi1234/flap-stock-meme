@@ -140,8 +140,9 @@ export async function run({clients,store,execute=false,ownedReturnConfirmed=fals
  if(completedCount===BATCHES){requireThat(state.allowance===0n,'任务完成后授权仍非零，停止核查。');j.active=false;await save(j);report(j,reportDirectory);return j;}
  if((recoveredSend&&!j.entries.some(e=>!e.settled))||!isDue(j,await chainNow())){console.log(`等待下轮：${new Date(dueAt(j)*1000).toISOString()}`);report(j,reportDirectory);return j;}
  const done=j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).length;
- requireThat(state.balance>=plan().slice(done).reduce((n,b)=>n+BigInt(b.length)*AMOUNT,0n),'蝴蝶股票余额不足以完成剩余轮次。');
- console.log(`钱包 ${ACCOUNT}；蝴蝶股票 ${formatEther(state.balance)} 枚；BNB ${formatEther(state.bnb)}；累计已用 ${formatEther(ledger.spent)} / 0.3 BNB。`);
+ const required=plan().slice(done).reduce((n,b)=>n+BigInt(b.length)*AMOUNT,0n);
+ console.log(`钱包 ${ACCOUNT}；蝴蝶股票 ${formatEther(state.balance)} 枚；本次剩余需要 ${formatEther(required)} 枚；BNB ${formatEther(state.bnb)}；累计已用 ${formatEther(ledger.spent)} / 0.3 BNB。`);
+ requireThat(state.balance>=required,`蝴蝶股票余额不足：缺少 ${formatEther(required-state.balance)} 枚；未发送本次空投。`);
  if(!execute){
   if(!pending){const action=next(j,state.allowance);if(action){const c=callFor(action);const gas=await clients[0].estimateGas({account:ACCOUNT,...c});const price=await clients[0].getGasPrice();reserveCampaign(ledger.spent,gas*130n/100n+10000n,price*120n/100n);console.log(`下一步 ${action.kind} 只读模拟通过。`);}}
   report(j,reportDirectory);return j;
