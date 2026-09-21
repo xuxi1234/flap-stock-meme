@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "id": "0x836c04e66c651e64da229ac6dfbb521eea4395d2891dd429f72ae34a264b2d26",
+  "sourceSha": "132b4bece5c97b2107e6e34194a6dc3bb11e32645546c76133b81669ce09b674",
+  "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+  "token": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
+  "distributor": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
+  "entries": [],
+  "active": true,
+  "authorization": "snapshot0921x0.7777:200:3600seconds:budget0.3:lifetime",
+  "startedBy": "xuxi1234",
+  "startedRun": "35586519717"
+}
