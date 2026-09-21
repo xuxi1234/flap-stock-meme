@@ -1,5 +1,8 @@
 name: 嫦娥NFT｜7777张·0.001BNB
 on:
+  push:
+    branches: [main]
+    paths: ['scripts/change-nft/**', '.github/workflows/change-nft.yml']
   workflow_dispatch:
     inputs:
       operation:
