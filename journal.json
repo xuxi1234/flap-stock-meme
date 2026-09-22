@@ -50,5 +50,6 @@
       "address": "0x9330cC84Ca324877De9CE19390068718aE60F97A",
       "blockNumber": 123352515
     }
-  ]
+  ],
+  "initialReserveWei": "1666480000000000"
 }
