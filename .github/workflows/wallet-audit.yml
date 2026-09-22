@@ -1,0 +1,29 @@
+name: 空投钱包｜付费RPC只读对账
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/wallet-audit/read.mjs
+      - .github/workflows/wallet-audit.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: node scripts/wallet-audit/read.mjs
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: wallet-audit
+          path: wallet-audit-output/
