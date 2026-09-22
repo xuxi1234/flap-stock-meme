@@ -1,0 +1,21 @@
+name: 7031地址｜生成未签名空投计划
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: 校验名单并生成36批未签名交易
+        run: python3 scripts/airdrop-7031/build.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: airdrop-7031-unsigned-plan
+          path: scripts/airdrop-7031/output/unsigned-plan.json
+          if-no-files-found: error
+          retention-days: 90
