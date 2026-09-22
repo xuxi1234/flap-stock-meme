@@ -46,7 +46,7 @@ jobs:
   check:
     name: 检查旧任务和链上进度
     needs: tests
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
