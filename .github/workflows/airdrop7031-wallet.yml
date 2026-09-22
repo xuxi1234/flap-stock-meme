@@ -1,0 +1,40 @@
+name: 7031地址空投｜打开钱包确认页面
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'public/airdrop-7031/**'
+      - '.github/workflows/airdrop7031-wallet.yml'
+permissions:
+  contents: read
+jobs:
+  wallet-page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: 核对名单、交易编码与钱包确认流程
+        run: node --test public/airdrop-7031/core.test.mjs public/airdrop-7031/app.test.mjs
+      - name: 显示钱包确认入口
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## 7031 地址空投页面已准备
+          [打开钱包确认页面](https://gupiao.sh/airdrop-7031/index.html)
+          
+          连接指定钱包 0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA，选择 BSC。
+          先授权剩余额度，再点击本批发送并在钱包确认。
+          每批最多200地址，每地址转出0.7777枚，共36批；上一批成功确认满60分钟后开放下一批。
+          每一批都需要本人点击和钱包确认；此工作流只验证页面，不读取私钥、不转账。
+          Gas累计预算不设上限，实际费用由钱包展示。
+          使用前停止此钱包其他自动发送任务，避免同时使用nonce。
+          EOF
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: airdrop-7031-wallet-page
+          path: public/airdrop-7031/
+          retention-days: 90
