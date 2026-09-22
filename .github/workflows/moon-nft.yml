@@ -1,0 +1,81 @@
+name: 蝴蝶中秋｜双7777 NFT正式部署
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/moon-nft.yml']
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: '两个7777系列与零平台手续费市场，BNB Chain主网'
+        type: choice
+        options: [只读检查, 部署主网并验证]
+        default: 只读检查
+        required: true
+      confirm:
+        description: '确认使用0x74a7…69aA支付部署Gas、初始VRF费用及共0.002BNB的两枚验证NFT；营收0x23898…93cDC；Gas不设金额上限'
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: zhongqiu-dual7777-mainnet
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fc445c50891e3a908a9aa6bc505fe1243fcaee4a
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix sites/zhongqiu/nft
+      - run: npm run test:dual --prefix sites/zhongqiu/nft
+      - run: node sites/zhongqiu/nft/dual-release/compile.mjs
+      - name: 检查官网作品、随机服务与固定发行条款（不签名）
+        env:
+          MOON_OPERATION: check
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node sites/zhongqiu/nft/dual-release/deploy.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: moon-contract-build-${{ github.run_id }}-${{ github.run_attempt }}
+          path: sites/zhongqiu/nft/build/dual/
+          retention-days: 90
+  deploy:
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.operation == '部署主网并验证' && inputs.confirm == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fc445c50891e3a908a9aa6bc505fe1243fcaee4a
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix sites/zhongqiu/nft
+      - name: 部署、验证并发布官网真实地址
+        env:
+          MOON_OPERATION: deploy
+          MOON_CONFIRM: dual7777:0.001:revenue23898:gas-unlimited
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node sites/zhongqiu/nft/dual-release/deploy.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: moon-mainnet-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: sites/zhongqiu/nft/build/dual/
+          retention-days: 90
