@@ -21,9 +21,10 @@ export function buildPlan(source,sha){
  requireThat(addresses.length>0&&addresses.length<=10800&&new Set(addresses).size===addresses.length&&addresses.every(a=>isAddress(a)&&![ACCOUNT,TOKEN,DISTRIBUTOR,'0x'+'0'.repeat(40)].some(b=>equal(a,b))),'名单数量、重复地址或格式无效。');
  return Object.freeze(Array.from({length:Math.ceil(addresses.length/200)},(_,i)=>Object.freeze(addresses.slice(i*200,(i+1)*200))));
 }
-export function configure(source,sha,prior){
+export function configure(source,sha,prior,nextNonce){
  requireThat(prior.version===1&&prior.entries.length>0&&prior.entries.every(e=>e.settled&&e.success&&Number.isSafeInteger(e.transaction?.nonce)),'旧任务仍有未确认或失败交易。');
  prior72=structuredClone(prior);BASE_NONCE=Math.max(...prior.entries.map(e=>e.transaction.nonce))+1;
+ if(nextNonce!==undefined){requireThat(nextNonce===284&&BASE_NONCE===275,'交接交易序号不匹配。');BASE_NONCE=nextNonce;}
  cached=buildPlan(source,sha);BATCHES=cached.length;TOTAL=BigInt(cached.flat().length)*AMOUNT;SOURCE_SHA=sha;
  ID=keccak256(toHex(`butterfly:56:74a7:snapshot0922:0.7777:3600seconds:${SOURCE_SHA}`));
 }

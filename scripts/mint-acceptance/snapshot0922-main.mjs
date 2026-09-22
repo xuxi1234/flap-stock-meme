@@ -15,12 +15,14 @@ export async function assertPrior72(api){
  const r=await api('GET','/contents/journal.json?ref=automation%2Fairdrop-snapshot0921-ledger');
  requireThat(r.encoding==='base64'&&r.size<1000000,'旧5557任务检查点读取异常。');
  const prior=JSON.parse(Buffer.from(r.content,'base64').toString('utf8'));
- requireThat(prior.version===1&&prior.active===false&&prior.entries.every(e=>e.settled&&e.success)&&prior.entries.filter(e=>e.kind==='send').length===28,'旧5557地址任务尚未完整结束；先完成旧任务，再手动启动本任务。');
+ const stopped=JSON.parse(fs.readFileSync(new URL('./data/snapshot0922-stopped-prior.json',import.meta.url),'utf8'));
+ requireThat(prior.version===1&&prior.id===stopped.id&&prior.sourceSha===stopped.sourceSha&&isDeepStrictEqual(prior.entries,stopped.entries)&&prior.entries.every(e=>e.settled&&e.success)&&prior.entries.filter(e=>e.kind==='send').length===24,'已终止的5557任务记录发生变化，停止核对。');
+
 
  const manifest=JSON.parse(fs.readFileSync(new URL('./data/snapshot0922-manifest.json',import.meta.url),'utf8'));
  requireThat(manifest.complete===true&&manifest.chainId===56&&manifest.tokenCount===12&&manifest.uniqueAddresses===7031&&manifest.rawTopCount===7156&&manifest.deduplicationOnly===true&&manifest.excludedAddresses===0,'固定7031地址名单尚未核验。');
  const source=fs.readFileSync(new URL('./data/snapshot0922-recipients.txt',import.meta.url));
- configure(source,manifest.recipientSha256,prior);
+ configure(source,manifest.recipientSha256,prior,284);
  requireThat(plan().flat().length===7031&&BATCHES===36,'名单人数或批次数不匹配。');
 }
 

@@ -37,6 +37,7 @@ export function options(env){
 }
 export async function main(env=process.env){
  const {operation,execute}=options(env);
+ requireThat(!execute&&operation!=='start','用户已终止5557地址任务；保留24批记录，请使用7031地址任务。');
  const output=ready=>{if(env.GITHUB_OUTPUT)fs.appendFileSync(env.GITHUB_OUTPUT,`ready=${ready}\n`);};output(false);
  requireThat(env.GITHUB_TOKEN,'需要读取完整历史检查点。');
  await assertPrior72(githubApi(env.GITHUB_TOKEN));

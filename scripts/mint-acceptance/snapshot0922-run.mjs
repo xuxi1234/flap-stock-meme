@@ -52,7 +52,16 @@ export async function baseline(clients){
  const checked=await reconcilePrevious(clients,j,base,async()=>{},true);
  requireThat(j.entries.every(e=>e.settled&&e.success),'旧持仓任务回执未全部核实。');
  await verifyPrevious(clients,j);
- return checked.rows;
+ const external=JSON.parse(fs.readFileSync(new URL('./data/snapshot0922-external-transactions.json',import.meta.url),'utf8'));
+ requireThat(external.length===9,'交接交易记录数量不符。');
+ const rows=await mapReads(external,async(expected)=>{
+  requireThat(expected.nonce===275+external.indexOf(expected),'交接交易序号不连续。');
+  const row=await verifiedRow(clients,expected.hash);
+  requireThat(row&&equal(row.from,ACCOUNT)&&row.nonce===expected.nonce&&row.to===expected.to&&equal(row.data,expected.input)&&row.valueWei===expected.valueWei&&row.feeWei===expected.feeWei&&row.success===true&&Number(row.block)===expected.block,'交接交易与链上回执不匹配。');
+  requireThat(!row.logs.some(l=>equal(l.address,DISTRIBUTOR)||equal(l.address,TOKEN)),'交接交易涉及空投合约或代币，需要重新核对。');
+  return row;
+ });
+ return [...checked.rows,...rows];
 }
 export async function reconcile(clients,j,base,save,ownedReturnConfirmed=false){
  validate(j);const rows=[...base];

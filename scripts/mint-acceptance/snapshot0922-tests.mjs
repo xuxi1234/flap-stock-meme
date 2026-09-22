@@ -39,10 +39,14 @@ test('explicit manual main-branch confirmation is mandatory',()=>{
 test('persistence failure prevents broadcast, deterministic hash retained for recovery',async()=>{
  const entry={};let sent=0;await assert.rejects(core.persistThenBroadcast({journal:{},entry,raw:'0x1234',save:async()=>{throw Error('storage failed');},broadcast:async()=>{sent++;}}));assert.equal(sent,0);assert.match(entry.hash,/^0x[0-9a-f]{64}$/);
 });
-test('old 5557 campaign must be complete before new campaign can configure',async()=>{
+test('only exact stopped 24-batch checkpoint may hand over to nonce 284',async()=>{
  const api=state=>async(method,path)=>{assert.equal(method,'GET');const value=path.includes('72x200')?read('holders18-prior71.json'):path.includes('holders18-ledger')?read('image10-prior-holders18.json'):path.includes('image10-ledger')?read('image12-prior-image10.json'):path.includes('image12-ledger')?read('snapshot0921-prior-image12.json'):state;const s=JSON.stringify(value);return {encoding:'base64',size:s.length,content:Buffer.from(s).toString('base64')};};
- await assert.rejects(assertPrior72(api({...prior,active:true})));await assert.rejects(assertPrior72(api({...prior,entries:prior.entries.slice(0,27)})));await assertPrior72(api(prior));assert.equal(core.BATCHES,36);
+ const stopped=read('snapshot0922-stopped-prior.json');
+ await assert.rejects(assertPrior72(api(prior)));
+ await assert.rejects(assertPrior72(api({...stopped,entries:stopped.entries.slice(0,-1)})));
+ await assertPrior72(api(stopped));assert.equal(core.BATCHES,36);assert.equal(core.BASE_NONCE,284);
 });
+
 test('final batch validates 31 actual delivery events and records net tax without reissuing',()=>{
  setup();const args={sender:core.ACCOUNT,token:core.TOKEN,batchId:core.batchId(35)};
  const logs=core.plan()[35].map((recipient,i)=>({address:core.DISTRIBUTOR,topics:encodeEventTopics({abi:core.artifact.abi,eventName:'Delivered',args}),data:encodeAbiParameters([{type:'address'},{type:'uint256'},{type:'uint256'}],[recipient,core.AMOUNT,i?core.AMOUNT:core.AMOUNT*97n/100n])}));
