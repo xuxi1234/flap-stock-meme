@@ -1,0 +1,12 @@
+{
+  "complete": true,
+  "chainId": 56,
+  "tokenCount": 12,
+  "uniqueAddresses": 7031,
+  "rawTopCount": 7156,
+  "deduplicationOnly": true,
+  "excludedAddresses": 0,
+  "snapshotBlock": 123329990,
+  "recipientSha256": "f1abf8c7e93dd66467f07489e519a5f706899bb0a1126da136df67fedc5a3970",
+  "csvSha256": "b4f86eacdb562f0798f4650a351952b978742f92bfa90103f620cdf89b338ec4"
+}

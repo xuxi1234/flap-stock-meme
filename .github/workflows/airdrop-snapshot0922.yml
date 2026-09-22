@@ -1,0 +1,117 @@
+name: 蝴蝶持仓空投｜7031地址·36批·每60分钟
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: '7031地址固定名单，每地址转出0.7777枚；每批最多200，间隔至少60分钟'
+        type: choice
+        default: 只读检查
+        options: [只读检查, 启动或继续7031地址空投]
+        required: true
+      confirm:
+        description: '本人确认使用0x74a7…69aA钱包，7031地址共5468.0087枚，Gas累计预算不限；税费按合约扣除，不补发'
+        type: boolean
+        default: false
+        required: true
+  push:
+    paths:
+      - '.github/workflows/airdrop-snapshot0922.yml'
+      - 'scripts/mint-acceptance/snapshot0922-*.mjs'
+      - 'scripts/mint-acceptance/data/snapshot0922-*'
+  pull_request:
+    paths:
+      - '.github/workflows/airdrop-snapshot0922.yml'
+      - 'scripts/mint-acceptance/snapshot0922-*.mjs'
+      - 'scripts/mint-acceptance/data/snapshot0922-*'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'flap-mint-acceptance-bsc56-79f8' || format('snapshot0922-offline-{0}', github.ref) }}
+  cancel-in-progress: false
+jobs:
+  tests:
+    name: 离线核验名单、预算与断点续跑
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node --test scripts/mint-acceptance/snapshot0922-tests.mjs
+  check:
+    name: 检查旧任务和链上进度
+    needs: tests
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+      slots: ${{ steps.check.outputs.slots }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SNAPSHOT0922_OPERATION: ${{ inputs.operation == '启动或继续7031地址空投' && inputs.confirm && 'start' || 'check' }}
+          SNAPSHOT0922_CONFIRM: ${{ inputs.confirm && 'snapshot0922x0.7777:200:3600seconds:gas-unlimited' || '' }}
+          SNAPSHOT0922_PHASE: check
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/snapshot0922-check
+        run: node scripts/mint-acceptance/snapshot0922-main.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: snapshot0922-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/snapshot0922-check/
+          retention-days: 90
+          if-no-files-found: ignore
+  execute:
+    name: 7031地址空投步骤 ${{ matrix.slot }}
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.check.outputs.ready == 'true' && inputs.operation == '启动或继续7031地址空投' && inputs.confirm == true
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        slot: ${{ fromJSON(needs.check.outputs.slots || '[1]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - name: 用户手动启动后的本批执行或恢复
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SNAPSHOT0922_OPERATION: start
+          SNAPSHOT0922_CONFIRM: snapshot0922x0.7777:200:3600seconds:gas-unlimited
+          SNAPSHOT0922_PHASE: execute
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          AIRDROP_REPORT_DIR: ${{ runner.temp }}/snapshot0922-results
+        run: node scripts/mint-acceptance/snapshot0922-chain.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: snapshot0922-results-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
+          path: ${{ runner.temp }}/snapshot0922-results/
+          retention-days: 90
+          if-no-files-found: ignore
