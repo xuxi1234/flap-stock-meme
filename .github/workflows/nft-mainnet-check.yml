@@ -1,0 +1,37 @@
+name: NFT mainnet read-only check
+on:
+  push:
+    branches: [feat/butterfly-nft-market-preview]
+    paths: ['contracts/nft/**', '.github/workflows/nft-mainnet-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: contracts/nft/package-lock.json
+      - run: npm ci --ignore-scripts --prefix contracts/nft
+      - name: Read mainnet balances and deployment gas bound (no signer)
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node contracts/nft/scripts/preflight-public.mjs
+      - name: Verify publicly accessible metadata and JPEG hashes (no credentials)
+        env:
+          NFT_ASSET_CHECK_ATTEMPTS: '30'
+        run: node contracts/nft/scripts/assets-public.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nft-mainnet-check
+          path: |
+            contracts/nft/preflight-public.json
+            contracts/nft/assets-public.json
+          retention-days: 90
