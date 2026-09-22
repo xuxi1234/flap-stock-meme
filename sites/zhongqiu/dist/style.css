@@ -14,3 +14,10 @@ html[lang="en"] .brand{font-size:17px;letter-spacing:0;max-width:190px;line-heig
 
 @media(min-width:761px) and (max-width:1050px){header{height:auto;min-height:88px;display:flex;flex-wrap:wrap;gap:8px;padding-top:14px;padding-bottom:8px}header nav{order:3;width:100%;justify-content:space-between;gap:12px}header select{margin-left:auto}}
 header nav a{white-space:nowrap}@media(min-width:761px){header nav{gap:22px}}@media(min-width:761px) and (max-width:1200px){header{height:auto;min-height:88px;flex-wrap:wrap;gap:8px;padding-top:14px;padding-bottom:8px}header nav{order:3;width:100%;justify-content:space-between;gap:12px}header select{margin-left:auto}}
+
+/* Shared rhythm, keeping the established artwork and content. */
+.section{max-width:1240px;padding:88px 40px}.story,.launch{gap:clamp(32px,5vw,72px)}.ambassador{gap:clamp(32px,5vw,64px)}
+.section h2{margin:16px 0 24px}.section p{overflow-wrap:break-word}.hero-copy{padding-left:max(32px,calc((100% - 1160px)/2))}.cards{gap:28px}.card p{line-height:1.85}
+header{gap:24px}header nav{flex-wrap:wrap;justify-content:center;column-gap:20px;row-gap:0}header .brand,header select{flex-shrink:0}.status dl>div{align-items:baseline}.actions .button{justify-content:center}
+@media(min-width:761px){header{height:auto;min-height:88px;padding-top:12px;padding-bottom:12px}header nav{flex:1}}
+@media(max-width:760px){.section{padding:56px 24px}.culture .section{padding:56px 24px}.hero-copy{padding:32px 24px}.hero{min-height:660px}header{padding:16px 24px 8px;gap:12px}header nav{flex-wrap:nowrap;justify-content:flex-start;gap:20px;max-width:100%;padding:4px 0;scrollbar-width:thin}.story,.launch,.ambassador{gap:28px}.section h2{font-size:clamp(28px,8vw,36px)}.actions{gap:12px}.status{padding:20px}.status dl>div{gap:8px}.ambassador .actions .button{flex:1 1 180px}.ribbon{gap:8px;letter-spacing:0}footer{padding:28px 24px}}
