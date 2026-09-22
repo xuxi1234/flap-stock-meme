@@ -79,7 +79,8 @@
         "type": 0
       },
       "hash": "0x6b267261c349a4e3c24da1976266bd862113b4cad0de0ed26f13122d61f3f6ae",
-      "status": "prepared"
+      "status": "mined",
+      "blockNumber": 123352579
     }
   ],
   "initialReserveWei": "1666480000000000"
