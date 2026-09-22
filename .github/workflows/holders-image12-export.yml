@@ -1,10 +1,10 @@
-name: 图片12代币｜前600持仓合并去重｜只读CSV
+name: 0922图片12代币｜前600持仓合并去重｜只读CSV
 on:
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: holders-image12-export
+  group: holders-image12-export-0922
   cancel-in-progress: false
 jobs:
   snapshot:
