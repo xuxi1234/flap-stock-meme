@@ -31,7 +31,9 @@ async function main(){
  const vrf=new Contract(WRAPPER,['function link() view returns(address)','function estimateRequestPriceNative(uint32,uint32,uint256) view returns(uint256)'],provider);
  need((await vrf.link()).toLowerCase()==='0x404460c6a5ede2d891e8297795264fde62adbb75','Wrong randomness wrapper');
  const gasPrice=(await provider.getFeeData()).gasPrice;need(gasPrice>0n,'Gas price unavailable');const fee=await vrf.estimateRequestPriceNative(100000,1,gasPrice);
- const plan={chainId:56,deployer:ACCOUNT,revenue:REVENUE,supplyEach:7777,priceBNB:'0.001',gasCap:null,randomnessFeeBNB:formatEther(fee),initialReservePerCollectionBNB:formatEther(fee*100n),canaryMintTotalBNB:'0.002',manifestSha256:cfg.manifestSha256};console.log(JSON.stringify(plan,null,2));
+ const sample=await new ContractFactory(collection.abi,collection.evm.bytecode.object).getDeployTransaction("Chang'e Fairies",'CHANGE','https://zhongqiu.sh'+cfg.prefix+'/change/metadata/','0x'+cfg.manifestSha256);
+ const estimatedGas=await provider.estimateGas({...sample,from:ACCOUNT});
+ const plan={chainId:56,deployer:ACCOUNT,revenue:REVENUE,supplyEach:7777,priceBNB:'0.001',gasCap:null,walletBalanceBNB:formatEther(await provider.getBalance(ACCOUNT)),firstCollectionEstimatedGasBNB:formatEther(estimatedGas*gasPrice),randomnessFeeBNB:formatEther(fee),initialReservePerCollectionBNB:formatEther(fee*100n),canaryMintTotalBNB:'0.002',manifestSha256:cfg.manifestSha256};console.log(JSON.stringify(plan,null,2));
  if(!execute){console.log('Read-only checks complete; no private key loaded and no transaction signed.');return;}
  need(fee>0n&&fee<=parseEther('0.01'),'Randomness fee exceeds contract request limit');
  async function idle(){const r=await api('GET','/actions/runs?per_page=100');const active=r.workflow_runs.filter(x=>String(x.id)!==process.env.GITHUB_RUN_ID&&/airdrop|mint/i.test(x.path||'')&&['in_progress','queued','waiting','pending','requested'].includes(x.status));need(active.length===0,'Another wallet workflow is active or queued; let it finish before NFT deployment');}

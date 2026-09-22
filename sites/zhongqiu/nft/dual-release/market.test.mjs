@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import ganache from 'ganache';import {BrowserProvider,Wallet,ContractFactory,parseEther,ZeroAddress} from 'ethers';
 import {compile} from './compile.mjs';
-const {market,output}=compile({'MarketFixture.sol':{content:`pragma solidity 0.8.30;import '@openzeppelin/contracts/token/ERC721/ERC721.sol';contract TestNFT is ERC721{constructor()ERC721('Fixture','FIX'){}function mint(address a,uint256 id)external{_mint(a,id);}}`}});
+const {market,output}=compile({'MarketFixture.sol':{content:`pragma solidity 0.8.30;import '@openzeppelin/contracts/token/ERC721/ERC721.sol';contract BadSeller {function isValidSignature(bytes32,bytes calldata)external pure returns(bytes4){return 0x1626ba7e;}function approveNFT(address n,address m,uint256 id)external{ERC721(n).approve(m,id);}receive()external payable{revert('reject payment');}}contract TestNFT is ERC721{constructor()ERC721('Fixture','FIX'){}function mint(address a,uint256 id)external{_mint(a,id);}}`}});
 const raw=ganache.provider({logging:{quiet:true},chain:{chainId:56,hardfork:'shanghai'},wallet:{totalAccounts:4,defaultBalance:100}});
 const provider=new BrowserProvider(raw);provider.pollingInterval=10;
 const seller=await provider.getSigner(0),buyer=await provider.getSigner(1),other=await provider.getSigner(2);
@@ -36,6 +36,7 @@ await test('wrong chain signatures, changed prices, unsupported collection and e
  await assert.rejects(m.register.staticCall(o,await wallet.signTypedData({...domain,chainId:1},types,o)));
  for(const patch of [{collection:alien.target},{deadline:1},{price:0},{seller:ZeroAddress}]){const x=order({tokenId:2,...patch});await assert.rejects(m.register.staticCall(x,await wallet.signTypedData(domain,types,x)));}
 });
+await test('failed seller payment reverts the entire purchase and preserves NFT ownership',async()=>{const bad=await deploy(output.contracts['MarketFixture.sol'].BadSeller);await wait(c.mint(bad.target,3));await wait(bad.approveNFT(c.target,m.target,3));const o=order({seller:bad.target,tokenId:3});await wait(m.register(o,'0x'));const h=await m.hashOrder(o);await assert.rejects(m.connect(buyer).buy.staticCall(h,{value:o.price}));assert.equal(await c.ownerOf(3),bad.target);assert(await m.isActive(h));});
 await test('revoked approval, transferred ownership, and expired listings cannot sell',async()=>{
  const o=order({tokenId:2}),h=await register(o);await wait(c.setApprovalForAll(m.target,false));assert.equal(await m.isActive(h),false);
  await wait(c.setApprovalForAll(m.target,true));await wait(c.transferFrom(wallet.address,await other.getAddress(),2));assert.equal(await m.isActive(h),false);
