@@ -1,12 +1,27 @@
 {
-  "status": "pending",
+  "status": "verified",
   "chainId": 56,
   "priceBNB": "0.001",
+  "revenue": "0x23898F0866E4D5fa5C9B97645239eD635EA93cDC",
+  "manifestSha256": "d266299c1b42a14f941864e30ec941b2ec57dce965f60b9e8c4c8314b69ba07d",
   "change": {
-    "supply": 7777
+    "address": "0x6d7Fd5498DeE34E9732121C8e0B2236ff0a85266",
+    "transactionHash": "0x4e568dd3c41ef6339c1ee2a28b791d041a33301d1236c81773f01c7c8a812278",
+    "blockNumber": 123352456,
+    "canaryTokenId": 4051,
+    "source": "https://repo.sourcify.dev/56/0x6d7Fd5498DeE34E9732121C8e0B2236ff0a85266"
   },
   "rabbit": {
-    "supply": 7777
+    "address": "0x9EF64dd29Cbe85F56Ca6d61878B716696a6046f3",
+    "transactionHash": "0xbf3710c240ec12aa4b7675a5a91a7d1755f8eb5317ef5f74587272a0f6f5b676",
+    "blockNumber": 123352486,
+    "canaryTokenId": 5369,
+    "source": "https://repo.sourcify.dev/56/0x9EF64dd29Cbe85F56Ca6d61878B716696a6046f3"
   },
-  "revenue": "0x23898F0866E4D5fa5C9B97645239eD635EA93cDC"
+  "market": {
+    "address": "0x9330cC84Ca324877De9CE19390068718aE60F97A",
+    "transactionHash": "0x6a6aaffec58c4f3d8bc632e6940b49dfc6aaf604b7da068e1a6988e29d754967",
+    "blockNumber": 123352515,
+    "source": "https://repo.sourcify.dev/56/0x9330cC84Ca324877De9CE19390068718aE60F97A"
+  }
 }
