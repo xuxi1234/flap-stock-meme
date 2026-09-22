@@ -1,0 +1,10 @@
+{
+  "framework": null,
+  "installCommand": "npm ci --ignore-scripts --prefix nft",
+  "buildCommand": "npm run build --prefix nft",
+  "outputDirectory": "dist",
+  "headers": [
+    {"source":"/editions/:path*","headers":[{"key":"Cache-Control","value":"public, max-age=31536000, immutable"},{"key":"Access-Control-Allow-Origin","value":"*"}]},
+    {"source":"/nft/deployment.json","headers":[{"key":"Cache-Control","value":"no-store"}]}
+  ]
+}

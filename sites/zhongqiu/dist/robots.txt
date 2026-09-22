@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://zhongqiu.sh/sitemap.xml

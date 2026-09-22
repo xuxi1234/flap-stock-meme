@@ -1,0 +1,7 @@
+{
+  "count": 7777,
+  "manifestSha256": "a12749f74d2af0d3ffa975aa070edfcb34d8526002f865dd626eea6b59a614f6",
+  "runtimeHash": "0xb0e6f00da6ae361c10eb1f96bf0c225c5a696f808cebc889129f1aed389127c9",
+  "randomness": "chainlink-vrf-v2.5-fifo",
+  "wrapper": "0x471506e6ADED0b9811D05B8cAc8Db25eE839Ac94"
+}

@@ -1,0 +1,12 @@
+{
+  "status": "pending",
+  "chainId": 56,
+  "priceBNB": "0.001",
+  "change": {
+    "supply": 7777
+  },
+  "rabbit": {
+    "supply": 7777
+  },
+  "revenue": "0x23898F0866E4D5fa5C9B97645239eD635EA93cDC"
+}

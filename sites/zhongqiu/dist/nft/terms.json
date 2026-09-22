@@ -1,0 +1,19 @@
+{
+  "mintEnabled": false,
+  "chainId": 56,
+  "collections": {
+    "change": {
+      "maxSupply": 7777,
+      "priceBNB": "0.001",
+      "artwork": "compositional editions",
+      "baseArtworkCount": 5
+    },
+    "rabbit": {
+      "maxSupply": 7777,
+      "priceBNB": "0.001",
+      "artwork": "compositional editions",
+      "baseArtworkCount": 9
+    }
+  },
+  "revenue": "0x23898F0866E4D5fa5C9B97645239eD635EA93cDC"
+}
