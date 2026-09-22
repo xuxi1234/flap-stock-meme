@@ -65,6 +65,21 @@
       "hash": "0xf752daa3b0368a8751cc35b239d0e591e5fec67b6e16d58cd722955eecf3b0ff",
       "status": "mined",
       "blockNumber": 123352550
+    },
+    {
+      "label": "canary-change",
+      "tx": {
+        "value": "1000000000000000",
+        "to": "0x6d7Fd5498DeE34E9732121C8e0B2236ff0a85266",
+        "data": "0xa0712d680000000000000000000000000000000000000000000000000000000000000001",
+        "chainId": 56,
+        "nonce": 279,
+        "gasLimit": "391626",
+        "gasPrice": "50000000",
+        "type": 0
+      },
+      "hash": "0x6b267261c349a4e3c24da1976266bd862113b4cad0de0ed26f13122d61f3f6ae",
+      "status": "prepared"
     }
   ],
   "initialReserveWei": "1666480000000000"
