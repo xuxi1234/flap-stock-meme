@@ -16,5 +16,8 @@ for(const key of ['change','rabbit']){
 }
 await fs.writeFile(root+'dist/nft/edition-config.json',JSON.stringify({version,prefix,supply:7777,priceBNB:'0.001',manifestSha256:crypto.createHash('sha256').update(manifest).digest('hex')}));
 await fs.writeFile(root+'dist'+prefix+'/manifest.json',manifest);
+const deployment=JSON.parse(await fs.readFile(root+'dist/nft/deployment.json'));
+const terms=JSON.parse(await fs.readFile(root+'dist/nft/terms.json'));terms.mintEnabled=deployment.status==='verified';
+await fs.writeFile(root+'dist/nft/terms.json',JSON.stringify(terms,null,2));
 await build({entryPoints:[root+'nft/dual-release/client.mjs'],bundle:true,minify:true,format:'esm',target:'es2022',outfile:root+'dist/nft/dual-client.js'});
 console.log('Built both 7777 collections at',prefix);
