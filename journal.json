@@ -46,8 +46,9 @@
         "type": 0
       },
       "hash": "0x6a6aaffec58c4f3d8bc632e6940b49dfc6aaf604b7da068e1a6988e29d754967",
-      "status": "prepared",
-      "address": "0x9330cC84Ca324877De9CE19390068718aE60F97A"
+      "status": "mined",
+      "address": "0x9330cC84Ca324877De9CE19390068718aE60F97A",
+      "blockNumber": 123352515
     }
   ]
 }
