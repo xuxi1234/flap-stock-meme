@@ -1,0 +1,54 @@
+name: 停止所有蝴蝶股票空投
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/stop-airdrops.yml']
+permissions:
+  actions: write
+  contents: read
+jobs:
+  stop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 关闭空投入口并取消所有未结束空投
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import os,json,urllib.request,time
+          base='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+          def api(method,path):
+           req=urllib.request.Request(base+path,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+           with urllib.request.urlopen(req,timeout=30) as r:
+            b=r.read()
+            return json.loads(b) if b else None
+          def items(path,key):
+           out=[]
+           for page in range(1,101):
+            d=api('GET',path+('＆' if '?' in path else '?').replace('＆','&')+'per_page=100&page='+str(page))[key]
+            out+=d
+            if len(d)<100:return out
+           raise RuntimeError('Pagination limit')
+          workflows=[w for w in items('/actions/workflows','workflows') if w['path'].split('/')[-1].startswith('airdrop') and w['path'].split('/')[-1]!='airdrop-runner-ci.yml']
+          for w in workflows:
+           api('PUT','/actions/workflows/'+str(w['id'])+'/disable')
+           print('DISABLED',w['path'],flush=True)
+          ids={w['id'] for w in workflows}
+          for status in ['in_progress','queued','waiting','pending','requested']:
+           for r in items('/actions/runs?status='+status,'workflow_runs'):
+            if r['workflow_id'] in ids:
+             api('POST','/actions/runs/'+str(r['id'])+'/cancel')
+             print('CANCEL_REQUESTED',r['id'],flush=True)
+          for attempt in range(12):
+           remaining=[]
+           for status in ['in_progress','queued','waiting','pending','requested']:
+            remaining += [r['id'] for r in items('/actions/runs?status='+status,'workflow_runs') if r['workflow_id'] in ids]
+           if not remaining:break
+           time.sleep(5)
+          else:raise RuntimeError('Runs still active: '+str(remaining))
+          states=[w for w in items('/actions/workflows','workflows') if w['id'] in ids]
+          assert all(w['state']=='disabled_manually' for w in states)
+          print('VERIFIED: all '+str(len(states))+' airdrop workflows disabled; no active or queued runs.')
+          
