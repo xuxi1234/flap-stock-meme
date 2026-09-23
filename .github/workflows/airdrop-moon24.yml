@@ -1,0 +1,98 @@
+name: 蝴蝶中秋空投｜22533地址·每15分钟200地址
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 操作
+        type: choice
+        options: [只读检查, 启动或继续空投]
+        default: 只读检查
+        required: true
+      confirm:
+        description: '确认从0x74a7…69aA向固定22533地址每地址转出1枚蝴蝶中秋；税费按代币合约扣除；Gas无累计上限'
+        type: boolean
+        default: false
+        required: true
+  push:
+    branches: [main]
+    paths:
+      - scripts/mint-acceptance/moon24-*.mjs
+      - .github/workflows/airdrop-moon24.yml
+      - scripts/mint-acceptance/data/moon24-recipients.txt
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'flap-mint-acceptance-bsc56-79f8' || format('moon24-check-{0}', github.ref) }}
+  cancel-in-progress: false
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node --test scripts/mint-acceptance/moon24-tests.mjs
+  check:
+    name: 只读核验代币余额和链上批次
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node scripts/mint-acceptance/moon24-run.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          MOON24_REPORT_DIR: ${{ runner.temp }}/moon24-check
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: moon24-check
+          path: ${{ runner.temp }}/moon24-check/
+          if-no-files-found: ignore
+  execute:
+    name: 蝴蝶中秋空投步骤 ${{ matrix.slot }}
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.operation == '启动或继续空投' && inputs.confirm == true
+    permissions:
+      contents: write
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        slot: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node scripts/mint-acceptance/moon24-run.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          MOON24_EXECUTE: 'true'
+          MOON24_CONFIRM: moon24:1:200:900seconds
+          MOON24_REPORT_DIR: ${{ runner.temp }}/moon24-results
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: moon24-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
+          path: ${{ runner.temp }}/moon24-results/
+          if-no-files-found: ignore
