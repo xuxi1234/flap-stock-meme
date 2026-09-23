@@ -17,6 +17,17 @@ export async function inspect(clients){
  }));
  requireThat(states.every(s=>s.balance===states[0].balance&&s.allowance===states[0].allowance&&s.bnb===states[0].bnb),'双节点余额或授权不一致。');return states[0];
 }
+export async function confirmedBlocks(clients,r,{pause=sleep,now=Date.now,timeout=120000}={}){
+ const deadline=now()+timeout;
+ for(;;){
+  const blocks=await Promise.all(clients.map(c=>c.getBlock({blockNumber:BigInt(r.blockNumber)})));
+  requireThat(blocks.every(b=>equal(b.hash,r.blockHash)&&b.timestamp===blocks[0].timestamp),'交易区块不一致，停止核验。');
+  const heads=await Promise.all(clients.map(c=>c.getBlockNumber({cacheTime:0})));
+  if(heads.every(h=>h-BigInt(r.blockNumber)+1n>=12n))return blocks;
+  requireThat(now()<deadline,'等待双节点12确认超时；已保存交易哈希，请稍后继续。');
+  await pause(3000);
+ }
+}
 async function reconcile(clients,j,save){
  await groups(j.entries,async e=>{
   if(!e.hash)return;
@@ -27,9 +38,7 @@ async function reconcile(clients,j,save){
   const r=rs[0],t=e.transaction;
   const txs=await Promise.all(clients.map(c=>c.request({method:'eth_getTransactionByHash',params:[e.hash]})));
   requireThat(txs.every(x=>x&&equal(x.hash,e.hash)&&equal(x.from,ACCOUNT)&&equal(x.to,t.to)&&equal(x.input,t.data)&&BigInt(x.value)===0n&&Number(BigInt(x.nonce))===t.nonce&&BigInt(x.chainId)===56n&&BigInt(x.gas)===BigInt(t.gas)&&BigInt(x.gasPrice)===BigInt(t.gasPrice)&&equal(x.blockHash,r.blockHash)),'交易与保存参数不符。');
-  const blocks=await Promise.all(clients.map(c=>c.getBlock({blockNumber:BigInt(r.blockNumber)})));
-  const heads=await Promise.all(clients.map(c=>c.getBlockNumber()));
-  requireThat(blocks.every(b=>equal(b.hash,r.blockHash)&&b.timestamp===blocks[0].timestamp)&&heads.every(h=>h-BigInt(r.blockNumber)+1n>=12n),'交易尚未达到12确认或区块不一致。');
+  const blocks=await confirmedBlocks(clients,r);
   e.settled=true;e.success=r.status==='0x1';e.confirmedAt=Number(blocks[0].timestamp);e.feeWei=(BigInt(r.gasUsed)*BigInt(r.effectiveGasPrice)).toString();
   if(e.success)e.received=deliveries(e,r.logs);
  });
