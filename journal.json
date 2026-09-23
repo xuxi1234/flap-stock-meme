@@ -6,5 +6,20 @@
   "sourceSha": "f1abf8c7e93dd66467f07489e519a5f706899bb0a1126da136df67fedc5a3970",
   "active": true,
   "baseNonce": 304,
-  "entries": []
+  "entries": [
+    {
+      "kind": "approve",
+      "amount": "7031000000000000000000",
+      "settled": false,
+      "transaction": {
+        "to": "0xe5f69232e5312dff8b3f0f82cf2bdfe80a517777",
+        "value": "0",
+        "chainId": 56,
+        "type": "legacy",
+        "nonce": 304,
+        "gas": "74152",
+        "gasPrice": "60000000"
+      }
+    }
+  ]
 }
