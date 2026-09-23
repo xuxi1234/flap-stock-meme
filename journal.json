@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "0x428c2a4a79c2ccbd496cb80c606caa90a9de1801892067b745f140ab00e8bb12",
+  "account": "0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA",
+  "token": "0xe5f69232e5312dff8b3f0f82cf2bdfe80a517777",
+  "sourceSha": "f1abf8c7e93dd66467f07489e519a5f706899bb0a1126da136df67fedc5a3970",
+  "active": false,
+  "baseNonce": 304,
+  "entries": []
+}
