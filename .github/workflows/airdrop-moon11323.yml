@@ -65,7 +65,7 @@ jobs:
   execute:
     name: 蝴蝶中秋空投步骤 ${{ matrix.slot }}
     needs: check
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.operation == '启动或继续空投' && inputs.confirm == true
+    if: github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && inputs.operation == '启动或继续空投' && inputs.confirm == true) || (github.event_name == 'push' && github.event.head_commit.message == 'Start moon11323 airdrop after verified preflight'))
     permissions:
       contents: write
     strategy:
