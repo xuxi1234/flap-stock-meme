@@ -58,7 +58,7 @@ async function nonceCheck(clients,j){
  return n;
 }
 export function executionAllowed(env){
- return env.GITHUB_ACTIONS==='true'&&env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF==='refs/heads/main'&&env.GITHUB_EVENT_NAME==='workflow_dispatch'&&env.MOON11323_CONFIRM===CONFIRM;
+ return env.GITHUB_ACTIONS==='true'&&env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF==='refs/heads/main'&&['workflow_dispatch','push'].includes(env.GITHUB_EVENT_NAME)&&env.MOON11323_CONFIRM===CONFIRM;
 }
 function report(j){
  const ds=j.entries.filter(e=>e.kind==='send'&&e.success&&e.settled).flatMap(e=>e.received||[]);
