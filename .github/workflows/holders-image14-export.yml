@@ -1,0 +1,100 @@
+name: 图片14代币｜前1000持仓合并去重｜只读CSV
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/holders-image14-export.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: holders-image14-export
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      block: ${{ steps.snapshot.outputs.block }}
+      hash: ${{ steps.snapshot.outputs.hash }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/holders18
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - id: snapshot
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import {rpc,hex} from './scripts/holders18/io.mjs';
+          if(BigInt(await rpc('eth_chainId',[]))!==56n)throw Error('Wrong chain');
+          const block=Number(BigInt(await rpc('eth_blockNumber',[])))-30;
+          const data=await rpc('eth_getBlockByNumber',[hex(block),false]);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,`block=${block}\nhash=${data.hash}\n`);
+          JS
+  collect:
+    needs: snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        token: [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/holders18
+            scripts/holders-export14
+            scripts/mint-acceptance
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node --test scripts/holders18/core.test.mjs scripts/holders18/multicall.test.mjs
+      - name: Read-only on-chain holder snapshot
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          HOLDERS_SNAPSHOT: ${{ needs.snapshot.outputs.block }}
+          HOLDERS_TOKEN_INDEX: ${{ matrix.token }}
+          HOLDERS_TOKEN_FILE: scripts/holders-export14/tokens.json
+          HOLDERS_TOP_N: '1000'
+        run: node scripts/holders18/collect.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: image14-token-${{ matrix.token }}
+          path: holders18-output/
+          retention-days: 30
+  finalize:
+    needs: [snapshot,collect]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/holders-export14
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: image14-token-*
+          path: holder-input
+          merge-multiple: true
+      - run: node scripts/holders-export14/finalize.mjs
+        env:
+          HOLDERS_SNAPSHOT: ${{ needs.snapshot.outputs.block }}
+          HOLDERS_SNAPSHOT_HASH: ${{ needs.snapshot.outputs.hash }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: image14-top1000-deduplicated-final
+          path: holder-export/
+          retention-days: 90
