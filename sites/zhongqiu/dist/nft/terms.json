@@ -1,5 +1,5 @@
 {
-  "mintEnabled": false,
+  "mintEnabled": true,
   "chainId": 56,
   "collections": {
     "change": {
