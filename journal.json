@@ -29,7 +29,7 @@
     {
       "kind": "approve",
       "amount": "28122000000000000000000",
-      "settled": false,
+      "settled": true,
       "transaction": {
         "to": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
         "value": "0",
@@ -39,7 +39,11 @@
         "gas": "74152",
         "gasPrice": "60000000"
       },
-      "hash": "0xda23a14cf911c32e483ec297f58363eb4f60df01cfd1579fe4f2d0ff11e3db99"
+      "hash": "0xda23a14cf911c32e483ec297f58363eb4f60df01cfd1579fe4f2d0ff11e3db99",
+      "verifiedAt": 1790580175,
+      "success": true,
+      "confirmedAt": 1790580169,
+      "feeWei": "2937600000000"
     }
   ]
 }
