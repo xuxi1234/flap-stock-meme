@@ -10,7 +10,7 @@
     {
       "kind": "reset",
       "amount": "0",
-      "settled": false,
+      "settled": true,
       "transaction": {
         "to": "0x4b112e1ed0c0cb332d2b39e5dae3bba882f67777",
         "value": "0",
@@ -20,7 +20,11 @@
         "gas": "51879",
         "gasPrice": "60000000"
       },
-      "hash": "0xa5fb8e87f9fad657ec0ec9dc4d2323cf51b4fa0e642b8127b5c6e281c411111b"
+      "hash": "0xa5fb8e87f9fad657ec0ec9dc4d2323cf51b4fa0e642b8127b5c6e281c411111b",
+      "verifiedAt": 1790580164,
+      "success": true,
+      "confirmedAt": 1790580159,
+      "feeWei": "1617840000000"
     }
   ]
 }
