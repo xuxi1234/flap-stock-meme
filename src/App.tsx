@@ -4,6 +4,7 @@ const HomePage = lazy(() => import('./HomePage'))
 const MarketDashboard = lazy(() => import('./components/MarketDashboard').then(module => ({ default: module.MarketDashboard })))
 const SwapPage = lazy(() => import('./swap/SwapPage').then(module => ({ default: module.SwapPage })))
 const AirdropPage = lazy(() => import('./airdrop/AirdropPage'))
+const NFTPage = lazy(() => import('./nft/NFTPage'))
 
 class PageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -23,8 +24,9 @@ export default function App() {
     if (url.href !== window.location.href) window.history.replaceState(null, '', url.pathname + url.search + url.hash)
   }, [])
   const params = new URLSearchParams(window.location.search)
+  const nft = params.get('view') === 'nft' || window.location.pathname === '/nft'
   const airdrop = params.get('view') === 'airdrop' || window.location.pathname === '/airdrop'
   const markets = params.get('view') === 'markets' || params.has('tvwidgetsymbol')
   const swap = params.get('view') === 'swap' || ['app.gupiao.sh', 'app.hudiegupiao.com'].includes(window.location.hostname)
-  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{airdrop ? <AirdropPage /> : swap ? <SwapPage /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
+  return <PageBoundary><Suspense fallback={<main style={{padding:32}} role="status">正在打开{nft ? '蝴蝶 NFT' : airdrop ? '蝴蝶空投' : swap ? '蝴蝶swap' : markets ? '美股看板' : '蝴蝶股票'}…</main>}>{nft ? <NFTPage /> : airdrop ? <AirdropPage /> : swap ? <SwapPage /> : markets ? <MarketDashboard /> : <HomePage />}</Suspense></PageBoundary>
 }

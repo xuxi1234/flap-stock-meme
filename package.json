@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/build-share-preview.mjs && node scripts/build-stock-list.mjs",
+    "build": "tsc --noEmit && npm ci --ignore-scripts --prefix scripts/nft-art && node scripts/generate-butterfly-nfts.mjs && node scripts/verify-butterfly-nfts.mjs && vite build && node scripts/build-share-preview.mjs && node scripts/build-stock-list.mjs",
     "test": "vitest",
-    "test:responsive": "node scripts/responsive-qa.mjs"
+    "test:responsive": "node scripts/responsive-qa.mjs",
+    "build:nft": "tsc --noEmit && npm ci --ignore-scripts --prefix scripts/nft-art && node scripts/generate-butterfly-nfts.mjs && node scripts/verify-butterfly-nfts.mjs && vite build --config vite.nft.config.ts && node -e \"require('fs').copyFileSync('dist/nft.html','dist/index.html')\""
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
