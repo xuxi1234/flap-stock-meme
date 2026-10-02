@@ -64,10 +64,10 @@ export function executionAllowed(env){
 function report(j){
  const ds=j.entries.filter(e=>e.kind==='send'&&e.success&&e.settled).flatMap(e=>e.received||[]);
  const net=ds.reduce((s,r)=>s+BigInt(r.received),0n),gas=j.entries.reduce((s,e)=>s+BigInt(e.feeWei||0),0n);
- const text='蝴蝶股票：已确认 '+completed(j)+'/137 批，'+ds.length+'/27331 地址。每地址转出1枚，实际到账按代币税费扣除，不补发。实际到账合计 '+formatEther(net)+' 枚；本任务Gas '+formatEther(gas)+' BNB。至少间隔3600秒。\n';
+ const text='蝴蝶股票：已确认 '+completed(j)+'/137 批，'+ds.length+'/27331 地址。每地址转出0.1枚，实际到账按代币税费扣除，不补发。实际到账合计 '+formatEther(net)+' 枚；本任务Gas '+formatEther(gas)+' BNB。至少间隔3600秒。\n';
  const rows=j.entries.filter(e=>e.hash).map(e=>`| ${e.kind==='send'?e.batch+1:e.kind} | ${e.settled?(e.success?'已确认':'失败'):'待确认'} | [${e.hash}](https://bscscan.com/tx/${e.hash}) |`).join('\n');
  console.log(text);if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,text+'\n| 批次 | 状态 | 交易 |\n|---|---|---|\n'+rows+'\n');
- const dir=process.env.STOCK27331_REPORT_DIR;if(dir){fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/deliveries.csv','address,requested,received,transaction_hash\n'+j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>(e.received||[]).map(r=>`${r.address},1,${formatEther(BigInt(r.received))},${e.hash}`)).join('\n')+'\n');}
+ const dir=process.env.STOCK27331_REPORT_DIR;if(dir){fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/deliveries.csv','address,requested,received,transaction_hash\n'+j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>(e.received||[]).map(r=>`${r.address},0.1,${formatEther(BigInt(r.received))},${e.hash}`)).join('\n')+'\n');}
 }
 export async function main(env=process.env){
  const execute=env.STOCK27331_EXECUTE==='true';
