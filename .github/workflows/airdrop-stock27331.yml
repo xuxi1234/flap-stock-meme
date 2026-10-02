@@ -9,7 +9,7 @@ on:
         default: 只读检查
         required: true
       confirm:
-        description: '确认从0x74a7…69aA向固定27331地址每地址转出1枚蝴蝶股票；税费按代币合约扣除；Gas无累计上限'
+        description: '确认从0x74a7…69aA向固定27331地址每地址转出0.1枚蝴蝶股票；税费按代币合约扣除；Gas无累计上限'
         type: boolean
         default: false
         required: true
@@ -88,7 +88,7 @@ jobs:
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           STOCK27331_EXECUTE: 'true'
-          STOCK27331_CONFIRM: stock27331:1:200:3600seconds
+          STOCK27331_CONFIRM: stock27331:0.1:200:3600seconds
           STOCK27331_REPORT_DIR: ${{ runner.temp }}/stock27331-results
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
