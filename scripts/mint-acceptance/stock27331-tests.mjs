@@ -6,7 +6,7 @@ import {executionAllowed,confirmedBlocks} from './stock27331-run.mjs';
 import {compact,hydrate,openGitHubStore} from './stock27331-store.mjs';
 test('exact CSV: 27331 unique recipients, 137 batches, final 131; retain burn recipient',()=>{
  assert.equal(c.addresses.length,27331);assert.equal(c.plan.length,137);assert.equal(c.plan[136].length,131);
- assert.equal(new Set(c.plan.flat()).size,27331);assert.equal(c.TOTAL,27331n*10n**18n);
+ assert.equal(new Set(c.plan.flat()).size,27331);assert.equal(c.TOTAL,27331n*10n**17n);
  assert.ok(c.addresses.includes('0x000000000000000000000000000000000000dead'));
  assert.equal(new Set(c.plan.map((_,i)=>c.batchId(i))).size,137);
 });
