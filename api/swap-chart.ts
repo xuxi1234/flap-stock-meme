@@ -5,7 +5,7 @@ const addressPattern=/^0x[0-9a-fA-F]{40}$/
 const base='https://api.geckoterminal.com/api/v2'
 async function json(path:string){
  const response=await fetch(base+path,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(7000),redirect:'error'})
- if(!response.ok)throw Error('Chart provider unavailable')
+ if(!response.ok)throw Error(`Chart provider HTTP ${response.status} at ${path.split('?')[0]}`)
  return response.json()
 }
 export default async function handler(req:Request,res:Response){
@@ -26,5 +26,5 @@ export default async function handler(req:Request,res:Response){
   if(!candles.length)throw Error('No history')
   res.setHeader('Cache-Control','public, s-maxage=60, stale-while-revalidate=120')
   res.status(200).json({token:normalized,candles,pool:pool.attributes.address.toLowerCase(),fetchedAt:Date.now()})
- }catch{res.setHeader('Cache-Control','no-store');res.status(503).json({error:'该资产的历史行情暂不可用，兑换报价可独立查询。'})}
+ }catch(error){console.warn('swap-chart failed', error instanceof Error ? error.message : 'Unknown error');res.setHeader('Cache-Control','no-store');res.status(503).json({error:'该资产的历史行情暂不可用，兑换报价可独立查询。'})}
 }

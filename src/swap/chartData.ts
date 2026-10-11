@@ -8,7 +8,9 @@ export function normalizeCandles(rows:unknown): Candle[] {
     if (!Array.isArray(row) || row.length !== 6 || row.some(x=>typeof x !== 'number' || !Number.isFinite(x))) throw Error('Invalid candle')
     const [time,open,high,low,close,volume] = row
     if (!Number.isSafeInteger(time) || time <= 0 || low <= 0 || volume < 0 || high < Math.max(open,close) || low > Math.min(open,close)) throw Error('Invalid OHLC')
-    if(candles.has(time)) throw Error('Duplicate candle')
+    // Provider responses can overlap at the same timestamp. Keep the first
+    // validated record; do not combine volumes or synthesize OHLC values.
+    if(candles.has(time)) continue
     candles.set(time,{time,open,high,low,close,volume})
   }
   return [...candles.values()].sort((a,b)=>a.time-b.time)
