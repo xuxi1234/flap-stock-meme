@@ -314,7 +314,7 @@
     {
       "kind": "send",
       "batch": 15,
-      "settled": false,
+      "settled": true,
       "transaction": {
         "to": "0x369890cb7a233be14d33fd4265b26afadce00bc0",
         "value": "0",
@@ -324,7 +324,11 @@
         "gas": "12323761",
         "gasPrice": "60000000"
       },
-      "hash": "0x47f09e446c611b3087d02a24078fd5e8db717c1bd31b353e243a996fbf042712"
+      "hash": "0x47f09e446c611b3087d02a24078fd5e8db717c1bd31b353e243a996fbf042712",
+      "verifiedAt": 1792248884,
+      "success": true,
+      "confirmedAt": 1792248877,
+      "feeWei": "563181240000000"
     }
   ]
 }
