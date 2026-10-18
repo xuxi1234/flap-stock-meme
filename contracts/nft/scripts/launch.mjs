@@ -21,7 +21,7 @@ export const SUBSCRIPTION_ABI=[
  'function fundSubscriptionWithNative(uint256 subId) payable',
  'event SubscriptionCreated(uint256 indexed subId,address owner)',
  'function getSubscription(uint256) view returns(uint96 balance,uint96 nativeBalance,uint64 reqCount,address owner,address[] consumers)',
- 'function getRequestConfig() view returns(uint16 minimumRequestConfirmations,uint32 maxGasLimit,bytes32[] provingKeyHashes)'
+ 'function s_config() view returns(uint16 minimumRequestConfirmations,uint32 maxGasLimit,bool reentrancyLock,uint32 stalenessSeconds,uint32 gasAfterPaymentCalculation,uint32 fulfillmentFlatFeeNativePPM,uint32 fulfillmentFlatFeeLinkDiscountPPM,uint8 nativePremiumPercentage,uint8 linkPremiumPercentage)', 'function s_provingKeys(bytes32) view returns(bool exists,uint64 maxGas)'
 ];
 const fail=m=>{throw new Error(m);};
 export function validateLaunchInputs(env,execute=false){
@@ -121,8 +121,8 @@ async function main(){
  const provider=new JsonRpcProvider(process.env.NFT_RPC_URL);
  if((await provider.getNetwork()).chainId!==56n)fail('Only chain 56 supported');
  if(await provider.getCode(cfg.coordinator)==='0x')fail('Missing pinned coordinator code');
- const coordinator=new Contract(cfg.coordinator,SUBSCRIPTION_ABI,provider),oracle=await coordinator.getRequestConfig();
- if(!oracle.provingKeyHashes.includes(cfg.keyHash)||cfg.confirmations<Number(oracle.minimumRequestConfirmations)||cfg.callbackGasLimit>Number(oracle.maxGasLimit))fail('Pinned VRF configuration unsupported');
+ const coordinator=new Contract(cfg.coordinator,SUBSCRIPTION_ABI,provider),oracle=await coordinator.s_config(),provingKey=await coordinator.s_provingKeys(cfg.keyHash);
+ if(!provingKey.exists||provingKey.maxGas<BigInt(cfg.gasLaneGwei)*1000000000n||cfg.confirmations<Number(oracle.minimumRequestConfirmations)||cfg.callbackGasLimit>Number(oracle.maxGasLimit))fail('Pinned VRF configuration unsupported');
  // Fail compilation before creating or funding anything.
  compile();
  const files=['scripts/launch.mjs','scripts/deploy.mjs','test/compile.mjs','config/bsc-vrf.json','config/launch-proposal.json','package-lock.json',...fs.readdirSync('src').sort().map(n=>`src/${n}`)];

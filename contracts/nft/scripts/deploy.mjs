@@ -44,9 +44,9 @@ async function main(){
  const p=new JsonRpcProvider(process.env.NFT_RPC_URL);
  if((await p.getNetwork()).chainId!==56n)fail('Only chain 56 supported');
  if(await p.getCode(cfg.coordinator)==='0x')fail('Missing coordinator code');
- const coordinator=new Contract(cfg.coordinator,['function getSubscription(uint256) view returns(uint96 balance,uint96 nativeBalance,uint64 reqCount,address owner,address[] consumers)','function addConsumer(uint256,address)','function getRequestConfig() view returns(uint16 minimumRequestConfirmations,uint32 maxGasLimit,bytes32[] provingKeyHashes)'],p);
- const oracle=await coordinator.getRequestConfig();
- if(!oracle.provingKeyHashes.includes(cfg.keyHash)||cfg.confirmations<Number(oracle.minimumRequestConfirmations)||cfg.callbackGasLimit>Number(oracle.maxGasLimit))fail('Pinned VRF configuration unsupported');
+ const coordinator=new Contract(cfg.coordinator,['function getSubscription(uint256) view returns(uint96 balance,uint96 nativeBalance,uint64 reqCount,address owner,address[] consumers)','function addConsumer(uint256,address)','function s_config() view returns(uint16 minimumRequestConfirmations,uint32 maxGasLimit,bool reentrancyLock,uint32 stalenessSeconds,uint32 gasAfterPaymentCalculation,uint32 fulfillmentFlatFeeNativePPM,uint32 fulfillmentFlatFeeLinkDiscountPPM,uint8 nativePremiumPercentage,uint8 linkPremiumPercentage)', 'function s_provingKeys(bytes32) view returns(bool exists,uint64 maxGas)'],p);
+ const oracle=await coordinator.s_config(),provingKey=await coordinator.s_provingKeys(cfg.keyHash);
+ if(!provingKey.exists||provingKey.maxGas<BigInt(cfg.gasLaneGwei)*1000000000n||cfg.confirmations<Number(oracle.minimumRequestConfirmations)||cfg.callbackGasLimit>Number(oracle.maxGasLimit))fail('Pinned VRF configuration unsupported');
  const sub=await coordinator.getSubscription(subId);
  if(getAddress(sub.owner)!==address||sub.nativeBalance===0n)fail('Signer must own native-BNB-funded subscription');
  const compiled=compile(),compiler=solc.version();
