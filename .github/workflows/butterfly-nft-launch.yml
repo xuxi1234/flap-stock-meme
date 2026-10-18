@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: 'e8a01313415188419c73ee8218eea3e1c785e272'
+          ref: 'd232c367b5529e4dc3ad44b3ad176facc5476d8a'
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -60,11 +60,11 @@ jobs:
           const response=await fetch('https://api.github.com/repos/'+repo+'/git/refs',{
             method:'POST',
             headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','Content-Type':'application/json'},
-            body:JSON.stringify({ref:'refs/heads/automation/butterfly-nft-mainnet-launch',sha:'e8a01313415188419c73ee8218eea3e1c785e272'})
+            body:JSON.stringify({ref:'refs/heads/automation/butterfly-nft-mainnet-launch',sha:'d232c367b5529e4dc3ad44b3ad176facc5476d8a'})
           });
           if(response.status!==201) throw Error('Launch marker exists or could not be reserved. STOP: recover prior run receipts; never start a second subscription.');
           fs.writeFileSync('launch-output/operator.json',JSON.stringify({
-            runId:process.env.GITHUB_RUN_ID,source:'e8a01313415188419c73ee8218eea3e1c785e272',
+            runId:process.env.GITHUB_RUN_ID,source:'d232c367b5529e4dc3ad44b3ad176facc5476d8a',
             approvedAt:'2026-10-19T06:38:30+08:00',maxSpendBNB:'0.02',initialVRFBNB:'0.01',
             payer:process.env.NFT_SIGNER_ADDRESS,
             marker:'automation/butterfly-nft-mainnet-launch'
