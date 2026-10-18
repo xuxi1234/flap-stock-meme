@@ -1,0 +1,93 @@
+name: 蝴蝶股票NFT｜主网部署·预算0.02BNB
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "只读检查不花费；部署使用已批准的钱包和总预算"
+        type: choice
+        options: [只读检查, 执行已批准部署]
+        default: 只读检查
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    env:
+      NFT_SIGNER_ADDRESS: '0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA'
+      NFT_LAUNCH_MAX_SPEND_BNB: '0.02'
+      NFT_VRF_INITIAL_FUND_BNB: '0.01'
+      NFT_METADATA_BASE: 'https://flap-stock-butterfly-7777.vercel.app/nft/metadata/'
+      NFT_ASSET_BASE: 'https://flap-stock-butterfly-7777.vercel.app/nft/'
+      NFT_LAUNCH_JOURNAL: '${{ github.workspace }}/launch-output/launch-56.json'
+      NFT_DEPLOY_JOURNAL: '${{ github.workspace }}/launch-output/deployment-56.json'
+      NFT_FRONTEND_CONFIG_OUTPUT: '${{ github.workspace }}/launch-output/frontend-disabled.json'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 'e8a01313415188419c73ee8218eea3e1c785e272'
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix contracts/nft
+      - name: Verify contract tests
+        run: npm test --prefix contracts/nft
+      - name: Prepare durable result bundle
+        run: mkdir -p launch-output
+      - name: Read-only chain, budget and public asset verification
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node scripts/launch.mjs
+      - name: Reserve one-time launch marker
+        if: inputs.operation == '执行已批准部署'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          if (process.env.GITHUB_RUN_ATTEMPT !== '1') throw Error('Do not rerun deployment: reconcile and recover existing journals first.');
+          const repo=process.env.GITHUB_REPOSITORY;
+          const response=await fetch('https://api.github.com/repos/'+repo+'/git/refs',{
+            method:'POST',
+            headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+            body:JSON.stringify({ref:'refs/heads/automation/butterfly-nft-mainnet-launch',sha:'e8a01313415188419c73ee8218eea3e1c785e272'})
+          });
+          if(response.status!==201) throw Error('Launch marker exists or could not be reserved. STOP: recover prior run receipts; never start a second subscription.');
+          fs.writeFileSync('launch-output/operator.json',JSON.stringify({
+            runId:process.env.GITHUB_RUN_ID,source:'e8a01313415188419c73ee8218eea3e1c785e272',
+            approvedAt:'2026-10-19T06:38:30+08:00',maxSpendBNB:'0.02',initialVRFBNB:'0.01',
+            payer:process.env.NFT_SIGNER_ADDRESS,
+            marker:'automation/butterfly-nft-mainnet-launch'
+          },null,2));
+          NODE
+      - name: Execute approved bounded deployment
+        if: inputs.operation == '执行已批准部署'
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          NFT_DEPLOY_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          NFT_LAUNCH_CONFIRM: 'APPROVE_BUTTERFLY_56:0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA:MAX_0.02_BNB:VRF_0.01_BNB'
+        run: node scripts/launch.mjs --execute
+      - name: Save journals even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: butterfly-nft-launch-${{ github.run_id }}
+          path: launch-output/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Report release status
+        if: success() && inputs.operation == '执行已批准部署'
+        run: |
+          echo '链上部署已完成；请保留本次 artifact。前端收款仍关闭，等待合约地址、字节码及随机数流程验收后发布。' >> "$GITHUB_STEP_SUMMARY"
