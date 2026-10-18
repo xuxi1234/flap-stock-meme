@@ -1,0 +1,16 @@
+name: Stop requested snapshot run 39178022952
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/stop-run-39178022952.yml]
+permissions:
+  actions: write
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel only the requested snapshot run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST repos/xuxi1234/flap-stock-meme/actions/runs/39178022952/cancel
