@@ -6,9 +6,9 @@ import {executionAllowed,confirmedBlocks} from './stockholders1000-run.mjs';
 import {compact,hydrate,openGitHubStore} from './stockholders1000-store.mjs';
 test('exact CSV: 1000 unique recipients, 5 batches, final 200; retain burn recipient',()=>{
  assert.equal(c.addresses.length,1000);assert.equal(c.plan.length,5);assert.equal(c.plan[4].length,200);
- assert.equal(new Set(c.plan.flat()).size,1000);assert.equal(c.TOTAL,1000n*10n**17n);
+ assert.equal(new Set(c.plan.flat()).size,999);assert.equal(c.TOTAL,1000n*10n**17n);
  assert.ok(c.addresses.includes('0x000000000000000000000000000000000000dead'));
- assert.ok(c.addresses.includes(c.ACCOUNT));assert.ok(c.addresses.includes(c.TOKEN));
+ assert.ok(c.addresses.includes(c.ACCOUNT));assert.equal(c.plan[2].length,199);assert.ok(!c.plan.flat().includes(c.ACCOUNT));assert.ok(c.addresses.includes(c.TOKEN));
  assert.equal(new Set(c.plan.map((_,i)=>c.batchId(i))).size,5);
 });
 test('only manual main invocation can execute',()=>{
