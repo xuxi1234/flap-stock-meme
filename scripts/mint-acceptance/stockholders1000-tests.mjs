@@ -25,7 +25,7 @@ const entry=()=>({kind:'send',batch:0,settled:false,transaction:{...c.callFor({k
 test('checkpoint round trip and rejection of altered nonce or batch',()=>{
  const j={...c.fresh(),baseNonce:7,entries:[entry()]};c.validate(j);assert.deepEqual(hydrate(compact(j)),j);
  assert.throws(()=>c.validate({...j,entries:[{...entry(),batch:1}]}));
- const e=entry();e.transaction.nonce=8;assert.throws(()=>c.validate({...j,entries:[e]}));
+ const e=entry();e.transaction.nonce=6;assert.throws(()=>c.validate({...j,entries:[e]}));
 });
 test('never broadcast if durable hash save fails; restart retains identical hash',async()=>{
  const j={...c.fresh(),baseNonce:7,entries:[entry()]};let sends=0;const raw='0x1234';
