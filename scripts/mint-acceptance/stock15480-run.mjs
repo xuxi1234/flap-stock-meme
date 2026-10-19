@@ -64,7 +64,7 @@ export function executionAllowed(env){
 function report(j){
  const ds=j.entries.filter(e=>e.kind==='send'&&e.success&&e.settled).flatMap(e=>e.received||[]);
  const net=ds.reduce((s,r)=>s+BigInt(r.received),0n),gas=j.entries.reduce((s,e)=>s+BigInt(e.feeWei||0),0n);
- const text='蝴蝶股票：已确认 '+completed(j)+'/78 批，'+ds.length+'/15480 地址。每地址转出0.07777枚，实际到账按代币税费扣除，不补发。实际到账合计 '+formatEther(net)+' 枚；本任务Gas '+formatEther(gas)+' BNB。至少间隔3600秒。\n';
+ const text='蝴蝶股票：已确认 '+completed(j)+'/78 批，'+ds.length+'/15480 地址。每地址转出0.07777枚，实际到账按代币税费扣除，不补发。实际到账合计 '+formatEther(net)+' 枚；本任务Gas '+formatEther(gas)+' BNB。至少间隔10800秒。\n';
  const rows=j.entries.filter(e=>e.hash).map(e=>`| ${e.kind==='send'?e.batch+1:e.kind} | ${e.settled?(e.success?'已确认':'失败'):'待确认'} | [${e.hash}](https://bscscan.com/tx/${e.hash}) |`).join('\n');
  console.log(text);if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,text+'\n| 批次 | 状态 | 交易 |\n|---|---|---|\n'+rows+'\n');
  const dir=process.env.STOCK15480_REPORT_DIR;if(dir){fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/deliveries.csv','address,requested,received,transaction_hash\n'+j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>(e.received||[]).map(r=>`${r.address},0.07777,${formatEther(BigInt(r.received))},${e.hash}`)).join('\n')+'\n');}
@@ -107,8 +107,8 @@ export async function main(env=process.env){
 
  j.active=true;await store.save(j);
  const chainNow=async()=>Math.min(...(await Promise.all(clients.map(c=>c.getBlock()))).map(b=>Number(b.timestamp)));
- const deadline=Date.now()+80*60*1000;
- while(await chainNow()<dueAt(j)){requireThat(Date.now()<deadline,'等待到期超时。');console.log('等待至少60分钟间隔，目标UTC '+new Date(dueAt(j)*1000).toISOString());await sleep(15000);}
+ const deadline=Date.now()+200*60*1000;
+ while(await chainNow()<dueAt(j)){requireThat(Date.now()<deadline,'等待到期超时。');console.log('等待至少180分钟间隔，目标UTC '+new Date(dueAt(j)*1000).toISOString());await sleep(15000);}
  let key=(env.FLAP_MINT_PRIVATE_KEY||'').trim();delete env.FLAP_MINT_PRIVATE_KEY;if(!key.startsWith('0x'))key='0x'+key;
  requireThat(/^0x[0-9a-fA-F]{64}$/.test(key),'缺少有效钱包Secret。');
  const account=privateKeyToAccount(key);key='';requireThat(equal(account.address,ACCOUNT),'钱包Secret地址不匹配。');
