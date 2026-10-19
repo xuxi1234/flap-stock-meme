@@ -17,7 +17,7 @@ requireThat(source.toString().replace(/^\uFEFF/,'').split(/\r?\n/)[0]==='address
 export const addresses=source.toString().replace(/^\uFEFF/,'').trim().split(/\r?\n/).slice(1);
 requireThat(addresses.length===1000&&new Set(addresses.map(a=>a.toLowerCase())).size===1000&&addresses.every(a=>isAddress(a)),'固定名单不符。');
 requireThat(addresses.every(a=>![DISTRIBUTOR,'0x'+'0'.repeat(40)].some(b=>equal(a,b))),'名单包含零地址或分发合约。');
-export const plan=Array.from({length:BATCHES},(_,i)=>addresses.slice(i*200,i*200+200));
+export const plan=Array.from({length:BATCHES},(_,i)=>addresses.slice(i*200,i*200+200).filter(a=>!equal(a,ACCOUNT)));
 export const ID=keccak256(toHex('stockholders1000:56:'+TOKEN+':'+ACCOUNT+':'+SOURCE_SHA+':0.1:3600:v1'));
 export const batchId=i=>{requireThat(Number.isInteger(i)&&i>=0&&i<BATCHES,'批次无效。');return keccak256(toHex(ID+':'+i));};
 export const artifact=JSON.parse(fs.readFileSync(new URL('../../src/airdrop/distributor.json',import.meta.url)));
