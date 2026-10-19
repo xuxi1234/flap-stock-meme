@@ -45,7 +45,7 @@ export function validate(j){
  let done=0;
  j.entries.forEach((e,i)=>{
   const c=callFor(e),t=e.transaction;
-  requireThat(j.baseNonce!==null&&t.nonce===j.baseNonce+i&&t.chainId===56&&t.type==='legacy'&&equal(t.to,c.to)&&equal(t.data,c.data)&&t.value==='0','交易参数或序号不匹配。');
+  requireThat(j.baseNonce!==null&&Number.isSafeInteger(t.nonce)&&t.nonce>=(i?j.entries[i-1].transaction.nonce+1:j.baseNonce)&&t.chainId===56&&t.type==='legacy'&&equal(t.to,c.to)&&equal(t.data,c.data)&&t.value==='0','交易参数或序号不匹配。');
   requireThat(BigInt(t.gas)>0n&&BigInt(t.gas)<=114400000n&&BigInt(t.gasPrice)>0n,'Gas参数无效。');
   requireThat(!e.hash||/^0x[0-9a-f]{64}$/.test(e.hash),'哈希无效。');
   requireThat(e.settled===true||i===j.entries.length-1,'未完成交易必须在末尾。');
