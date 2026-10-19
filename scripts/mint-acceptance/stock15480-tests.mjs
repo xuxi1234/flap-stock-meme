@@ -17,8 +17,8 @@ test('only manual main invocation can execute',()=>{
  assert.equal(executionAllowed({...env,STOCK15480_CONFIRM:''}),false);
  assert.equal(executionAllowed({...env,GITHUB_REF:'refs/heads/other'}),false);
 });
-test('60 minutes counted after observed confirmation',()=>{
- assert.equal(c.dueAt({entries:[{kind:'send',settled:true,success:true,confirmedAt:100,verifiedAt:120}]}),3720);
+test('180 minutes counted after observed confirmation',()=>{
+ assert.equal(c.dueAt({entries:[{kind:'send',settled:true,success:true,confirmedAt:100,verifiedAt:120}]}),10920);
 });
 const entry=()=>({kind:'send',batch:0,settled:false,transaction:{...c.callFor({kind:'send',batch:0}),nonce:7,chainId:56,type:'legacy',gas:'100000',gasPrice:'1000000000'}});
 test('checkpoint round trip and rejection of altered nonce or batch',()=>{
