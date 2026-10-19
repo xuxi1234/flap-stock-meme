@@ -53,8 +53,10 @@ async function mappings(clients,j){
  });
 }
 async function nonceCheck(clients,j){
- const n=j.baseNonce+j.entries.filter(e=>e.settled).length,pending=j.entries.find(e=>!e.settled);
+ const pending=j.entries.find(e=>!e.settled);
+ const n=pending?pending.transaction.nonce:(j.entries.length?j.entries.at(-1).transaction.nonce+1:j.baseNonce);
  const counts=await Promise.all(clients.map(async c=>Promise.all(['latest','pending'].map(blockTag=>c.getTransactionCount({address:ACCOUNT,blockTag})))));
+ if(!pending){const latest=counts[0][0];requireThat(latest>=n&&counts.every(([a,b])=>a===latest&&b===latest),'钱包存在未知待处理交易，停止。');return latest;}
  requireThat(counts.every(([a,b])=>a===n&&(b===n||Boolean(pending?.hash)&&b===n+1)),'钱包出现任务外交易或未知待处理交易，停止。');
  return n;
 }
