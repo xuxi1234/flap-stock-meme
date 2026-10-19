@@ -1,4 +1,4 @@
-name: 蝴蝶股票空投｜15480地址·每60分钟200地址
+name: 蝴蝶股票空投｜15480地址·每180分钟200地址
 on:
   workflow_dispatch:
     inputs:
@@ -73,7 +73,7 @@ jobs:
       matrix:
         slot: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78]
     runs-on: ubuntu-latest
-    timeout-minutes: 100
+    timeout-minutes: 220
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -88,7 +88,7 @@ jobs:
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           STOCK15480_EXECUTE: 'true'
-          STOCK15480_CONFIRM: stock15480:0.07777:200:3600seconds
+          STOCK15480_CONFIRM: stock15480:0.07777:200:10800seconds
           STOCK15480_REPORT_DIR: ${{ runner.temp }}/stock15480-results
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
