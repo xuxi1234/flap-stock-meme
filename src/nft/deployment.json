@@ -1,1 +1,13 @@
-{"enabled":false,"chainId":56,"collection":"","market":"","collectionCodeHash":"","marketCodeHash":"","assetBase":"","reason":"主网合约尚未部署，当前不接受付款。正在准备 NFT 专用部署资金、随机数订阅和固定图片地址。"}
+{
+  "enabled": true,
+  "randomnessMode": "direct",
+  "chainId": 56,
+  "adapter": "0x786a110c5228EaAfDcbBB988e508058C19b1e43F",
+  "adapterCodeHash": "0xe7720610258763ba631e96b9ca73ff249d8e1d90fb574cc7b9d278c6c0c9f7bd",
+  "collection": "0xAdB01BC76a6d9eF707297744777E77528B6013BA",
+  "collectionCodeHash": "0x05cc5d971070afacf763c55ca573d1e0fc0f48ce1f0e3d0380afc9b3384a8c79",
+  "market": "0xBe65bC99d6E42050A3B560960Eda36543Bc29AF3",
+  "marketCodeHash": "0x7f195ef47bc12cd500bfb0769b764c56ad0da7ebf7b090d64d16bd341061efd6",
+  "assetBase": "https://flap-stock-butterfly-7777.vercel.app/nft/",
+  "reason": ""
+}
