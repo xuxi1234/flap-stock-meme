@@ -31,3 +31,14 @@ it.each(['recipient','value','calldata','sender'])('rejects changed %s without r
  vi.spyOn(publicClient,'getTransaction').mockResolvedValue(transaction as never);
  await expect(transact('claim',account,{requestId:9n},vi.fn())).rejects.toThrow('原操作未确认');
 });
+
+function directSetup(fee=20000000000000n,balance=1000000000000000n){
+ Object.assign(config,{randomnessMode:'direct',adapter:'0x5555555555555555555555555555555555555555',adapterCodeHash:keccak256('0x6000')});
+ values.MAX_ORACLE_FEE=100000000000000n;values.oracleBalance=balance;
+ vi.spyOn(publicClient,'getGasPrice').mockResolvedValue(50000000n);
+ vi.spyOn(publicClient,'call').mockResolvedValue({data:('0x'+fee.toString(16).padStart(64,'0')) as `0x${string}`});
+}
+afterEach(()=>{Object.assign(config,{randomnessMode:undefined,adapter:undefined,adapterCodeHash:undefined});});
+it('direct mint pins the quoted gas price while keeping the exact NFT payment',async()=>{directSetup();await transact('mint',account,{quantity:1,referrer:inviter},vi.fn());expect(publicClient.call).toHaveBeenCalledWith(expect.objectContaining({gasPrice:50000000n}));expect(publicClient.simulateContract).toHaveBeenLastCalledWith(expect.objectContaining({functionName:'requestMint',gasPrice:50000000n,value:10000000000000000n}));});
+it.each([[0n,1000000000000000n],[100000000000001n,1000000000000000n],[20000000000000n,0n]])('blocks direct payment when oracle is unavailable (%s/%s)',async(fee,balance)=>{directSetup(fee,balance);await expect(transact('mint',account,{quantity:1,referrer:inviter},vi.fn())).rejects.toThrow('随机服务');expect(mock.write).not.toHaveBeenCalled();});
+it('offers FIFO allocation and targets the verified adapter',async()=>{directSetup();values.requestTokenIds=[];values.nextAllocation=1n;values.queue=8n;values.ready=true;const state=await readState(account);expect(state.pending[0].canFinalize).toBe(true);await transact('finalize',account,{},vi.fn());expect(publicClient.simulateContract).toHaveBeenLastCalledWith(expect.objectContaining({address:'0x5555555555555555555555555555555555555555',functionName:'finalize'}));});

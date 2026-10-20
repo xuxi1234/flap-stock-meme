@@ -85,7 +85,7 @@
   "查看全部规则": "Read all rules",
   "收藏规则": "Collection rules",
   "随机相遇": "A random encounter",
-  "每张 0.01 BNB，一次申请 1–20 张，等待随机编号后整批领取；申请和领取的 Gas 分别另计。": "0.01 BNB per NFT. Request 1–20, await random IDs, then claim the batch. Request and claim each require gas.",
+  "每张 0.01 BNB，一次申请 1–20 张，等待随机编号后整批领取；申请、分配和领取的 Gas 分别另计。": "0.01 BNB per NFT. Request 1–20, await random IDs, then claim the batch. Request, allocation and claim each require gas.",
   "自己保管": "Self custody",
   "NFT 是标准 ERC-721 资产。挂单时仍在你的钱包，成交后才转给买家。": "Standard ERC-721 NFTs stay in your wallet while listed and transfer only upon a sale.",
   "全部归卖家": "Full price to seller",
@@ -134,7 +134,7 @@
   "01 / 固定总量与随机": "01 / Supply and randomness",
   "7,777 张，编号 1–7777。付费申请通过 Chainlink VRF 分配未使用编号；分配后领取 NFT。不会由浏览器随机决定付费结果。等待期间请保留申请，不要重复支付。": "7,777 NFTs with IDs 1–7777. Paid requests use Chainlink VRF to allocate unused IDs, followed by a claim. Paid results are not browser-generated. Keep your request and do not pay again while waiting.",
   "02 / 铸造款": "02 / Mint proceeds",
-  "每张 0.01 BNB，每批 1–20 张。整批领取成功时，20% 记入唯一邀请人的可提现奖励，80% 转至下方收款地址。首次成功绑定后邀请人不可更改；无默认邀请人，只有一代奖励，二级市场不分成。申请和领取的网络 Gas 另计。随机数服务异常会延迟分配；当前合约没有退款功能。": "0.01 BNB each, 1–20 per batch. Successful batch claims credit 20% to the single inviter and send 80% to the treasury below. The first binding is immutable. There is no default inviter, multi-level reward or resale commission. Request and claim gas is separate. Oracle issues may delay allocation; the current contract has no refund function.",
+  "每张 0.01 BNB，每批 1–20 张。整批领取成功时，20% 记入唯一邀请人的可提现奖励，80% 转至下方收款地址。首次成功绑定后邀请人不可更改；无默认邀请人，只有一代奖励，二级市场不分成。申请、分配和领取的网络 Gas 另计。随机数服务异常会延迟分配；当前合约没有退款功能。": "0.01 BNB each, 1–20 per batch. Successful batch claims credit 20% to the single inviter and send 80% to the treasury below. The first binding is immutable. There is no default inviter, multi-level reward or resale commission. Request, allocation and claim gas is separate. Oracle issues may delay allocation; the current contract has no refund function.",
   "03 / 零手续费交易": "03 / Zero-fee marketplace",
   "卖家自行定价，买家支付全部售价，卖家收到全部售价。平台抽成为 0%，不设置 NFT 版税。交易失败会整体回滚，网络 Gas 不退。": "Sellers set their prices and receive the full buyer payment. Marketplace fees and royalties are zero. Failed sales revert atomically; network gas is not refunded.",
   "使用 BNB Chain 的 ERC-721 标准。可在 TP 钱包 NFT 页面通过合约地址添加。图片采用 JPEG，tokenURI 提供 JSON 元数据；钱包索引和图片展示以 TP 实际支持为准。": "Uses ERC-721 on BNB Chain. Add the deployed contract in TokenPocket's NFT page. Images use JPEG and tokenURI returns JSON metadata; indexing and display depend on TokenPocket support.",
@@ -179,7 +179,7 @@
   "本次支付": "You pay",
   "邀请人奖励 · 20%": "Inviter reward · 20%",
   "铸造收款地址 · 80%": "Mint treasury · 80%",
-  "仅一代邀请奖励，在整批领取成功后记入邀请人可提现余额。申请与领取各需一笔交易，网络 Gas 另计。等待随机数时请勿重复付款；申请不能取消或退款。": "One-generation rewards are credited after a successful batch claim. Request and claim require separate transactions and gas. Do not pay again while waiting for randomness. Requests cannot be cancelled or refunded.",
+  "仅一代邀请奖励，在整批领取成功后记入邀请人可提现余额。申请、分配与领取各需一笔交易，网络 Gas 另计。等待随机数时请勿重复付款；申请不能取消或退款。": "One-generation rewards are credited after a successful batch claim. Request, allocation and claim require separate transactions and gas. Do not pay again while waiting for randomness. Requests cannot be cancelled or refunded.",
   "剩余可申请 ": "Available to request: ",
   "连接钱包并保留草稿": "Connect wallet and keep draft",
   "尚未开放付款": "Payments are not open",
@@ -288,5 +288,7 @@
   "只授权当前作品，发布后可随时撤单；授权、挂单和撤单均需网络 Gas。": "Approve only this NFT. Cancel your listing any time. Approval, listing and cancellation require network gas.",
   "网络 Gas": "Network gas",
   "钱包确认时显示": "Shown in your wallet",
-  "当前筛选": "Active filters"
+  "当前筛选": "Active filters",
+  "按序分配下一批": "Allocate next batch in order",
+  "申请和编号保存在链上，关闭页面后仍可回来领取。随机数返回后按申请顺序分配，再领取；分配交易另付 Gas。": "Requests and IDs stay on chain. Return anytime. After randomness arrives, allocate in request order, then claim. Allocation requires a separate gas payment."
 }

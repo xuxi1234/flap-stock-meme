@@ -1,4 +1,4 @@
-import {createPublicClient,createWalletClient,http,custom,parseAbi,encodeFunctionData,isAddress,keccak256,zeroAddress,type Address,type Hash,type EIP1193Provider,type EncodeFunctionDataParameters,type WriteContractParameters} from 'viem';
+import {createPublicClient,createWalletClient,http,custom,parseAbi,encodeFunctionData,decodeFunctionResult,isAddress,keccak256,zeroAddress,type Address,type Hash,type EIP1193Provider,type EncodeFunctionDataParameters,type WriteContractParameters} from 'viem';
 import {bsc} from 'viem/chains';
 import deployment from './deployment.json';
 import {MINT_WEI,NFT_SUPPLY,TREASURY,MAX_BATCH,REFERRAL_BPS,mintQuote,validateReferrer,type Listing} from './model';
@@ -12,11 +12,13 @@ export const nftAbi=parseAbi([
  'function tokenURI(uint256) view returns(string)','function contractURI() view returns(string)',
 ]);
 export const marketAbi=parseAbi(['function FEE_BPS() view returns(uint256)','function collection() view returns(address)','function listings(uint256) view returns(address seller,uint256 price)','function isListingActive(uint256) view returns(bool)','function listedTokenCount() view returns(uint256)','function listedTokenIds(uint256,uint256) view returns(uint256[])','function list(uint256,uint256)','function cancel(uint256)','function listingVersion(uint256) view returns(uint256)','function buy(uint256,address,uint256) payable']);
-export type Deployment={enabled:boolean;chainId:number;collection:string;market:string;collectionCodeHash:string;marketCodeHash:string;assetBase:string;reason?:string};
+export const directAbi=parseAbi(['function oracleRequestPrice() view returns(uint256)','function oracleBalance() view returns(uint256)','function MAX_ORACLE_FEE() view returns(uint256)','function collection() view returns(address)','function ready(uint256) view returns(bool)','function queue(uint256) view returns(uint256)','function nextAllocation() view returns(uint256)','function finalize()']);
+export type Deployment={randomnessMode?:string;adapter?:string;adapterCodeHash?:string;enabled:boolean;chainId:number;collection:string;market:string;collectionCodeHash:string;marketCodeHash:string;assetBase:string;reason?:string};
 export function validateDeployment(d:Deployment){
  if(!d.enabled)throw Error(d.reason||'尚未开放链上交易');
  if(d.chainId!==56||!isAddress(d.collection)||!isAddress(d.market)||d.collection===zeroAddress||d.market===zeroAddress||d.collection.toLowerCase()===d.market.toLowerCase())throw Error('主网合约配置无效');
  if(!/^0x[0-9a-f]{64}$/i.test(d.collectionCodeHash)||!/^0x[0-9a-f]{64}$/i.test(d.marketCodeHash)||!/^https:\/\//.test(d.assetBase))throw Error('缺少已核验的合约或图片配置');
+ if(d.randomnessMode==='direct'&&(!d.adapter||!isAddress(d.adapter)||d.adapter===zeroAddress||!/^0x[0-9a-f]{64}$/i.test(d.adapterCodeHash||'')))throw Error('随机服务配置无效');
  return d as Deployment&{collection:Address;market:Address};
 }
 export const config=deployment;
@@ -30,10 +32,11 @@ export async function validateLive(){
  publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'MINT_PRICE'}),publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'MAX_SUPPLY'}),publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'TREASURY'}),
  publicClient.readContract({address:d.market,abi:marketAbi,functionName:'FEE_BPS'}),publicClient.readContract({address:d.market,abi:marketAbi,functionName:'collection'}),publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'REFERRAL_BPS'}),publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'MAX_BATCH'})]);
  if(referralBps!==REFERRAL_BPS||maxBatch!==BigInt(MAX_BATCH)||network!==56||!nftCode||!marketCode||keccak256(nftCode)!==d.collectionCodeHash||keccak256(marketCode)!==d.marketCodeHash||price!==MINT_WEI||supply!==BigInt(NFT_SUPPLY)||treasury.toLowerCase()!==TREASURY.toLowerCase()||fee!==0n||collection.toLowerCase()!==d.collection.toLowerCase())throw Error('合约核验失败，已停止付款入口');
+ if(d.randomnessMode==='direct'){const adapter=d.adapter as Address;const [code,bound]=await Promise.all([publicClient.getCode({address:adapter}),publicClient.readContract({address:adapter,abi:directAbi,functionName:'collection'})]);if(!code||keccak256(code)!==d.adapterCodeHash||bound.toLowerCase()!==d.collection.toLowerCase())throw Error('随机服务核验失败');}
  return d;
 }
 async function chunks<T,R>(items:readonly T[],fn:(item:T)=>Promise<R>):Promise<R[]>{const result:R[]=[];for(let i=0;i<items.length;i+=64)result.push(...await Promise.all(items.slice(i,i+64).map(fn)));return result;}
-export type PendingMint={requestId:bigint;quantity:number;tokenIds:number[]};
+export type PendingMint={requestId:bigint;quantity:number;tokenIds:number[];canFinalize?:boolean};
 export async function readState(account?:Address){
  const d=await validateLive();
  const total=await publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'totalSupply'});
@@ -56,18 +59,21 @@ export async function readState(account?:Address){
   for(let offset=0n;offset<requests;offset+=100n){const requestIds=await publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'payerRequests',args:[account,offset,100n]});
    for(const r of await chunks(requestIds,async requestId=>({requestId,data:await publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'requests',args:[requestId]})})))if(!r.data[2]&&r.data[0].toLowerCase()===account.toLowerCase())pending.push({requestId:r.requestId,quantity:Number(r.data[3]),tokenIds:(await publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'requestTokenIds',args:[r.requestId]})).map(Number)});}
  }
+ if(d.randomnessMode==='direct'&&pending.some(r=>!r.tokenIds.length)){const adapter=d.adapter as Address;const next=await publicClient.readContract({address:adapter,abi:directAbi,functionName:'nextAllocation'});const head=await publicClient.readContract({address:adapter,abi:directAbi,functionName:'queue',args:[next]});const ready=head!==0n&&await publicClient.readContract({address:adapter,abi:directAbi,functionName:'ready',args:[head]});for(const r of pending)if(!r.tokenIds.length)r.canFinalize=ready;}
  return{referral,total:Number(total),reserved:Number(reserved),owned,pending,listings:rows.filter(x=>x.active||(account&&x.seller.toLowerCase()===account.toLowerCase()&&x.price>0n))};
 }
 export type ReferralState={bound:Address|null;invited:bigint;minted:bigint;earned:bigint;rewards:bigint};
 export type ChainState=Awaited<ReturnType<typeof readState>>;
 export const emptyState:ChainState={referral:null,total:0,reserved:0,owned:[],pending:[],listings:[]};
-export async function transact(action:'mint'|'claim'|'withdraw'|'approve'|'list'|'cancel'|'buy',account:Address,args:{quantity?:number;referrer?:Address;id?:number;requestId?:bigint;price?:bigint;seller?:Address;version?:bigint},onHash:(hash:Hash)=>void){
+export async function transact(action:'finalize'|'mint'|'claim'|'withdraw'|'approve'|'list'|'cancel'|'buy',account:Address,args:{quantity?:number;referrer?:Address;id?:number;requestId?:bigint;price?:bigint;seller?:Address;version?:bigint},onHash:(hash:Hash)=>void){
  const d=await validateLive(),provider=walletProvider();if(!provider)throw Error('请连接钱包');
  const current=await provider.request({method:'eth_accounts'});if(current[0]?.toLowerCase()!==account.toLowerCase())throw Error('钱包地址已变化，请重新连接');
  if(await provider.request({method:'eth_chainId'})!=='0x38')throw Error('请重新连接并切换至 BNB Chain');
  const client=createWalletClient({chain:bsc,transport:custom(provider),account});
- let request;
- if(action==='mint'){const quote=mintQuote(args.quantity??'');const referrer=validateReferrer(args.referrer||'',account,d.collection);request=await publicClient.simulateContract({address:d.collection,abi:nftAbi,functionName:'requestMint',args:[BigInt(quote.quantity),referrer],account,value:quote.total});}
+ let request;let directGasPrice:bigint|undefined;
+ if(action==='mint'&&d.randomnessMode==='direct'){const adapter=d.adapter as Address;directGasPrice=await publicClient.getGasPrice();const [quote,balance,cap]=await Promise.all([publicClient.call({to:adapter,data:encodeFunctionData({abi:directAbi,functionName:'oracleRequestPrice'}),gasPrice:directGasPrice}).then(r=>decodeFunctionResult({abi:directAbi,functionName:'oracleRequestPrice',data:r.data!})),publicClient.readContract({address:adapter,abi:directAbi,functionName:'oracleBalance'}),publicClient.readContract({address:adapter,abi:directAbi,functionName:'MAX_ORACLE_FEE'})]);if(cap!==100000000000000n||quote<=0n||quote>cap||balance<quote)throw Error('随机服务费用超限或余额不足，暂不可铸造');}
+ if(action==='mint'){const quote=mintQuote(args.quantity??'');const referrer=validateReferrer(args.referrer||'',account,d.collection);request=await publicClient.simulateContract({address:d.collection,abi:nftAbi,functionName:'requestMint',args:[BigInt(quote.quantity),referrer],account,value:quote.total,...(directGasPrice?{gasPrice:directGasPrice}:{})});}
+ else if(action==='finalize'){if(d.randomnessMode!=='direct')throw Error('当前版本不需要分配交易');request=await publicClient.simulateContract({address:d.adapter as Address,abi:directAbi,functionName:'finalize',account});}
  else if(action==='withdraw')request=await publicClient.simulateContract({address:d.collection,abi:nftAbi,functionName:'withdrawReferralRewards',args:[account],account});
  else if(action==='claim')request=await publicClient.simulateContract({address:d.collection,abi:nftAbi,functionName:'claim',args:[args.requestId!,account],account});
  else if(action==='approve')request=await publicClient.simulateContract({address:d.collection,abi:nftAbi,functionName:'approve',args:[d.market,BigInt(args.id!)],account});
