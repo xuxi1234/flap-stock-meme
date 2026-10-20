@@ -1,0 +1,12 @@
+{
+  "chainId": 56,
+  "coordinator": "0xd691f04bc0C9a24Edb78af9E005Cf85768F694C9",
+  "keyHash": "0x130dba50ad435d4ecc214aad0d5820474137bd68e7e77724144f27c3c377d3d4",
+  "gasLaneGwei": 200,
+  "confirmations": 3,
+  "callbackGasLimit": 2000000,
+  "nativePayment": true,
+  "source": "https://docs.chain.link/vrf/v2-5/supported-networks#bnb-chain-mainnet",
+  "verifiedOn": "2026-09-16"
+}
+
