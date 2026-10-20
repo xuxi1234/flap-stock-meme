@@ -1,0 +1,118 @@
+name: 蝴蝶股票NFT｜单枚真实铸造验收
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [只读核验, 执行已批准的单枚测试]
+        default: 只读核验
+        required: true
+        description: 总预算0.021BNB，邀请人Ce1e…38A8，NFT归原付款钱包
+permissions:
+  contents: write
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ACCEPTANCE_DIR: ${{ github.workspace }}/acceptance-output
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: b912215892b3f684755f593d2d6a17b9f5770fe4
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix contracts/nft
+      - name: Prepare fixed one-time acceptance
+        working-directory: contracts/nft
+        run: |
+          cat > acceptance.mjs <<'SCRIPT'
+          import fs from 'node:fs';
+          import {Contract,Wallet,getAddress,parseEther,formatEther,keccak256,ZeroAddress} from 'ethers';
+          import {BscProvider} from './scripts/bsc-provider.mjs';
+          import {compile} from './test/compile.mjs';
+          const payer=getAddress('0x74a7D3198905C3b4BA53574C2DffEF3aa4e569aA');
+          const inviter=getAddress('0xce1e5d01df016630f732c798d983fa0db86b38a8');
+          const collection='0x4c751e8b555F1C72cf572789CcFF05e0e118Fc8f',adapter='0x0843825446108b5d7F3C7e6f01676e66208e1f31';
+          const cap=parseEther('0.021'),prior=parseEther('0.01022076255'),price=parseEther('0.01');
+          const execute=process.argv.includes('--execute'),dir=process.env.ACCEPTANCE_DIR;
+          fs.mkdirSync(dir,{recursive:true});const file=dir+'/acceptance.json';
+          const journal={payer,inviter,collection,adapter,capWei:String(cap),priorWei:String(prior),steps:{}};
+          const save=()=>{fs.writeFileSync(file+'.tmp',JSON.stringify(journal,null,2));fs.renameSync(file+'.tmp',file);};
+          const check=(ok,msg)=>{if(!ok)throw Error(msg);};
+          const p=new BscProvider(process.env.NFT_RPC_URL);
+          try{
+          check((await p.getNetwork()).chainId===56n,'Wrong chain');
+          const artifacts=compile(),abi=artifacts['src/ButterflyNFT.sol'].ButterflyNFT.abi;
+          const nft=new Contract(collection,abi,p);
+          check(keccak256(await p.getCode(collection))==='0x585d099eb2170bd067543720462b3de1ac1d6edce9b3f6a8d7f7b62fcefa3efc','Collection changed');
+          check(keccak256(await p.getCode(adapter))==='0x5ba735214556353bc46f2cb7c49429e6d12f9632fedee3cc359a05284ab50ff7','Adapter changed');
+          check(await nft.MINT_PRICE()===price && await nft.randomness()===adapter,'Wrong economics/binding');
+          check(await nft.payerRequestCount(payer)===0n,'Existing mint request: reconcile instead of minting again');
+          const bound=await nft.referrers(payer);check(bound===ZeroAddress||bound===inviter,'Different permanent inviter');
+          const vrf=new Contract(adapter,artifacts['src/ButterflyVRF.sol'].ButterflyVRF.abi,p);
+          const coordinator=new Contract(await vrf.coordinator(),['function getSubscription(uint256) view returns(uint96 balance,uint96 nativeBalance,uint64 reqCount,address owner,address[] consumers)'],p);
+          const sub=await coordinator.getSubscription(await vrf.subscriptionId());check(sub.nativeBalance>0n&&sub.consumers.includes(adapter),'Unfunded/unregistered VRF');
+          const req=await nft['requestMint(uint256,address)'].populateTransaction(1,inviter,{value:price});
+          const gasPrice=(await p.getFeeData()).gasPrice;check(gasPrice>0n,'Missing gas price');
+          const gasLimit=(await p.estimateGas({...req,from:payer}))*120n/100n;
+          const claimReserve=800000n*gasPrice;
+          check(prior+price+gasLimit*gasPrice+claimReserve<=cap,'Budget cap exceeded');
+          check(await p.getBalance(payer)>=price+gasLimit*gasPrice+claimReserve,'Insufficient balance');
+          console.log(JSON.stringify({mode:execute?'execute':'check-only',payer,inviter,quantity:1,priceBNB:'0.01',priorBNB:formatEther(prior),cumulativeBoundBNB:formatEther(prior+price+gasLimit*gasPrice+claimReserve)}));
+          if(execute){
+          check(process.env.GITHUB_RUN_ATTEMPT==='1','Never rerun paid acceptance; reconcile artifact');
+          const signer=new Wallet(process.env.NFT_DEPLOY_PRIVATE_KEY,p);check(signer.address===payer,'Wrong payer');
+          // Durable one-time reservation precedes any broadcast. Never delete this branch on failure.
+          const marker=await fetch('https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/git/refs',{method:'POST',headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({ref:'refs/heads/automation/butterfly-nft-first-mint-20261020',sha:process.env.GITHUB_SHA})});
+          check(marker.status===201,'Acceptance already reserved: reconcile latest artifact');
+          let spent=prior;
+          async function send(label,request,limit){
+           const gp=(await p.getFeeData()).gasPrice;check(gp>0n,'Missing gas price');
+           const value=request.value||0n;check(spent+value+limit*gp+(label==='request'?800000n*gp:0n)<=cap,'Cumulative cap exceeded');
+           const nonce=await p.getTransactionCount(payer,'latest');check(await p.getTransactionCount(payer,'pending')===nonce,'Pending wallet transactions');
+           journal.steps[label]={intent:{nonce,to:request.to,value:String(value),dataHash:keccak256(request.data),gasLimit:String(limit),gasPrice:String(gp)}};save();
+           const tx=await signer.sendTransaction({...request,nonce,chainId:56,type:0,gasLimit:limit,gasPrice:gp});journal.steps[label].hash=tx.hash;save();console.log(label+' '+tx.hash);
+           const receipt=await tx.wait(3);check(receipt?.status===1,'Transaction failed');journal.steps[label].receipt=receipt.toJSON();spent+=value+receipt.gasUsed*receipt.gasPrice;journal.spentWei=String(spent);save();return receipt;
+          }
+          const receipt=await send('request',req,gasLimit);
+          const events=receipt.logs.flatMap(l=>{try{return [nft.interface.parseLog(l)];}catch{return [];}});
+          const event=events.find(e=>e?.name==='MintRequested');check(event&&event.args.payer===payer,'Missing request event');const id=event.args.requestId;journal.requestId=String(id);save();
+          let fulfilled=false;
+          for(let i=0;i<60;i++){const r=await nft.requests(id);if(r.tokenId!==0n){fulfilled=true;break;}await new Promise(resolve=>setTimeout(resolve,10000));}
+          check(fulfilled,'VRF still pending: do not mint again. Preserve request and reconcile.');
+          check(!(await vrf.pending(id)),'Adapter still pending');
+          const ids=await nft.requestTokenIds(id);check(ids.length===1,'Wrong quantity assigned');journal.tokenId=String(ids[0]);save();
+          const claim=await nft.claim.populateTransaction(id,payer);const claimGas=(await p.estimateGas({...claim,from:payer}))*120n/100n;check(claimGas<=800000n,'Claim exceeds reserve');
+          await send('claim',claim,claimGas);
+          check(await nft.ownerOf(ids[0])===payer&&(await nft.requests(id)).claimed,'NFT receipt failed');check(await nft.referrers(payer)===inviter,'Inviter mismatch');
+          check(await nft.referralRewards(inviter)>=parseEther('0.002'),'Referral credit missing');
+          journal.tokenURI=await nft.tokenURI(ids[0]);journal.completed=true;save();console.log(JSON.stringify({completed:true,tokenId:String(ids[0]),owner:payer,inviter,totalBNB:formatEther(spent),tokenURI:journal.tokenURI}));
+          }
+          }finally{await p.destroy();}
+          SCRIPT
+      - name: Check budget, inviter, bytecode and subscription without spending
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node acceptance.mjs
+      - name: Mint one NFT, await authentic VRF and claim to original wallet
+        if: inputs.operation == '执行已批准的单枚测试'
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          NFT_DEPLOY_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: node acceptance.mjs --execute
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: butterfly-nft-acceptance-${{ github.run_id }}
+          path: acceptance-output/
+          include-hidden-files: true
+          retention-days: 90
