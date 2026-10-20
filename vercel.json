@@ -3,9 +3,29 @@
     {
       "source": "/butterfly-stock-list.json",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Cache-Control", "value": "public, max-age=300" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300"
+        }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/nft",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/nft/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/nft/:path*",
+      "destination": "https://flap-stock-butterfly-7777.vercel.app/nft/:path*"
     }
   ]
 }
