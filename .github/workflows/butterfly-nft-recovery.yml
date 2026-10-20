@@ -1,0 +1,77 @@
+name: 蝴蝶股票NFT｜修复后断点续跑
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [只读核验, 执行已批准续跑]
+        default: 只读核验
+        required: true
+        description: 复用已有订阅和合约，累计预算仍为0.02BNB
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    env:
+      NFT_RECOVERY_DIR: ${{ github.workspace }}/recovery-output
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 'b912215892b3f684755f593d2d6a17b9f5770fe4'
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix contracts/nft
+      - run: node --test test/deploy.test.mjs test/bsc-provider.test.mjs
+        working-directory: contracts/nft
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          github-token: ${{ github.token }}
+          repository: xuxi1234/flap-stock-meme
+          run-id: '39189821296'
+          artifact-ids: '12161609356'
+          merge-multiple: true
+          path: recovery-output
+      - name: Verify original receipts, existing subscription, adapter and remaining budget
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node scripts/recover-39189821296.mjs
+      - name: Reserve single recovery attempt
+        if: inputs.operation == '执行已批准续跑'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          if(process.env.GITHUB_RUN_ATTEMPT!=='1')throw Error('Do not rerun: recover latest journals first');
+          const r=await fetch('https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/git/refs',{
+            method:'POST',
+            headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+            body:JSON.stringify({ref:'refs/heads/automation/butterfly-nft-recovery-39189821296',sha:'b912215892b3f684755f593d2d6a17b9f5770fe4'})
+          });
+          if(r.status!==201)throw Error('Recovery already reserved or denied. Preserve and reconcile latest recovery artifact.');
+          NODE
+      - name: Continue approved deployment without creating or funding another subscription
+        if: inputs.operation == '执行已批准续跑'
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          NFT_DEPLOY_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+        run: node scripts/recover-39189821296.mjs --execute
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: butterfly-nft-recovery-${{ github.run_id }}
+          path: recovery-output/
+          include-hidden-files: true
+          retention-days: 90
