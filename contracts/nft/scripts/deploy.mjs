@@ -6,6 +6,7 @@ import {createHash} from 'node:crypto';
 import solc from 'solc';
 import {Contract,ContractFactory,JsonRpcProvider,Wallet,getAddress,parseEther,formatEther,keccak256} from 'ethers';
 import {compile} from '../test/compile.mjs';
+import {BscProvider} from './bsc-provider.mjs';
 process.chdir(path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'));
 const fail=m=>{throw new Error(m);};
 export function validateMetadata(base){
@@ -41,7 +42,7 @@ async function main(){
  const assetBase=validateMetadata(process.env.NFT_ASSET_BASE);if(!assetBase.startsWith('https://'))fail('NFT_ASSET_BASE must use HTTPS');
  if(subId<=0n||cap<=0n)fail('Positive subscription ID and explicit spend cap required');
  if(execute&&process.env.NFT_DEPLOY_CONFIRM!==`DEPLOY_BUTTERFLY_ON_56:${address}`)fail('Explicit NFT_DEPLOY_CONFIRM required');
- const p=new JsonRpcProvider(process.env.NFT_RPC_URL);
+ const p=new BscProvider(process.env.NFT_RPC_URL);
  if((await p.getNetwork()).chainId!==56n)fail('Only chain 56 supported');
  if(await p.getCode(cfg.coordinator)==='0x')fail('Missing coordinator code');
  const coordinator=new Contract(cfg.coordinator,['function getSubscription(uint256) view returns(uint96 balance,uint96 nativeBalance,uint64 reqCount,address owner,address[] consumers)','function addConsumer(uint256,address)','function s_config() view returns(uint16 minimumRequestConfirmations,uint32 maxGasLimit,bool reentrancyLock,uint32 stalenessSeconds,uint32 gasAfterPaymentCalculation,uint32 fulfillmentFlatFeeNativePPM,uint32 fulfillmentFlatFeeLinkDiscountPPM,uint8 nativePremiumPercentage,uint8 linkPremiumPercentage)', 'function s_provingKeys(bytes32) view returns(bool exists,uint64 maxGas)'],p);
@@ -69,6 +70,9 @@ async function main(){
   let old=journal.steps[name];
   if(old?.hash){
    const r=await confirmedReceipt(p,old.hash,old.receipt);
+   const tx=await p.getTransaction(old.hash);
+   if(!tx||tx.from!==address||tx.chainId!==56n||tx.value!==0n||tx.nonce!==old.intent.nonce||tx.to!==(request.to?getAddress(request.to):null)||keccak256(tx.data)!==old.intent.dataHash||keccak256(request.data)!==old.intent.dataHash||tx.gasLimit!==BigInt(old.intent.gasLimit)||tx.gasPrice!==BigInt(old.intent.gasPrice))fail('Recovered transaction differs from deployment intent');
+   if(r.gasUsed>tx.gasLimit||r.gasPrice>tx.gasPrice)fail('Recovered gas exceeds intent');
    if(!old.receipt){old.receipt=r.toJSON();old.costWei=(r.gasUsed*r.gasPrice).toString();spent+=BigInt(old.costWei);if(execute)save();}
    return r.contractAddress;
   }
@@ -77,7 +81,7 @@ async function main(){
   if(gasLimit>limits[name])fail(`${name} estimate exceeds bound`);
   console.log(`${name}: estimated gas ${estimate}; bounded gas ${gasLimit}`);if(!execute)return null;
   if(spent+gasLimit*gasPrice>cap)fail('Cumulative cap exceeded');
-  const nonce=await p.getTransactionCount(address,'pending');
+  const latest=await p.getTransactionCount(address,'latest'),nonce=await p.getTransactionCount(address,'pending');if(nonce!==latest)fail('Pending signer transactions; stop before sending');
   journal.steps[name]={intent:{nonce,to:request.to||null,dataHash:keccak256(request.data),gasLimit:gasLimit.toString(),gasPrice:gasPrice.toString()}};save();
   const tx=await signer.sendTransaction({...request,nonce,gasLimit,gasPrice,type:0,chainId:56});journal.steps[name].hash=tx.hash;save();
   await tx.wait(3);const r=await confirmedReceipt(p,tx.hash);journal.steps[name].receipt=r.toJSON();journal.steps[name].costWei=(r.gasUsed*r.gasPrice).toString();spent+=BigInt(journal.steps[name].costWei);save();if(r.status!==1)fail(`${name} reverted`);return r.contractAddress;
