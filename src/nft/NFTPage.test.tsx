@@ -1,6 +1,7 @@
 import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
 import {afterEach,beforeEach,describe,it,expect,vi} from 'vitest';
 import NFTPage from './NFTPage';
+vi.mock('./deployment.json',()=>({default:{enabled:false,chainId:56,collection:'',market:'',collectionCodeHash:'',marketCodeHash:'',assetBase:'',reason:'尚未开放链上交易'}}));
 const item={id:1,name:'蓝闪蝶 #0001',family:'蓝闪蝶',palette:'Morpho-inspired',color:'#178bff',rarity:'典藏',wing:'round',pattern:'veins',halo:'自然光',dna:'a'.repeat(64),image:'/nft/art/1.jpg'};
 beforeEach(()=>{vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>[item]}));HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','')};HTMLDialogElement.prototype.close=function(){this.removeAttribute('open')};Element.prototype.scrollIntoView=vi.fn();});
 afterEach(()=>{cleanup();vi.unstubAllGlobals()});
