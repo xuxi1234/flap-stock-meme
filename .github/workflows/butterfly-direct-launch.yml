@@ -1,0 +1,57 @@
+name: 蝴蝶股票NFT｜直接付费新版
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [只读核验, 部署并测试新版]
+        default: 只读核验
+        required: true
+        description: 新版合约和一次测试，总累计上限0.033BNB
+      approval:
+        type: string
+        required: false
+        description: 执行须填APPROVE_TOTAL_0.033_BNB；旧测试款仍未取回
+permissions:
+  contents: write
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DIRECT_OUTPUT_DIR: ${{ github.workspace }}/direct-output
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 'c1ff830319aecc6214a26e457d7df191c02e95c7'
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix contracts/nft
+      - run: node --test test/direct.test.mjs
+        working-directory: contracts/nft
+      - name: Check old receipt, oracle quote, assets and total budget
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node scripts/launch-direct.mjs
+      - name: Execute only explicitly approved revised total
+        if: inputs.operation == '部署并测试新版'
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          NFT_DEPLOY_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          DIRECT_APPROVAL: ${{ inputs.approval }}
+        run: node scripts/launch-direct.mjs --execute
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: butterfly-direct-${{ github.run_id }}
+          path: direct-output/
+          include-hidden-files: true
+          retention-days: 90
