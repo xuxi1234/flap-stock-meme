@@ -341,3 +341,10 @@ body, .site-shell { background: var(--acid); }
 .site-shell :is(a,button,summary):focus-visible { outline:3px solid #5424e8; outline-offset:4px; }
 @media(max-width:760px) { .home-tools { grid-template-columns:1fr; } .home-tools,.home-faq { width:calc(100% - 20px); } .home-faq { padding:22px; } .site-shell .hero { padding-top:24px; } .hero-actions .button { flex:1 1 180px; text-align:center; } .home-tool { padding:22px; } }
 @media(prefers-reduced-motion:reduce) { .site-shell *, .site-shell *::before, .site-shell *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media(max-width:760px) {
+  .site-shell .hero-copy { display:block; width:100%; order:0; }
+  .site-shell .hero-visual { order:1; max-width:300px; margin:4px auto 18px; }
+  .site-shell .hero-copy > .eyebrow { margin-bottom:16px; }
+  .site-shell .hero-copy h1 { margin-bottom:16px; }
+  .site-shell .hero-actions { display:flex; }
+}
