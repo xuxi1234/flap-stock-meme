@@ -33,3 +33,11 @@ The new source restores contracts/nft from the previously deployed, workflow-pin
 Current mainnet config remains unchanged; this branch does not enable optional minting against the old contract.
 
 Validation: 23 contract tests passed (collection, direct VRF, optional inviter); TypeScript passed; optional-inviter UI/model tests passed. No live transactions were sent for this change.
+
+## Mainnet acceptance — 2026-10-21
+User approved repository publication, separate-collection proposal, and cumulative 0.045 BNB budget. PR #84 merged. Workflow 39526815287 reported successful no-inviter mint and claim of token #3161. Independent public-RPC reads verified eight successful receipts, compiled runtime bytecode (with immutable readbacks), zero inviter/rewards, ownership, and cumulative spend of 0.04275748725 BNB. Original #2032 ownership remains unchanged.
+
+New collection: `0xC92Cc5400A8E48F6Ab8C0E3912aE4A8EaF161e3F`
+New market: `0xdcec595Dc4ee0cB4c5E18D6aBF9ce164A6132d39`
+New adapter: `0xa2f8cBE20276f2165f838c0191b3681806c5ba8e`
+The config release enables the independently verified deployment. Old subscription test funds remain unresolved and are not counted as recovered.

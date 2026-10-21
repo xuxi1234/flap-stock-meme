@@ -47,3 +47,5 @@
 
 /* Isolate NFT marketplace typography from the main site's hero rules. */
 .nft-market-title h1 em{font-size:inherit;line-height:inherit;letter-spacing:inherit;margin-top:0}
+
+.nft-version-note{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px auto;padding:12px 20px;max-width:1320px;border:1px solid #465c30;border-radius:12px;color:#d9edbc;font-size:13px}.nft-version-note a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline}
