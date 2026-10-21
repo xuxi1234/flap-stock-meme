@@ -202,7 +202,6 @@
   "暂不可用": "Unavailable",
   "提现奖励到当前钱包": "Withdraw to this wallet",
   "仅展示链上数据。提现另需网络 Gas。": "On-chain data only. Withdrawals require network gas.",
-  "原创特别款使用 277 个固定好号码，包含你指定的号码，并补充连号、回文号和整百整千号。号码仅为收藏属性，不改变随机概率。": "277 fixed special IDs include the requested numbers, repeated digits, palindromes and round numbers. IDs are collectible traits and do not change draw probabilities.",
   "查看 277 个特别号码": "View all 277 special IDs",
   "免费开蝶": "Free reveal",
   "免费体验 · 非链上 NFT": "Free experience · Not an on-chain NFT",
@@ -309,10 +308,13 @@
   "正在读取链上状态": "Loading on-chain status",
   "重试连接 ↻": "Retry connection ↻",
   "返回官网 ↗": "Back to website ↗",
-  "277 张原创特别款 · 下方四张为指定分配": "277 originals · The four below are preallocated",
-  "总量 7,777 张，其中 #0001、#0520、#1314、#7777 在部署时指定分配，不参与随机铸造。其余 7,773 张通过 Chainlink VRF 随机分配。": "7,777 NFTs in total. #0001, #0520, #1314 and #7777 are allocated at deployment and excluded from random minting. The remaining 7,773 use Chainlink VRF.",
-  "初始分配接收地址": "Initial allocation recipient",
-  "此编号已指定分配，不参与随机铸造；持有人可在市场挂单出售。": "This ID is preallocated and excluded from random minting. Its holder can list it on the market.",
   "此编号暂无在售挂单": "This ID is not currently listed for sale",
-  "预分配规则核验失败": "Preallocation verification failed"
+  "预分配规则核验失败": "Preallocation verification failed",
+  "277 张原创特别款": "277 Butterfly Originals",
+  "原创特别款使用 277 个固定好号码，包含连号、回文号和整百整千号。编号仅为收藏属性。": "The 277 originals use selected IDs, including sequences, palindromes and round numbers. IDs are collectible attributes.",
+  "随机铸造从当前可用编号中分配，不能指定编号。": "Random minting selects from currently available IDs. You cannot choose an ID.",
+  "01 / 铸造款": "01 / Mint proceeds",
+  "02 / 零手续费交易": "02 / Zero-fee marketplace",
+  "03 / TokenPocket": "03 / TokenPocket",
+  "04 / 当前状态": "04 / Current status"
 }
