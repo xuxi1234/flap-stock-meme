@@ -1,14 +1,15 @@
 {
   "enabled": true,
+  "preallocatedSupply": 4,
+  "allocationRecipient": "0x1aee21A82300f315Bb3782dFb0330477C5b87C58",
+  "optionalReferrer": true,
   "randomnessMode": "direct",
   "chainId": 56,
-  "adapter": "0xa2f8cBE20276f2165f838c0191b3681806c5ba8e",
+  "adapter": "0xa8C1ca36C1953175E7ccB9b0206707509adeE0dA",
   "adapterCodeHash": "0xe7720610258763ba631e96b9ca73ff249d8e1d90fb574cc7b9d278c6c0c9f7bd",
-  "collection": "0xC92Cc5400A8E48F6Ab8C0E3912aE4A8EaF161e3F",
-  "collectionCodeHash": "0x04ec61c952470013cdda2d1cb4e4dd492f511b0aa3092589797e7140fb73b7b0",
-  "market": "0xdcec595Dc4ee0cB4c5E18D6aBF9ce164A6132d39",
-  "marketCodeHash": "0xce859de57e288dbff58ca45bfd33dffe1eed873a7688139aca27d0e39b91f219",
-  "assetBase": "https://flap-stock-butterfly-7777.vercel.app/nft/",
-  "reason": "",
-  "optionalReferrer": true
+  "collection": "0x981e384A77695CAa15aF74ec9DcFd4080462D340",
+  "collectionCodeHash": "0x94acb975432c19fa334db6ff812fb291af8f2f56ed2285318cf13d0c7722f8f4",
+  "market": "0x1E2939CD2e0E95f714c04870c7dD62Ffc65E2d77",
+  "marketCodeHash": "0x178eb1601060af7e8042728c671992c532d201ed27570757e42571535cff4058",
+  "assetBase": "https://flap-stock-butterfly-7777.vercel.app/nft/"
 }
