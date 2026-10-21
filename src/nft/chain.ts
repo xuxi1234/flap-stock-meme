@@ -1,10 +1,10 @@
 import {createPublicClient,createWalletClient,http,custom,parseAbi,encodeFunctionData,decodeFunctionResult,isAddress,keccak256,zeroAddress,type Address,type Hash,type EIP1193Provider,type EncodeFunctionDataParameters,type WriteContractParameters} from 'viem';
 import {bsc} from 'viem/chains';
 import currentDeployment from './deployment.json';
-import legacyDeployment from './legacy-deployment.json';
-const deployment:Deployment=typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('nftVersion')==='legacy'?legacyDeployment:currentDeployment;
+const deployment:Deployment=currentDeployment;
 import {MINT_WEI,NFT_SUPPLY,TREASURY,MAX_BATCH,REFERRAL_BPS,mintQuote,validateReferrer,type Listing} from './model';
 export const nftAbi=parseAbi([
+ 'function PREALLOCATED_SUPPLY() view returns(uint256)','function PUBLIC_SUPPLY() view returns(uint256)','function ALLOCATION_RECIPIENT() view returns(address)',
  'function OPTIONAL_REFERRER() view returns(bool)',
  'function MINT_PRICE() view returns(uint256)','function MAX_SUPPLY() view returns(uint256)','function TREASURY() view returns(address)',
  'function totalSupply() view returns(uint256)','function reserved() view returns(uint256)','function tokenByIndex(uint256) view returns(uint256)',
@@ -16,7 +16,7 @@ export const nftAbi=parseAbi([
 ]);
 export const marketAbi=parseAbi(['function FEE_BPS() view returns(uint256)','function collection() view returns(address)','function listings(uint256) view returns(address seller,uint256 price)','function isListingActive(uint256) view returns(bool)','function listedTokenCount() view returns(uint256)','function listedTokenIds(uint256,uint256) view returns(uint256[])','function list(uint256,uint256)','function cancel(uint256)','function listingVersion(uint256) view returns(uint256)','function buy(uint256,address,uint256) payable']);
 export const directAbi=parseAbi(['function oracleRequestPrice() view returns(uint256)','function oracleBalance() view returns(uint256)','function MAX_ORACLE_FEE() view returns(uint256)','function collection() view returns(address)','function ready(uint256) view returns(bool)','function queue(uint256) view returns(uint256)','function nextAllocation() view returns(uint256)','function finalize()']);
-export type Deployment={optionalReferrer?:boolean;randomnessMode?:string;adapter?:string;adapterCodeHash?:string;enabled:boolean;chainId:number;collection:string;market:string;collectionCodeHash:string;marketCodeHash:string;assetBase:string;reason?:string};
+export type Deployment={preallocatedSupply?:number;allocationRecipient?:string;optionalReferrer?:boolean;randomnessMode?:string;adapter?:string;adapterCodeHash?:string;enabled:boolean;chainId:number;collection:string;market:string;collectionCodeHash:string;marketCodeHash:string;assetBase:string;reason?:string};
 export function validateDeployment(d:Deployment){
  if(!d.enabled)throw Error(d.reason||'尚未开放链上交易');
  if(d.chainId!==56||!isAddress(d.collection)||!isAddress(d.market)||d.collection===zeroAddress||d.market===zeroAddress||d.collection.toLowerCase()===d.market.toLowerCase())throw Error('主网合约配置无效');
@@ -37,6 +37,11 @@ export async function validateLive(){
  if(referralBps!==REFERRAL_BPS||maxBatch!==BigInt(MAX_BATCH)||network!==56||!nftCode||!marketCode||keccak256(nftCode)!==d.collectionCodeHash||keccak256(marketCode)!==d.marketCodeHash||price!==MINT_WEI||supply!==BigInt(NFT_SUPPLY)||treasury.toLowerCase()!==TREASURY.toLowerCase()||fee!==0n||collection.toLowerCase()!==d.collection.toLowerCase())throw Error('合约核验失败，已停止付款入口');
  if(d.randomnessMode==='direct'){const adapter=d.adapter as Address;const [code,bound]=await Promise.all([publicClient.getCode({address:adapter}),publicClient.readContract({address:adapter,abi:directAbi,functionName:'collection'})]);if(!code||keccak256(code)!==d.adapterCodeHash||bound.toLowerCase()!==d.collection.toLowerCase())throw Error('随机服务核验失败');}
  if(d.optionalReferrer&&await publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'OPTIONAL_REFERRER'})!==true)throw Error('合约不支持无邀请人铸造');
+ if(d.preallocatedSupply===4){const [count,publicSupply,recipient]=await Promise.all([
+ publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'PREALLOCATED_SUPPLY'}),
+ publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'PUBLIC_SUPPLY'}),
+ publicClient.readContract({address:d.collection,abi:nftAbi,functionName:'ALLOCATION_RECIPIENT'})]);
+ if(count!==4n||publicSupply!==7773n||recipient.toLowerCase()!==d.allocationRecipient?.toLowerCase())throw Error('预分配规则核验失败');}
  return d;
 }
 async function chunks<T,R>(items:readonly T[],fn:(item:T)=>Promise<R>):Promise<R[]>{const result:R[]=[];for(let i=0;i<items.length;i+=64)result.push(...await Promise.all(items.slice(i,i+64).map(fn)));return result;}
