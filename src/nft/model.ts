@@ -15,18 +15,19 @@ export function splitFee(price:bigint){return {fee:0n,seller:price};}
 
 export const MAX_BATCH=20;
 export const REFERRAL_BPS=2000n;
-export function mintQuote(input:string|number){
+export function mintQuote(input:string|number,hasReferrer=true){
  const value=String(input);
  if(!/^(?:[1-9]|1\d|20)$/.test(value))throw Error('数量必须为 1–20 的整数');
- const quantity=Number(value),total=MINT_WEI*BigInt(quantity),reward=total*REFERRAL_BPS/10000n;
+ const quantity=Number(value),total=MINT_WEI*BigInt(quantity),reward=hasReferrer?total*REFERRAL_BPS/10000n:0n;
  return {quantity,total,reward,treasury:total-reward};
 }
-export function validateReferrer(draft:string,account?:string,collection?:string):Address{
+export function validateReferrer(draft:string,account?:string,collection?:string,optional=false):Address{
+ if(optional&&(!draft.trim()||draft.toLowerCase()===zeroAddress))return zeroAddress;
  if(!isAddress(draft))throw Error('请输入有效的邀请地址');
  if([zeroAddress,'0x000000000000000000000000000000000000dead',account,collection].some(a=>a?.toLowerCase()===draft.toLowerCase()))throw Error('邀请地址不能为自己、零地址、销毁地址或 NFT 合约');
  return draft;
 }
-export function effectiveReferrer(bound:Address|null|undefined,draft:string,account?:string,collection?:string){return validateReferrer(bound||draft,account,collection)}
+export function effectiveReferrer(bound:Address|null|undefined,draft:string,account?:string,collection?:string,optional=false){return validateReferrer(bound&&bound!==zeroAddress?bound:draft,account,collection,optional)}
 
 export function matchesNFT(nft:NFT,query:string,series:string){
  const text=query.trim().toLocaleLowerCase();
