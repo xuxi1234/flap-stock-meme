@@ -308,5 +308,11 @@
   "正在核验链上连接…": "Verifying on-chain connection…",
   "正在读取链上状态": "Loading on-chain status",
   "重试连接 ↻": "Retry connection ↻",
-  "返回官网 ↗": "Back to website ↗"
+  "返回官网 ↗": "Back to website ↗",
+  "277 张原创特别款 · 下方四张为指定分配": "277 originals · The four below are preallocated",
+  "总量 7,777 张，其中 #0001、#0520、#1314、#7777 在部署时指定分配，不参与随机铸造。其余 7,773 张通过 Chainlink VRF 随机分配。": "7,777 NFTs in total. #0001, #0520, #1314 and #7777 are allocated at deployment and excluded from random minting. The remaining 7,773 use Chainlink VRF.",
+  "初始分配接收地址": "Initial allocation recipient",
+  "此编号已指定分配，不参与随机铸造；持有人可在市场挂单出售。": "This ID is preallocated and excluded from random minting. Its holder can list it on the market.",
+  "此编号暂无在售挂单": "This ID is not currently listed for sale",
+  "预分配规则核验失败": "Preallocation verification failed"
 }
