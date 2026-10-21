@@ -302,5 +302,11 @@
   "新版典藏 · 邀请人选填，无邀请人也能铸造。": "New collection · An inviter is optional. Mint without one.",
   "原版典藏 · 原有 NFT、申请和邀请奖励保留于此。": "Original collection · Your original NFTs, requests and referral rewards remain here.",
   "查看原版 NFT 与市场 ↗": "View original NFTs and marketplace ↗",
-  "进入新版 · 无邀请人铸造 ↗": "Open new collection · Mint without an inviter ↗"
+  "进入新版 · 无邀请人铸造 ↗": "Open new collection · Mint without an inviter ↗",
+  "仅一代邀请奖励，在整批领取成功后记入邀请人可提现余额。申请、分配和领取均需链上确认，网络 Gas 另计。等待随机数时请勿重复付款；申请不能取消或退款。": "Single-generation referral rewards become withdrawable after the batch is claimed. Request, allocation and claim require on-chain confirmation and gas. Do not pay again while waiting for randomness. Requests cannot be cancelled or refunded.",
+  "链上连接暂不可用": "On-chain connection unavailable",
+  "正在核验链上连接…": "Verifying on-chain connection…",
+  "正在读取链上状态": "Loading on-chain status",
+  "重试连接 ↻": "Retry connection ↻",
+  "返回官网 ↗": "Back to website ↗"
 }

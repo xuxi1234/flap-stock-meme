@@ -310,3 +310,34 @@ body, .site-shell { background: var(--acid); }
 @media (prefers-reduced-motion: reduce) {
   .hero-official-links p { animation: none; transform: none; }
 }
+
+/* Task-focused home: primary actions stay above supporting details. */
+.site-shell .hero { min-height: 0; padding-block: 40px 50px; }
+.site-shell .hero-description-compact { background: transparent; padding: 0; border: 0; box-shadow: none; max-width: 580px; font-weight: 500; }
+.hero-action-note { font-size: 13px; line-height: 1.7; margin: 14px 0 22px; }
+.hero-contract-box { background: var(--paper); border: 1px solid var(--ink); border-radius: 14px; padding: 14px 16px; }
+.hero-contract-box > div { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; }
+.hero-contract-box button { background:var(--purple); color:white; border:0; border-radius:8px; min-height:44px; padding:8px 12px; cursor:pointer; white-space:nowrap; }
+.hero-contract-box > a { display:block; overflow-wrap:anywhere; font-size:13px; line-height:1.8; margin-top:8px; }
+.hero-contract-box [role=status] { display:block; font-size:12px; line-height:1.7; }
+.hero-project-details { margin-top:18px; line-height:1.7; font-size:14px; }
+.hero-project-details summary { cursor:pointer; min-height:44px; padding:10px 0; }
+.hero-project-details a { display:inline-block; margin-right:24px; min-height:44px; }
+.home-tools, .home-faq { width:min(calc(100% - 40px),1240px); margin:0 auto 48px; }
+.home-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.home-tool { background:var(--paper); border:2px solid var(--ink); border-radius:20px; padding:24px; text-decoration:none; color:var(--ink); display:flex; flex-direction:column; }
+.home-tool > span { font-size:11px; font-weight:800; color:var(--purple); letter-spacing:.1em; }
+.home-tool h2 { font-size:23px; margin:14px 0 10px; }
+.home-tool p { font-size:14px; line-height:1.7; margin:0 0 20px; }
+.home-tool strong { margin-top:auto; font-size:13px; color:var(--purple); }
+.home-tool:hover { box-shadow:4px 4px 0 var(--ink); }
+.home-faq { background:var(--paper); border:2px solid var(--ink); border-radius:24px; padding:32px; }
+.home-faq h2 { font-size:clamp(24px,3vw,36px); margin:12px 0 24px; }
+.home-faq details { border-top:1px solid #b7b5ba; padding:8px 0; }
+.home-faq summary { padding:14px 0; min-height:44px; font-weight:700; cursor:pointer; }
+.home-faq details p { max-width:850px; line-height:1.8; margin:0 0 16px; }
+.home-skip { position:fixed; left:16px; top:-100px; z-index:1000; padding:16px; background:white; color:#361487; }
+.home-skip:focus { top:12px; }
+.site-shell :is(a,button,summary):focus-visible { outline:3px solid #5424e8; outline-offset:4px; }
+@media(max-width:760px) { .home-tools { grid-template-columns:1fr; } .home-tools,.home-faq { width:calc(100% - 20px); } .home-faq { padding:22px; } .site-shell .hero { padding-top:24px; } .hero-actions .button { flex:1 1 180px; text-align:center; } .home-tool { padding:22px; } }
+@media(prefers-reduced-motion:reduce) { .site-shell *, .site-shell *::before, .site-shell *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }

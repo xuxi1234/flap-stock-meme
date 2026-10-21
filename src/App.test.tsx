@@ -4,12 +4,25 @@ import App from './App'
 import { projectConfig } from './config/project'
 
 beforeEach(() => {
+  localStorage.clear()
   window.history.replaceState(null, '', '/')
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Offline UI test')))
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 describe('simplified bilingual brand page', () => {
+  it('restores language on return and lets a shared URL override it', async () => {
+    localStorage.setItem('butterfly-nft-language', 'en')
+    const first = render(<App />)
+    await screen.findByRole('button', { name: 'Switch to Chinese' })
+    expect(screen.getByRole('link', {name:'EXPLORE & MINT NFT ↗'})).toHaveAttribute('href', '/nft?lang=en')
+    first.unmount()
+    window.history.replaceState(null, '', '/?lang=zh')
+    render(<App />)
+    await screen.findByRole('button', { name: '切换到英文' })
+    expect(localStorage.getItem('butterfly-nft-language')).toBe('zh')
+  })
+
   it('removes presale UI and entry points in both languages', async () => {
     const { container } = render(<App />)
     await waitFor(() => expect(container.querySelector('#hero-title')).not.toBeNull())
@@ -35,7 +48,7 @@ describe('simplified bilingual brand page', () => {
     window.history.replaceState(null, '', `/?view=${view}#presale`)
     const { container } = render(<App />)
     await waitFor(() => expect(container.querySelector('#hero-title')).not.toBeNull())
-    expect(window.location.search).toBe('')
+    expect(new URLSearchParams(window.location.search).has('view')).toBe(false)
     expect(window.location.hash).toBe('')
     expect(container.textContent).not.toMatch(/私募|PRIVATE SALE/)
   })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Language, SiteCopy } from '../content/siteContent'
 import { projectConfig } from '../config/project'
 import { CommunityLinks } from './CommunityLinks'
@@ -16,6 +16,8 @@ type Props = {
 export function SiteHeader({ copy, communityCopy, language, onLanguageChange, account, onWalletClick }: Props) {
   const nextLanguage: Language = language === 'zh' ? 'en' : 'zh'
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => { const close = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close) }, [])
 
   const changeLanguage = () => {
     setMenuOpen(false)
