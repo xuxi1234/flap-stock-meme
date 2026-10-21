@@ -1,0 +1,63 @@
+name: 蝴蝶股票NFT｜四张指定分配
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [只读核验, 部署并分配四张]
+        default: 只读核验
+        required: true
+        description: 完整7777合集：四张指定分配，其余7773随机；本次最多0.002BNB
+      approval:
+        type: string
+        required: false
+        description: 执行须填APPROVE_RESERVED_MAX_0.002_BNB；包含0.001BNB随机服务资金
+permissions:
+  contents: write
+concurrency:
+  group: flap-mint-acceptance-bsc56-79f8
+  cancel-in-progress: false
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RESERVED_OUTPUT_DIR: ${{ github.workspace }}/reserved-output
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix contracts/nft
+      - run: node --test test/direct.test.mjs test/optional.test.mjs test/reserved.test.mjs
+        working-directory: contracts/nft
+      - name: Check recipient, oracle quote, assets and budget
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node scripts/launch-reserved.mjs
+      - name: Execute only explicitly approved revised total
+        if: inputs.operation == '部署并分配四张'
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          NFT_DEPLOY_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          RESERVED_APPROVAL: ${{ inputs.approval }}
+        run: node scripts/launch-reserved.mjs --execute
+      - name: Independently verify code, receipts, allocation and budget
+        if: inputs.operation == '部署并分配四张'
+        working-directory: contracts/nft
+        env:
+          NFT_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: node scripts/verify-reserved-live.mjs "$RESERVED_OUTPUT_DIR/journal.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: butterfly-reserved-${{ github.run_id }}
+          path: reserved-output/
+          include-hidden-files: true
+          retention-days: 90

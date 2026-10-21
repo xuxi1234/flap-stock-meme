@@ -64,14 +64,18 @@ contract ButterflyNFT is ERC721Enumerable, ReentrancyGuard {
   require(msg.sender==address(randomness),'Only randomness');MintRequest storage r=requests[requestId];
   require(r.payer!=address(0) && r.tokenId==0,'Invalid fulfillment');
   for(uint256 i;i<r.quantity;++i){
-   uint256 remaining=MAX_SUPPLY-assigned;
-   // Preserve the legacy single draw; batches expand the VRF seed per index.
+   // Batches expand the VRF seed per index.
    uint256 draw=r.quantity==1?word:uint256(keccak256(abi.encode(word,requestId,i)));
-   uint256 index=draw%remaining;uint256 value=pool[index];uint256 tokenId=value==0?index+1:value;
-   uint256 last=pool[remaining-1];pool[index]=last==0?remaining:last;
-   delete pool[remaining-1];++assigned;assignedIds[requestId].push(tokenId);
+   uint256 tokenId=_drawToken(draw);assignedIds[requestId].push(tokenId);
    if(i==0)r.tokenId=tokenId;emit MintAssigned(requestId,tokenId);
   }
+ }
+ /// @dev Removes one ID from the remaining sparse shuffle pool, without replacement.
+ function _drawToken(uint256 draw) internal returns(uint256 tokenId) {
+  uint256 remaining=MAX_SUPPLY-assigned;require(remaining>0,'Sold out');
+  uint256 index=draw%remaining;uint256 value=pool[index];tokenId=value==0?index+1:value;
+  uint256 last=pool[remaining-1];pool[index]=last==0?remaining:last;
+  delete pool[remaining-1];++assigned;
  }
  function requestTokenIds(uint256 requestId) external view returns(uint256[] memory){return assignedIds[requestId];}
  function claim(uint256 requestId,address recipient) external nonReentrant {
