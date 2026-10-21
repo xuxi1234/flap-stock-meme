@@ -290,5 +290,13 @@
   "钱包确认时显示": "Shown in your wallet",
   "当前筛选": "Active filters",
   "按序分配下一批": "Allocate next batch in order",
-  "申请和编号保存在链上，关闭页面后仍可回来领取。随机数返回后按申请顺序分配，再领取；分配交易另付 Gas。": "Requests and IDs stay on chain. Return anytime. After randomness arrives, allocate in request order, then claim. Allocation requires a separate gas payment."
+  "申请和编号保存在链上，关闭页面后仍可回来领取。随机数返回后按申请顺序分配，再领取；分配交易另付 Gas。": "Requests and IDs stay on chain. Return anytime. After randomness arrives, allocate in request order, then claim. Allocation requires a separate gas payment.",
+  "邀请人（选填）": "Inviter (optional)",
+  "没有邀请人可直接铸造，全部铸造款进入收款地址。有邀请人时奖励 20%，首次绑定后不可更改。": "Mint without an inviter: all mint proceeds go to the treasury. With an inviter, the reward is 20% and the first binding is permanent.",
+  "不使用邀请人": "Continue without an inviter",
+  "邀请人奖励 · 0%": "Inviter reward · 0%",
+  "铸造收款地址 · 100%": "Treasury · 100%",
+  "合约不支持无邀请人铸造": "This contract does not support minting without an inviter",
+  "每张 0.01 BNB，每批 1–20 张。邀请人选填：无邀请人时全部铸造款进入收款地址；有邀请人时，领取成功后 20% 记入邀请奖励，80% 进入收款地址。已绑定邀请人不可更改，留空不会解除绑定。仅一代奖励，二级市场不分成。申请、分配、领取的 Gas 另计；当前合约没有退款功能。": "Each NFT costs 0.01 BNB; batches contain 1–20. An inviter is optional: without one, all mint proceeds go to the treasury; with one, 20% becomes a referral reward upon claim and 80% goes to the treasury. Existing bindings cannot change; leaving the field blank does not remove a binding. One reward level only, with no secondary-sale commission. Request, allocation and claim gas are extra. The contract has no refunds.",
+  "原版 NFT 与市场 ↗": "Original NFTs and marketplace ↗"
 }
