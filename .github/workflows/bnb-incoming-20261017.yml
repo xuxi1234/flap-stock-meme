@@ -9,30 +9,44 @@ permissions:
 jobs:
   query:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Inspect paid RPC and transaction index
+      - name: Query and verify incoming BNB with paid RPC
         env:
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
         run: |
           cat > /tmp/query.mjs <<'JS'
           import fs from 'node:fs';
-          const url=process.env.FLAP_BSC_RPC_URL;
-          if(!url)throw Error('Missing paid RPC configuration');
-          async function rpc(method,params){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(30000)});const d=await r.json();if(d.error) return {error:d.error.code,message:d.error.message};return d.result;}
-          console.log('chain',await rpc('eth_chainId',[]));
-          console.log('latest',JSON.stringify(await rpc('eth_getBlockByNumber',['latest',false]),(k,v)=>k==='transactions'?v.length:v));
-          console.log('transfers',JSON.stringify(await rpc('alchemy_getAssetTransfers',[{fromBlock:'0x0',toAddress:'0x273ed5b381cc9d8b6f814b4e8bb25bc01e2fc76a',category:['external'],maxCount:'0x1',order:'desc',withMetadata:true}])));
-          const r=await fetch('https://bscscan.com/txs?a=0x273ED5b381Cc9d8b6F814B4E8BB25bC01E2fC76A&ps=100',{signal:AbortSignal.timeout(30000)});
-          const s=await r.text();console.log('explorer',r.status,s.length);
-          fs.mkdirSync('bnb-query-output',{recursive:true});fs.writeFileSync('bnb-query-output/explorer.html',s);
-          const rows=s.match(/<tr[\s\S]*?<\/tr>/g)||[];
-          for(const row of rows)if(row.includes('/tx/')) console.log(row.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
+          const url=process.env.FLAP_BSC_RPC_URL, address='0x273ed5b381cc9d8b6f814b4e8bb25bc01e2fc76a';
+          const start=Date.parse('2026-10-17T00:00:00+08:00')/1000,end=Date.parse('2026-10-18T00:00:00+08:00')/1000;
+          async function rpc(method,params){for(let i=0;i<4;i++){try{const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(30000)});const d=await r.json();if(d.error)throw Error(method+' code '+d.error.code);if(r.ok)return d.result;}catch(e){if(i===3)throw Error(method+' failed');}await new Promise(r=>setTimeout(r,500*(i+1)));}}
+          const hex=n=>'0x'+n.toString(16);
+          if(await rpc('eth_chainId',[])!=='0x38')throw Error('Wrong chain');
+          const tip=await rpc('eth_getBlockByNumber',['latest',false]);
+          async function lower(ts){let lo=1,hi=Number(BigInt(tip.number));while(lo<hi){const mid=Math.floor((lo+hi)/2),b=await rpc('eth_getBlockByNumber',[hex(mid),false]);if(Number(BigInt(b.timestamp))<ts)lo=mid+1;else hi=mid;}return lo;}
+          const first=await lower(start),last=(await lower(end))-1;
+          console.log('BOUNDS',first,last);
+          async function transfers(category){let pageKey,all=[];for(let p=0;p<100;p++){const q={fromBlock:hex(first),toBlock:hex(last),toAddress:address,category:[category],excludeZeroValue:true,withMetadata:true,maxCount:'0x64',order:'asc'};if(pageKey)q.pageKey=pageKey;const d=await rpc('alchemy_getAssetTransfers',[q]);if(!Array.isArray(d.transfers))throw Error('Invalid transfers');all.push(...d.transfers);if(!d.pageKey)return all;pageKey=d.pageKey;}throw Error('Pagination cap');}
+          const external=await transfers('external');let internal=[],internalStatus='verified';
+          try{internal=await transfers('internal');}catch{internalStatus='unsupported';}
+          const rows=[],seen=new Set();
+          for(const t of [...external,...internal]){const key=t.uniqueId||t.hash+':'+t.category;if(seen.has(key))continue;seen.add(key);
+          const tx=await rpc('eth_getTransactionByHash',[t.hash]),rc=await rpc('eth_getTransactionReceipt',[t.hash]),b=await rpc('eth_getBlockByNumber',[tx.blockNumber,false]);
+          const ts=Number(BigInt(b.timestamp));if(rc.status!=='0x1')continue;
+          if(ts<start||ts>=end||rc.blockHash!==b.hash)throw Error('Verification mismatch');
+          if(t.to.toLowerCase()!==address)throw Error('Destination mismatch');
+          let wei;if(t.category==='external'){if(tx.to?.toLowerCase()!==address)throw Error('Transaction destination mismatch');wei=BigInt(tx.value);}else {if(!t.rawContract.value)throw Error('Internal exact amount missing');wei=BigInt(t.rawContract.value);}
+          if(wei<=0n)continue;
+          rows.push({timestamp:ts,timeBeijing:new Date((ts+28800)*1000).toISOString().replace('T',' ').slice(0,19),from:t.from,to:address,wei:wei.toString(),hash:t.hash,block:Number(BigInt(tx.blockNumber)),type:t.category,id:key});
+          }
+          rows.sort((a,b)=>a.timestamp-b.timestamp||a.id.localeCompare(b.id));
+          const result={address,start:'2026-10-17 00:00:00 +08:00',endExclusive:'2026-10-18 00:00:00 +08:00',first,last,internalStatus,rows};
+          fs.mkdirSync('bnb-query-output',{recursive:true});fs.writeFileSync('bnb-query-output/report.json',JSON.stringify(result,null,2));
+          console.log('RESULT_JSON '+JSON.stringify(result));
           
           JS
           node /tmp/query.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
         with:
           name: bnb-query-20261017
           path: bnb-query-output/
