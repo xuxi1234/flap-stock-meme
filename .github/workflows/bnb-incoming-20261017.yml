@@ -1,0 +1,38 @@
+name: BNB incoming read-only 20261017
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/bnb-incoming-20261017.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect paid RPC and transaction index
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: |
+          cat > /tmp/query.mjs <<'JS'
+          import fs from 'node:fs';
+          const url=process.env.FLAP_BSC_RPC_URL;
+          if(!url)throw Error('Missing paid RPC configuration');
+          async function rpc(method,params){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(30000)});const d=await r.json();if(d.error) return {error:d.error.code,message:d.error.message};return d.result;}
+          console.log('chain',await rpc('eth_chainId',[]));
+          console.log('latest',JSON.stringify(await rpc('eth_getBlockByNumber',['latest',false]),(k,v)=>k==='transactions'?v.length:v));
+          console.log('transfers',JSON.stringify(await rpc('alchemy_getAssetTransfers',[{fromBlock:'0x0',toAddress:'0x273ed5b381cc9d8b6f814b4e8bb25bc01e2fc76a',category:['external'],maxCount:'0x1',order:'desc',withMetadata:true}])));
+          const r=await fetch('https://bscscan.com/txs?a=0x273ED5b381Cc9d8b6F814B4E8BB25bC01E2fC76A&ps=100',{signal:AbortSignal.timeout(30000)});
+          const s=await r.text();console.log('explorer',r.status,s.length);
+          fs.mkdirSync('bnb-query-output',{recursive:true});fs.writeFileSync('bnb-query-output/explorer.html',s);
+          const rows=s.match(/<tr[\s\S]*?<\/tr>/g)||[];
+          for(const row of rows)if(row.includes('/tx/')) console.log(row.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
+          
+          JS
+          node /tmp/query.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: bnb-query-20261017
+          path: bnb-query-output/
