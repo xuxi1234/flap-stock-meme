@@ -1,0 +1,100 @@
+name: 蝴蝶羊空投｜1296地址·每5分钟200地址
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 操作
+        type: choice
+        options: [只读检查, 启动或继续空投]
+        default: 只读检查
+        required: true
+      confirm:
+        description: '确认从0x74a7…69aA向固定1296地址每地址转出0.7777枚蝴蝶羊；税费按代币合约扣除；Gas无累计上限'
+        type: boolean
+        default: false
+        required: true
+  push:
+    branches: [main]
+    paths:
+      - scripts/mint-acceptance/sheep-sixfiles-*.mjs
+      - .github/workflows/airdrop-sheep-sixfiles.yml
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'flap-mint-acceptance-bsc56-79f8' || format('sheep-sixfiles-check-{0}', github.ref) }}
+  cancel-in-progress: false
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node --test scripts/mint-acceptance/sheep-sixfiles-tests.mjs
+  check:
+    name: 只读核验代币余额和链上批次
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node scripts/mint-acceptance/sheep-sixfiles-run.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          SHEEP_SIXFILES_REPORT_DIR: ${{ runner.temp }}/sheep-sixfiles-check
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sheep-sixfiles-check
+          path: ${{ runner.temp }}/sheep-sixfiles-check/
+          if-no-files-found: ignore
+  execute:
+    name: 蝴蝶羊空投步骤 ${{ matrix.slot }}
+    needs: check
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.operation == '启动或继续空投' && inputs.confirm == true
+    permissions:
+      contents: write
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        slot: [1,2,3,4,5,6,7]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - run: node scripts/mint-acceptance/sheep-sixfiles-run.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
+          SHEEP_SIXFILES_EXECUTE: 'true'
+          SHEEP_SIXFILES_CONFIRM: sheep-sixfiles:0.7777:200:300seconds
+          SHEEP_SIXFILES_REPORT_DIR: ${{ runner.temp }}/sheep-sixfiles-results
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sheep-sixfiles-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
+          path: ${{ runner.temp }}/sheep-sixfiles-results/
+          if-no-files-found: ignore
+
+
