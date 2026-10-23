@@ -31,6 +31,7 @@ concurrency:
 
 jobs:
   check:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     name: 测试及只读检查
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -60,9 +61,9 @@ jobs:
           if-no-files-found: ignore
 
   execute:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     name: 执行或继续本次20轮空投
     needs: check
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == '执行空投' && inputs.confirm == true && inputs.owned_return_confirm == true
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
