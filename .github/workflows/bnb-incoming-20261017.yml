@@ -1,4 +1,4 @@
-name: Butterfly Sheep ten-day BNB incoming
+name: Butterfly Sheep retail five-day BNB incoming
 on:
   push:
     branches: [main]
@@ -17,14 +17,14 @@ jobs:
         run: |
           cat > /tmp/query.mjs <<'JS'
           import fs from 'node:fs';
-          const url=process.env.FLAP_BSC_RPC_URL, address='0x273ed5b381cc9d8b6f814b4e8bb25bc01e2fc76a';
+          const url=process.env.FLAP_BSC_RPC_URL, address='0x722549b281544e7d2e08a673accf5548e705f346';
           let start,end;
           async function rpc(method,params){for(let i=0;i<4;i++){try{const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(30000)});const d=await r.json();if(d.error)throw Error(method+' code '+d.error.code);if(r.ok)return d.result;}catch(e){if(i===3)throw Error(method+' failed');}await new Promise(r=>setTimeout(r,500*(i+1)));}}
           const hex=n=>'0x'+n.toString(16);
           if(await rpc('eth_chainId',[])!=='0x38')throw Error('Wrong chain');
           const head=await rpc('eth_blockNumber',[]);
           const tip=await rpc('eth_getBlockByNumber',[hex(Number(BigInt(head))-30),false]);
-          end=Number(BigInt(tip.timestamp))+1;start=end-10*86400;
+          end=Number(BigInt(tip.timestamp))+1;start=end-5*86400;
           async function lower(ts){let lo=1,hi=Number(BigInt(tip.number));while(lo<hi){const mid=Math.floor((lo+hi)/2),b=await rpc('eth_getBlockByNumber',[hex(mid),false]);if(Number(BigInt(b.timestamp))<ts)lo=mid+1;else hi=mid;}return lo;}
           const first=await lower(start),last=Number(BigInt(tip.number));
           console.log('BOUNDS',first,last);
