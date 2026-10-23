@@ -1,0 +1,94 @@
+name: FIST分段加速｜补齐并合并唯一CSV
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/holders-1024-rescue.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  stop-old:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          state=$(gh api repos/xuxi1234/flap-stock-meme/actions/runs/40022300110 --jq .status)
+          if [ "$state" != completed ]; then gh api --method POST repos/xuxi1234/flap-stock-meme/actions/runs/40022300110/cancel; fi
+  scan:
+    needs: stop-old
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/holders18
+            scripts/holders-1024-rescue
+            scripts/holders-1024-merged
+            scripts/mint-acceptance
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 40022300110
+          name: 1024-merged-token-8
+          path: holder-input
+      - run: node scripts/holders-1024-rescue/run.mjs scan
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+          SHARD: ${{ matrix.shard }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fist-shard-${{ matrix.shard }}
+          path: rescue-output/
+  finalize:
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/holders18
+            scripts/holders-1024-rescue
+            scripts/holders-1024-merged
+            scripts/mint-acceptance
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 40022300110
+          pattern: 1024-merged-token-*
+          merge-multiple: true
+          path: holder-input
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fist-shard-*
+          merge-multiple: true
+          path: rescue-input
+      - run: node scripts/holders-1024-rescue/run.mjs finish
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+      - run: node scripts/holders-1024-merged/finalize.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: holders-1024-final
+          path: holder-export/
+          retention-days: 90
