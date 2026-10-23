@@ -26,13 +26,19 @@ if(mode==='scan'){
  },4);
  fs.writeFileSync(`rescue-output/shard-${shard}.json`,JSON.stringify({token,block,hash,creation,from,to,ranges:ranges.sort((a,b)=>a.from-b.from),addresses:[...set],logs}));
  console.log('SHARD_DONE',shard,set.size);
-}else{
+}else if(mode==='balance'){
  const set=new Set(),ranges=[];let logCount=0;
  for(let i=0;i<12;i++){const s=JSON.parse(fs.readFileSync(`rescue-input/shard-${i}.json`));if(s.block!==block||s.hash!==hash||s.token!==token||s.creation!==creation)throw Error('Shard mismatch');for(const a of s.addresses)set.add(a);ranges.push(...s.ranges);logCount+=s.logs;}
  ranges.sort((a,b)=>a.from-b.from);let next=creation;for(const r of ranges){if(r.from!==next||r.to<r.from)throw Error('Coverage gap');next=r.to+1;}if(next!==block+1)throw Error('Coverage end mismatch');
- const addresses=[...set].sort(),groups=Array.from({length:Math.ceil(addresses.length/100)},(_,i)=>addresses.slice(i*100,i*100+100));
+ const all=[...set].sort(),part=Number(process.env.PART),size=Math.ceil(all.length/12),addresses=all.slice(part*size,(part+1)*size),groups=Array.from({length:Math.ceil(addresses.length/100)},(_,i)=>addresses.slice(i*100,i*100+100));
  await verifyMulticall(rpc,tag);
  const balances=(await mapLimit(groups,async(g,i)=>{const values=await readBalances(g,rpc,token,tag);for(const n of new Set([0,g.length-1])){const direct=BigInt(await rpc('eth_call',[{to:token,data:'0x70a08231'+g[n].slice(2).padStart(64,'0')},tag]));if(direct!==BigInt(values[n]))throw Error('Balance mismatch');}if(i%100===0)console.log('BALANCES',i*100,addresses.length);return g.map((address,n)=>({address,balance:BigInt(values[n]).toString()}));},4)).flat();
+ fs.writeFileSync(`rescue-output/balances-${part}.json`,JSON.stringify({part,block,hash,allCount:all.length,balances}));
+}else{
+ const balances=[];let allCount;
+ for(let i=0;i<12;i++){const p=JSON.parse(fs.readFileSync(`balance-input/balances-${i}.json`));if(p.part!==i||p.block!==block||p.hash!==hash)throw Error('Balance part mismatch');allCount??=p.allCount;if(allCount!==p.allCount)throw Error('Candidate mismatch');balances.push(...p.balances);}
+ if(balances.length!==allCount||new Set(balances.map(x=>x.address)).size!==allCount)throw Error('Missing balances');
+ const ranges=[];let logCount=0;for(let i=0;i<12;i++){const s=JSON.parse(fs.readFileSync(`rescue-input/shard-${i}.json`));ranges.push(...s.ranges);logCount+=s.logs;}ranges.sort((a,b)=>a.from-b.from);
  const supply=BigInt(await rpc('eth_call',[{to:token,data:'0x18160ddd'},tag])),sum=balances.reduce((s,r)=>s+BigInt(r.balance),0n),top=selectTop(balances,1000);
  const result={token,symbol:'FIST',creationBlock:creation,snapshotBlock:block,snapshotHash:hash,totalSupply:String(supply),verifiedBalanceSum:String(sum),...proveTopCoverage(sum,supply,top,1000),positiveHolders:balances.filter(x=>BigInt(x.balance)>0n).length,logCount,ranges,top};
  fs.writeFileSync(`holder-input/${token}.json`,JSON.stringify(result));
