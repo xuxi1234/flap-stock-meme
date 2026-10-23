@@ -21,6 +21,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   check:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     name: 检查启动状态、到期时间及链上记录
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -51,6 +52,7 @@ jobs:
           retention-days: 90
           if-no-files-found: ignore
   execute:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     name: 续跑步骤 ${{ matrix.slot }}/6
     needs: check
     strategy:
@@ -58,7 +60,6 @@ jobs:
       max-parallel: 1
       matrix:
         slot: [1, 2, 3, 4, 5, 6]
-    if: needs.check.outputs.ready == 'true' && github.ref == 'refs/heads/main' && inputs.operation == '执行或继续1196地址' && inputs.confirm == true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
