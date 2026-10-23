@@ -25,6 +25,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   tests:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,6 +38,7 @@ jobs:
       - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
       - run: node --test scripts/mint-acceptance/stock28122-tests.mjs
   check:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     name: 只读核验代币余额和链上批次
     needs: tests
     runs-on: ubuntu-latest
@@ -62,9 +64,9 @@ jobs:
           path: ${{ runner.temp }}/stock28122-check/
           if-no-files-found: ignore
   execute:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     name: 蝴蝶股票空投步骤 ${{ matrix.slot }}
     needs: check
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.operation == '启动或继续空投' && inputs.confirm == true
     permissions:
       contents: write
     strategy:
