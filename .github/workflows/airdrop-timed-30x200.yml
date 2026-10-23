@@ -5,6 +5,7 @@ permissions:
   contents: read
 jobs:
   retired:
+    if: ${{ false }} # All stock airdrops stopped by owner request 2026-10-23
     runs-on: ubuntu-latest
     steps:
       - run: echo '旧任务已按用户要求停止，已完成16轮保留。请打开airdrop-new72.yml启动新任务。此入口不再发币。'
