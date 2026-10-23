@@ -1,0 +1,55 @@
+name: 1024名单最终合并
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/holders-1024-final.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/holders18
+            scripts/holders-1024-rescue
+            scripts/holders-1024-merged
+            scripts/mint-acceptance
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 40022300110
+          artifact-ids: 12531915049,12531337329,12531137069,12531126814,12530558621,12530488822,12530369918,12530209632
+          merge-multiple: true
+          path: holder-input
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 40027281928
+          pattern: fist-shard-*
+          merge-multiple: true
+          path: rescue-input
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 40027281928
+          pattern: fist-balances-*
+          merge-multiple: true
+          path: balance-input
+      - run: node scripts/holders-1024-rescue/run.mjs finish
+        env:
+          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+      - run: node scripts/holders-1024-merged/finalize.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: holders-1024-final
+          path: holder-export/
+          retention-days: 90
