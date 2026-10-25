@@ -4,7 +4,7 @@
   "account": "0x1daa59d86a032014a88321f2ce39d89ead2c3163",
   "token": "0x3805e1ce7edde3eb2f3613485cc6f42a7a3d7777",
   "sourceSha": "82f549e1f8767267d1cfec81baa5bbe5ccf2648350037e81e16ccaa223ef29ca",
-  "active": true,
+  "active": false,
   "baseNonce": 1,
   "entries": [
     {
