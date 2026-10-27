@@ -21,14 +21,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --ignore-scripts --prefix scripts/mint-acceptance
-      - run: node scripts/holders18/collect1024.mjs
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
-          HOLDERS_TOKEN_FILE: scripts/sheep-top400-1027/tokens.json
-          HOLDERS_TOKEN_INDEX: '0'
-          HOLDERS_TOP_N: '400'
-          HOLDERS_BRANCH: automation/sheep-top400-1027
+      - run: mkdir -p holders18-output && cp scripts/sheep-top400-1027/snapshot.json holders18-output/0xa623e650bf970244cf027b9f16f9247d14d17777.json
       - run: node scripts/sheep-top400-1027/prepare.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}

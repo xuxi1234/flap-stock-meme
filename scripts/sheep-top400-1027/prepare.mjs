@@ -6,6 +6,7 @@ const r=JSON.parse(fs.readFileSync('holders18-output/'+token+'.json'));
 if(r.top.length!==400)throw Error('Incomplete top400');
 if((await rpc('eth_getBlockByNumber',['0x'+r.snapshotBlock.toString(16),false])).hash!==r.snapshotHash)throw Error('Snapshot mismatch');
 const codes=Object.fromEntries(await mapLimit(r.top,async h=>[h.address,await rpc('eth_getCode',[h.address,'0x'+r.snapshotBlock.toString(16)])],4));
+for(const [a,c] of Object.entries(codes))if(/^0xef0100[0-9a-f]{40}$/i.test(c))codes[a]='0x';
 const m=mergeRecipients([r],codes,'0x74a7d3198905c3b4ba53574c2dffef3aa4e569aa');
 const csv='address\n'+m.recipients.join('\n')+'\n';
 fs.writeFileSync('holders18-output/recipients.csv',csv);
