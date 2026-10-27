@@ -1,0 +1,13 @@
+{
+  "complete": false,
+  "chainId": 56,
+  "provider": "Alchemy BNB mainnet",
+  "run": "40438403219",
+  "tokenCount": 1,
+  "tokens": [],
+  "errors": [],
+  "method": "Full Transfer history from deployment; balanceOf for every candidate at one fixed block; rank before filtering",
+  "snapshotBlock": 130009198,
+  "snapshotHash": "0x0ee9d553b89d473ec3889580f4bb26afa605d4bfabb00ce8476e27b6a230b825",
+  "snapshotTime": "2026-10-27T02:26:13.000Z"
+}
