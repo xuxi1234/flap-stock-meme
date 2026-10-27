@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import {rpc,mapLimit,publish} from '../holders18/io.mjs';
+import {mergeRecipients} from '../holders18/core.mjs';
+const token='0xa623e650bf970244cf027b9f16f9247d14d17777';
+const r=JSON.parse(fs.readFileSync('holders18-output/'+token+'.json'));
+if(r.top.length!==400)throw Error('Incomplete top400');
+if((await rpc('eth_getBlockByNumber',['0x'+r.snapshotBlock.toString(16),false])).hash!==r.snapshotHash)throw Error('Snapshot mismatch');
+const codes=Object.fromEntries(await mapLimit(r.top,async h=>[h.address,await rpc('eth_getCode',[h.address,'0x'+r.snapshotBlock.toString(16)])],4));
+const m=mergeRecipients([r],codes,'0x74a7d3198905c3b4ba53574c2dffef3aa4e569aa');
+const csv='address\n'+m.recipients.join('\n')+'\n';
+fs.writeFileSync('holders18-output/recipients.csv',csv);
+fs.writeFileSync('holders18-output/excluded.json',JSON.stringify(m.excluded,null,2));
+await publish({'recipients.csv':csv,'excluded.json':JSON.stringify(m.excluded,null,2)});
+const summary='最新前400持仓名单已核验；实际可发地址 '+m.recipients.length+'；剔除系统/合约地址 '+m.excluded.length+'。仅查询，未签名或发币。';
+console.log(summary);fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary);
