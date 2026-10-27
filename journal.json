@@ -2299,7 +2299,8 @@
         "nonce": 1122,
         "gas": "13239169",
         "gasPrice": "60000000"
-      }
+      },
+      "hash": "0x95145afc5fdac666a163851e245c5e2acca9cda0e499a48a79b4ac1ecc3450f3"
     }
   ]
 }
