@@ -1,4 +1,4 @@
-name: 蝴蝶羊空投｜10486地址·每55分钟200地址
+name: 蝴蝶羊空投｜10486地址·每35分钟200地址
 on:
   workflow_dispatch:
     inputs:
@@ -88,7 +88,7 @@ jobs:
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           FLAP_MINT_PRIVATE_KEY: ${{ secrets.FLAP_MINT_PRIVATE_KEY }}
           SHEEP10486_EXECUTE: 'true'
-          SHEEP10486_CONFIRM: sheep10486:0.7777:200:3300seconds
+          SHEEP10486_CONFIRM: sheep10486:0.7777:200:2100seconds
           SHEEP10486_REPORT_DIR: ${{ runner.temp }}/sheep10486-results
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

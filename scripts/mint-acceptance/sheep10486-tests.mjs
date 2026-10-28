@@ -16,8 +16,8 @@ test('only manual main invocation can execute',()=>{
  assert.equal(executionAllowed({...env,SHEEP10486_CONFIRM:''}),false);
  assert.equal(executionAllowed({...env,GITHUB_REF:'refs/heads/other'}),false);
 });
-test('55 minutes counted after observed confirmation',()=>{
- assert.equal(c.dueAt({entries:[{kind:'send',settled:true,success:true,confirmedAt:100,verifiedAt:120}]}),3420);
+test('35 minutes counted after observed confirmation',()=>{
+ assert.equal(c.dueAt({entries:[{kind:'send',settled:true,success:true,confirmedAt:100,verifiedAt:120}]}),2220);
 });
 const entry=()=>({kind:'send',batch:0,settled:false,transaction:{...c.callFor({kind:'send',batch:0}),nonce:7,chainId:56,type:'legacy',gas:'100000',gasPrice:'1000000000'}});
 test('checkpoint round trip and rejection of altered nonce or batch',()=>{
@@ -54,8 +54,8 @@ test('completion never creates another delivery',()=>{
 });
 test('journal rejects duplicate batches and insufficient interval; accepts settled nonce gaps',()=>{
  const e=(batch,nonce,time)=>({kind:'send',batch,hash:'0x'+'1'.repeat(64),settled:true,success:true,confirmedAt:time,verifiedAt:time,transaction:{...c.callFor({kind:'send',batch}),nonce,chainId:56,type:'legacy',gas:'100000',gasPrice:'1000000000'}});
- const j={...c.fresh(),baseNonce:7,entries:[e(0,7,1000),e(1,10,4300)]};c.validate(j);
- assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(0,10,4300)]}));
- assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(1,10,4299)]}));
+ const j={...c.fresh(),baseNonce:7,entries:[e(0,7,1000),e(1,10,3100)]};c.validate(j);
+ assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(0,10,3100)]}));
+ assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(1,10,3099)]}));
 });
 
