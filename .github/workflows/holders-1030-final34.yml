@@ -1,0 +1,41 @@
+name: 34币快照合并及取消剩余采集
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/holders-1030-final34.yml]
+permissions:
+  contents: read
+  actions: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/holders-1030-thirtyfour
+      - name: Cancel only superseded snapshot runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in 40939718311 40943775536; do
+            status=$(gh api repos/xuxi1234/flap-stock-meme/actions/runs/$id --jq .status)
+            if [ "$status" != "completed" ]; then gh api --method POST repos/xuxi1234/flap-stock-meme/actions/runs/$id/cancel; fi
+          done
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 40939718311
+          pattern: 1030-thirtysix-token-*
+          path: holder-input
+          merge-multiple: true
+      - run: node scripts/holders-1030-thirtyfour/finalize.mjs
+        env:
+          HOLDERS_SNAPSHOT: '130528518'
+          HOLDERS_SNAPSHOT_HASH: '0xd59f686de9c819e061c241096397d6f72a84eeb96f9f62415cac338f613204e8'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 1030-thirtyfour-deduplicated-final
+          path: holder-export/
+          retention-days: 90
