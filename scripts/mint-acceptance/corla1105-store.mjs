@@ -37,7 +37,8 @@ export function githubApi(token, fetcher = fetch, wait=delay) {
 export async function openGitHubStore({ api, readOnly = true, reportDirectory, wait=delay }) {
   const endpoint = `/contents/${STATE_FILE}`;
   const query = `?ref=${encodeURIComponent(STATE_BRANCH)}`;
-  const existing = await api('GET', endpoint + query, undefined, true);
+  const branch = await api('GET', '/git/ref/heads/' + STATE_BRANCH, undefined, true);
+  const existing = branch ? await api('GET', endpoint + query, undefined, true) : null;
   let sha, previous;
   let journal = freshJournal();
   if (existing) {
