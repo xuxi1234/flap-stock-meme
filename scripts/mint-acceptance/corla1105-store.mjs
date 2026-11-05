@@ -25,7 +25,7 @@ export function githubApi(token, fetcher = fetch, wait=delay) {
   requireThat(endpoint.startsWith('/')&&!endpoint.startsWith('//'),'非法 GitHub API 路径。');
   for(let attempt=0;attempt<3;attempt++){
    let response,status=0;
-   try{response=await fetcher(API_ROOT+endpoint,{method,redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'402-11-28','Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});status=response.status;}catch{}
+   try{response=await fetcher(API_ROOT+endpoint,{method,redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});status=response.status;}catch{}
    if(allowMissing&&status===404)return null;
    if(response?.ok){try{return await response.json();}catch{status=0;}}
    if(method==='GET'&&transient(status)&&attempt<2){await wait((attempt+1)*1000);continue;}
