@@ -67,7 +67,7 @@ export async function openGitHubStore({ api, readOnly = true, reportDirectory, w
         sha = confirmed.sha;
       } else {
         // GitHub rejects stale blob SHAs: a lost update cannot silently overwrite newer state.
-        for(let attempt=0;attempt<3;attempt++){
+        for(let attempt=0;attempt<8;attempt++){
           try{
             const updated=await api('PUT',endpoint,{message:'Checkpoint corla1105 execution',branch:STATE_BRANCH,sha,content:Buffer.from(text).toString('base64')});
             requireThat(updated.content?.sha===blobSha(text),'GitHub 未确认预期检查点内容。');sha=updated.content.sha;break;
@@ -80,8 +80,10 @@ export async function openGitHubStore({ api, readOnly = true, reportDirectory, w
             requireThat(blobSha(actual)===current.sha,'远程记录内容与哈希不一致。');
             if(actual===text){sha=current.sha;break;}
             requireThat(actual===previous,'检查点已被其他操作修改；停止，禁止覆盖原进度。');
-            if(attempt===2)throw new Stop('GitHub 保存重试仍失败；已保留原检查点，不继续广播。');
-            sha=current.sha;await wait((attempt+1)*1000);
+            if(attempt===7)throw new Stop(`GitHub 保存重试仍失败（HTTP ${e.status}，8次）；已保留原检查点，不继续广播。`);
+            const pause=Math.min(30000,2000*2**attempt);
+            console.log(`GitHub 检查点暂时无法保存（HTTP ${e.status}）；远程原记录未变，${pause/1000}秒后重试 ${attempt+2}/8。`);
+            sha=current.sha;await wait(pause);
           }
         }
       }
