@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {keccak256} from 'viem';
 import * as c from './corla1105-core.mjs';
 import {executionAllowed,confirmedBlocks} from './corla1105-run.mjs';
-import {compact,hydrate,openGitHubStore} from './corla1105-store.mjs';
+import {compact,hydrate,openGitHubStore,blobSha,githubApi} from './corla1105-store.mjs';
 test('exact campaign: 8000 unique recipients, 40 batches, final 200',()=>{
  assert.equal(c.addresses.length,8000);assert.equal(c.plan.length,40);assert.equal(c.plan[39].length,200);
  assert.equal(new Set(c.plan.flat()).size,8000);assert.equal(c.TOTAL,8000n*10n**12n);
@@ -60,3 +60,36 @@ test('journal rejects duplicate batches and insufficient interval; accepts settl
 });
 
 
+
+const stored = text => ({encoding:'base64',size:Buffer.byteLength(text),sha:blobSha(text),content:Buffer.from(text).toString('base64')});
+async function retryStore(mode) {
+ let text=c.stringify(compact(c.fresh()))+'\n', puts=0;const waits=[];
+ const api=async(method,endpoint,body)=>{
+  if(endpoint.startsWith('/git/ref/'))return {ref:'exists'};
+  if(method==='GET')return stored(text);
+  puts++;
+  if(mode==='lost'){text=Buffer.from(body.content,'base64').toString();throw Object.assign(Error(),{status:0});}
+  if(mode==='conflict'){text=c.stringify({...c.fresh(),baseNonce:99})+'\n';throw Object.assign(Error(),{status:409});}
+  if(mode==='exhaust'||puts<=4)throw Object.assign(Error(),{status:503});
+  text=Buffer.from(body.content,'base64').toString();return {content:{sha:blobSha(text)}};
+ };
+ const store=await openGitHubStore({api,readOnly:false,wait:async ms=>waits.push(ms)});
+ return {store,waits,puts:()=>puts};
+}
+test('checkpoint survives four transient write failures with bounded backoff',async()=>{
+ const t=await retryStore('recover');await t.store.save({...t.store.journal,active:true});
+ assert.equal(t.puts(),5);assert.deepEqual(t.waits,[2000,4000,8000,16000]);
+});
+test('lost write acknowledgement reconciles exact remote content without duplicate write',async()=>{
+ const t=await retryStore('lost');await t.store.save({...t.store.journal,active:true});assert.equal(t.puts(),1);
+});
+test('concurrent checkpoint change is never overwritten',async()=>{
+ const t=await retryStore('conflict');await assert.rejects(t.store.save({...t.store.journal,active:true}),/禁止覆盖/);assert.equal(t.puts(),1);
+});
+test('exhaustion reports status and stops after eight attempts',async()=>{
+ const t=await retryStore('exhaust');await assert.rejects(t.store.save({...t.store.journal,active:true}),/HTTP 503，8次/);assert.equal(t.puts(),8);assert.ok(t.waits.every(ms=>ms<=30000));
+});
+test('GitHub API uses supported version and preserves status without response secrets',async()=>{
+ const api=githubApi('test-token',async(url,options)=>{assert.equal(options.headers['X-GitHub-Api-Version'],'2022-11-28');return {ok:false,status:503};},async()=>{});
+ await assert.rejects(api('PUT','/contents/journal.json',{}),e=>e.status===503&&!e.message.includes('test-token'));
+});
