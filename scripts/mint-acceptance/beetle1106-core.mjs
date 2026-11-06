@@ -9,7 +9,7 @@ export const ACCOUNT='0x74a7d3198905c3b4ba53574c2dffef3aa4e569aa';
 export const TOKEN='0xe6fc6c6dfa50c0c815a5eb6d67bc86f47e667777';
 export const DISTRIBUTOR='0x369890cb7a233be14d33fd4265b26afadce00bc0';
 export const SOURCE_SHA='1112a2c89aadd78bf4bf8ff9ec2c03820d7f67ace7352c473cc04d1dbcfcf1ab';
-export const AMOUNT=10n**11n,INTERVAL=300,BATCHES=5,TOTAL=1000n*AMOUNT;
+export const AMOUNT=10n**11n,INTERVAL=300,BATCHES=10,TOTAL=1000n*AMOUNT;
 export const CONFIRM='beetle1106:0.0000001:200:300seconds';
 const source=fs.readFileSync(new URL('./data/beetle1106-recipients.csv',import.meta.url));
 requireThat(createHash('sha256').update(source).digest('hex')===SOURCE_SHA,'固定名单哈希不符。');
@@ -17,9 +17,9 @@ requireThat(source.toString().replace(/^\uFEFF/,'').split(/\r?\n/)[0]==='address
 export const addresses=source.toString().replace(/^\uFEFF/,'').trim().split(/\r?\n/).slice(1);
 requireThat(addresses.length===1000&&new Set(addresses.map(a=>a.toLowerCase())).size===1000&&addresses.every(a=>isAddress(a)),'固定名单不符。');
 requireThat(addresses.every(a=>![DISTRIBUTOR,'0x'+'0'.repeat(40)].some(b=>equal(a,b))),'名单包含零地址或分发合约。');
-export const plan=Array.from({length:BATCHES},(_,i)=>addresses.slice(i*200,i*200+200).filter(a=>!equal(a,ACCOUNT)));
+export const plan=Array.from({length:BATCHES},(_,i)=>addresses.slice(i*100,i*100+100).filter(a=>!equal(a,ACCOUNT)));
 export const ID=keccak256(toHex('beetle1106:56:'+TOKEN+':'+ACCOUNT+':'+SOURCE_SHA+':0.0000001:200:300:v1'));
-export const batchId=i=>{requireThat(Number.isInteger(i)&&i>=0&&i<BATCHES,'批次无效。');return keccak256(toHex(ID+':'+i));};
+export const batchId=i=>{requireThat(Number.isInteger(i)&&i>=0&&i<BATCHES,'批次无效。');return keccak256(toHex(ID+':split100:'+i));};
 export const artifact=JSON.parse(fs.readFileSync(new URL('../../src/airdrop/distributor.json',import.meta.url)));
 export const erc20=parseAbi(['function decimals() view returns(uint8)','function name() view returns(string)','function symbol() view returns(string)','function balanceOf(address) view returns(uint256)','function allowance(address,address) view returns(uint256)','function approve(address,uint256) returns(bool)']);
 export const fresh=()=>({version:1,id:ID,account:ACCOUNT,token:TOKEN,sourceSha:SOURCE_SHA,active:false,baseNonce:null,entries:[]});
@@ -30,7 +30,7 @@ export function callFor(e){
  return {to:TOKEN,value:'0',data:encodeFunctionData({abi:erc20,functionName:'approve',args:[DISTRIBUTOR,amount]})};
 }
 export const completed=j=>j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).length;
-export const dueAt=j=>Math.max(0,...j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).map(e=>(e.verifiedAt??e.confirmedAt)+INTERVAL));
+export const dueAt=j=>Math.max(0,...j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success&&e.batch%2===1).map(e=>(e.verifiedAt??e.confirmedAt)+INTERVAL));
 export function next(j,allowance){
  requireThat(j.entries.every(e=>e.settled&&e.success),'请先核对未完成交易。');
  const done=completed(j),remaining=BigInt(plan.slice(done).flat().length)*AMOUNT;
@@ -46,12 +46,12 @@ export function validate(j){
  j.entries.forEach((e,i)=>{
   const c=callFor(e),t=e.transaction;
   requireThat(j.baseNonce!==null&&Number.isSafeInteger(t.nonce)&&t.nonce>=(i?j.entries[i-1].transaction.nonce+1:j.baseNonce)&&t.chainId===56&&t.type==='legacy'&&equal(t.to,c.to)&&equal(t.data,c.data)&&t.value==='0','交易参数或序号不匹配。');
-  requireThat(BigInt(t.gas)>0n&&BigInt(t.gas)<=114400000n&&BigInt(t.gasPrice)>0n,'Gas参数无效。');
+  requireThat(BigInt(t.gas)>0n&&BigInt(t.gas)<=16777216n&&BigInt(t.gasPrice)>0n,'Gas参数无效。');
   requireThat(!e.hash||/^0x[0-9a-f]{64}$/.test(e.hash),'哈希无效。');
   requireThat(e.settled===true||i===j.entries.length-1,'未完成交易必须在末尾。');
   if(e.settled)requireThat(e.hash&&typeof e.success==='boolean'&&Number.isSafeInteger(e.confirmedAt)&&Number.isSafeInteger(e.verifiedAt)&&e.verifiedAt>=e.confirmedAt,'回执信息缺失。');
   if(e.settled&&!e.success)requireThat(i===j.entries.length-1,'失败后禁止继续。');
-  if(e.kind==='send'){requireThat(e.batch===done,'批次重复或跳跃。');if(e.settled&&e.success){if(done>0){const prev=j.entries.filter(x=>x.kind==='send'&&x.settled&&x.success&&x.batch===done-1)[0];requireThat(e.confirmedAt-prev.confirmedAt>=INTERVAL,'历史批次间隔不足。');}done++;}}
+  if(e.kind==='send'){requireThat(e.batch===done,'批次重复或跳跃。');if(e.settled&&e.success){if(done>0&&done%2===0){const prev=j.entries.filter(x=>x.kind==='send'&&x.settled&&x.success&&x.batch===done-1)[0];requireThat(e.confirmedAt-prev.confirmedAt>=INTERVAL,'历史批次间隔不足。');}done++;}}
  });
 }
 export function deliveries(e,logs){

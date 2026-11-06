@@ -5,6 +5,7 @@ import {privateKeyToAccount} from 'viem/accounts';
 import {bsc} from 'viem/chains';
 import {Stop,requireThat,equal,ACCOUNT,TOKEN,DISTRIBUTOR,AMOUNT,TOTAL,CONFIRM,BATCHES,addresses,plan,artifact,erc20,callFor,completed,dueAt,next,validate,deliveries,persistThenBroadcast,batchId} from './beetle1106-core.mjs';
 import {githubApi,openGitHubStore,REPOSITORY} from './beetle1106-store.mjs';
+export const safeGas=gas=>{const padded=gas*130n/100n+10000n;requireThat(padded<=16777216n,'该子批次Gas超过BSC单笔限制；停止，不广播。');return padded;};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function retry(fn){for(let i=0;i<3;i++){try{return await fn();}catch(e){if(e instanceof Stop||i===2)throw e;await sleep(1500);}}}
 const groups=async(items,fn)=>{const out=[];for(let i=0;i<items.length;i+=4)out.push(...await Promise.all(items.slice(i,i+4).map(fn)));return out;};
@@ -66,7 +67,7 @@ export function executionAllowed(env){
 function report(j){
  const ds=j.entries.filter(e=>e.kind==='send'&&e.success&&e.settled).flatMap(e=>e.received||[]);
  const net=ds.reduce((s,r)=>s+BigInt(r.received),0n),gas=j.entries.reduce((s,e)=>s+BigInt(e.feeWei||0),0n);
- const text='屎壳郎：已确认 '+completed(j)+'/'+BATCHES+' 批，'+ds.length+'/'+addresses.length+' 地址。每地址转出0.0000001枚，实际到账按代币税费扣除，不补发。实际到账合计 '+formatEther(net)+' 枚；本任务Gas '+formatEther(gas)+' BNB。至少间隔300秒。\n';
+ const text='屎壳郎：已确认 '+Math.floor(completed(j)/2)+'/5 轮（'+completed(j)+'/10 笔），'+ds.length+'/'+addresses.length+' 地址。每地址转出0.0000001枚，实际到账按代币税费扣除，不补发。实际到账合计 '+formatEther(net)+' 枚；本任务Gas '+formatEther(gas)+' BNB。每轮两笔100地址；轮间至少间隔300秒。\n';
  const rows=j.entries.filter(e=>e.hash).map(e=>`| ${e.kind==='send'?e.batch+1:e.kind} | ${e.settled?(e.success?'已确认':'失败'):'待确认'} | [${e.hash}](https://bscscan.com/tx/${e.hash}) |`).join('\n');
  console.log(text);if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,text+'\n| 批次 | 状态 | 交易 |\n|---|---|---|\n'+rows+'\n');
  const dir=process.env.BEETLE1106_REPORT_DIR;if(dir){fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/deliveries.csv','address,requested,received,transaction_hash\n'+j.entries.filter(e=>e.kind==='send'&&e.settled&&e.success).flatMap(e=>(e.received||[]).map(r=>`${r.address},0.0000001,${formatEther(BigInt(r.received))},${e.hash}`)).join('\n')+'\n');}
@@ -121,7 +122,7 @@ export async function main(env=process.env){
   if(action.kind==='send')requireThat(await chainNow()>=dueAt(j),'尚未到下批时间。');
   let e=j.entries.find(x=>!x.settled);const call=callFor(action);
   if(!e){const gas=await clients[0].estimateGas({account:ACCOUNT,...call,value:0n}),price=await clients[0].getGasPrice();
-   e={...action,settled:false,transaction:{...call,chainId:56,type:'legacy',nonce,gas:(gas*130n/100n+10000n).toString(),gasPrice:(price*120n/100n).toString()}};j.entries.push(e);await store.save(j);
+   e={...action,settled:false,transaction:{...call,chainId:56,type:'legacy',nonce,gas:safeGas(gas).toString(),gasPrice:(price*120n/100n).toString()}};j.entries.push(e);await store.save(j);
   }
   requireThat(e.kind===action.kind&&e.batch===action.batch&&e.amount===action.amount,'待恢复交易与当前计划不一致。');
   const t=e.transaction;requireThat(state.bnb>=BigInt(t.gas)*BigInt(t.gasPrice),'BNB余额不足以支付本笔最大Gas。');

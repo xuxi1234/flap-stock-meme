@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {keccak256} from 'viem';
 import * as c from './beetle1106-core.mjs';
-import {executionAllowed,confirmedBlocks} from './beetle1106-run.mjs';
+import {executionAllowed,confirmedBlocks,safeGas} from './beetle1106-run.mjs';
 import {compact,hydrate,openGitHubStore,blobSha,githubApi} from './beetle1106-store.mjs';
-test('exact campaign: 1000 unique recipients, 5 batches, final 200',()=>{
- assert.equal(c.addresses.length,1000);assert.equal(c.plan.length,5);assert.equal(c.plan[4].length,200);
+test('exact campaign: 1000 unique recipients, 5 rounds, 10 sub-batches of 100',()=>{
+ assert.equal(c.addresses.length,1000);assert.equal(c.plan.length,10);assert.equal(c.plan[9].length,100);
  assert.equal(new Set(c.plan.flat()).size,1000);assert.equal(c.TOTAL,1000n*10n**11n);
- assert.ok(!c.plan.flat().includes(c.ACCOUNT));assert.equal(new Set(c.plan.map((_,i)=>c.batchId(i))).size,5);
+ assert.ok(!c.plan.flat().includes(c.ACCOUNT));assert.equal(new Set(c.plan.map((_,i)=>c.batchId(i))).size,10);
 });
 test('only manual main invocation can execute',()=>{
  const env={GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:'xuxi1234/flap-stock-meme',GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:'workflow_dispatch',BEETLE1106_CONFIRM:c.CONFIRM};
@@ -17,7 +17,7 @@ test('only manual main invocation can execute',()=>{
  assert.equal(executionAllowed({...env,GITHUB_REF:'refs/heads/other'}),false);
 });
 test('5 minutes counted after observed confirmation',()=>{
- assert.equal(c.dueAt({entries:[{kind:'send',settled:true,success:true,confirmedAt:100,verifiedAt:120}]}),420);
+ assert.equal(c.dueAt({entries:[{kind:'send',batch:1,settled:true,success:true,confirmedAt:100,verifiedAt:120}]}),420);
 });
 const entry=()=>({kind:'send',batch:0,settled:false,transaction:{...c.callFor({kind:'send',batch:0}),nonce:7,chainId:56,type:'legacy',gas:'100000',gasPrice:'1000000000'}});
 test('checkpoint round trip and rejection of altered nonce or batch',()=>{
@@ -42,7 +42,7 @@ test('no state branch is written during read-only check',async()=>{
 
 test('resume skips confirmed batch and approves only remaining tokens',()=>{
  const j={...c.fresh(),entries:[{kind:'send',batch:0,settled:true,success:true}]};
- const remaining=c.TOTAL-200n*c.AMOUNT;
+ const remaining=c.TOTAL-100n*c.AMOUNT;
  assert.deepEqual(c.next(j,remaining),{kind:'send',batch:1});
  assert.deepEqual(c.next(j,0n),{kind:'approve',amount:String(remaining)});
  assert.deepEqual(c.next(j,remaining+1n),{kind:'reset',amount:'0'});
@@ -56,7 +56,8 @@ test('journal rejects duplicate batches and insufficient interval; accepts settl
  const e=(batch,nonce,time)=>({kind:'send',batch,hash:'0x'+'1'.repeat(64),settled:true,success:true,confirmedAt:time,verifiedAt:time,transaction:{...c.callFor({kind:'send',batch}),nonce,chainId:56,type:'legacy',gas:'100000',gasPrice:'1000000000'}});
  const j={...c.fresh(),baseNonce:7,entries:[e(0,7,1000),e(1,10,1300)]};c.validate(j);
  assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(0,10,1300)]}));
- assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(1,10,1299)]}));
+ assert.doesNotThrow(()=>c.validate({...j,entries:[j.entries[0],e(1,10,1001)]}));
+ assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(1,10,1001),e(2,11,1299)]}));
 });
 
 
@@ -92,4 +93,11 @@ test('exhaustion reports status and stops after eight attempts',async()=>{
 test('GitHub API uses supported version and preserves status without response secrets',async()=>{
  const api=githubApi('test-token',async(url,options)=>{assert.equal(options.headers['X-GitHub-Api-Version'],'2022-11-28');return {ok:false,status:503};},async()=>{});
  await assert.rejects(api('PUT','/contents/journal.json',{}),e=>e.status===503&&!e.message.includes('test-token'));
+});
+
+test('two 100-recipient transactions per round; wait only after second confirmation',()=>{
+ assert.deepEqual(c.plan.flat(),c.addresses);
+ assert.equal(c.dueAt({entries:[{kind:'send',batch:0,settled:true,success:true,verifiedAt:100}]}),0);
+ assert.equal(c.dueAt({entries:[{kind:'send',batch:1,settled:true,success:true,verifiedAt:110}]}),410);
+ assert.equal(safeGas(10000000n),13010000n);assert.throws(()=>safeGas(16000000n));
 });

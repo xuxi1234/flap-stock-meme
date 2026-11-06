@@ -62,7 +62,7 @@ jobs:
           path: ${{ runner.temp }}/beetle1106-check/
           if-no-files-found: ignore
   execute:
-    name: 屎壳郎空投步骤 ${{ matrix.slot }}
+    name: 屎壳郎100地址子批次 ${{ matrix.slot }}
     needs: check
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.operation == '启动或继续空投' && inputs.confirm == true
     permissions:
@@ -71,7 +71,7 @@ jobs:
       max-parallel: 1
       fail-fast: true
       matrix:
-        slot: [1,2,3,4,5]
+        slot: [1,2,3,4,5,6,7,8,9,10]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
