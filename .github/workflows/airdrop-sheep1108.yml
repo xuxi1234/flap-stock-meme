@@ -9,7 +9,7 @@ on:
         default: 只读检查
         required: true
       confirm:
-        description: '确认从0x74a7…69aA向固定21091地址每地址转出0.1314枚蝴蝶羊；税费按代币合约扣除；Gas无累计上限'
+        description: '确认从0x74a7…69aA向固定21091地址每地址转出0.1314枚蝴蝶羊；税费按代币合约扣除；仅续发未完成地址；本次恢复Gas累计上限0.02 BNB（程序硬限制）'
         type: boolean
         default: false
         required: true
