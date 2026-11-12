@@ -5,6 +5,18 @@ import {privateKeyToAccount} from 'viem/accounts';
 import {bsc} from 'viem/chains';
 import {Stop,requireThat,equal,ACCOUNT,TOKEN,DISTRIBUTOR,AMOUNT,TOTAL,CONFIRM,BATCHES,plan,artifact,erc20,callFor,completed,dueAt,next,validate,deliveries,persistThenBroadcast,batchId} from './sheep1108-core.mjs';
 import {githubApi,openGitHubStore,REPOSITORY} from './sheep1108-store.mjs';
+// Fixed cumulative ceiling: verified historical gas (including approval) 0.0265894116 BNB
+// plus at most 0.02 BNB for the resumed campaign. Never reset this on reruns.
+export const GAS_CEILING_WEI=46589411600000000n;
+export function gasBudgetAllowed(j,t){
+ let spent=0n;
+ for(const e of j.entries.filter(e=>e.settled)){
+  requireThat(typeof e.feeWei==='string'&&/^\\d+$/.test(e.feeWei),'已确认交易缺少有效Gas记录，停止。');
+  spent+=BigInt(e.feeWei);
+ }
+ requireThat(spent+BigInt(t.gas)*BigInt(t.gasPrice)<=GAS_CEILING_WEI,'本次恢复累计Gas上限0.02 BNB不足支付下一笔最大Gas；保留记录并停止。');
+ return true;
+}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function retry(fn){for(let i=0;i<3;i++){try{return await fn();}catch(e){if(e instanceof Stop||i===2)throw e;await sleep(1500);}}}
 const groups=async(items,fn)=>{const out=[];for(let i=0;i<items.length;i+=4)out.push(...await Promise.all(items.slice(i,i+4).map(fn)));return out;};
@@ -116,7 +128,7 @@ export async function main(env=process.env){
    e={...action,settled:false,transaction:{...call,chainId:56,type:'legacy',nonce,gas:(gas*130n/100n+10000n).toString(),gasPrice:(price*120n/100n).toString()}};j.entries.push(e);await store.save(j);
   }
   requireThat(e.kind===action.kind&&e.batch===action.batch&&e.amount===action.amount,'待恢复交易与当前计划不一致。');
-  const t=e.transaction;requireThat(state.bnb>=BigInt(t.gas)*BigInt(t.gasPrice),'BNB余额不足以支付本笔最大Gas。');
+  const t=e.transaction;gasBudgetAllowed(j,t);requireThat(state.bnb>=BigInt(t.gas)*BigInt(t.gasPrice),'BNB余额不足以支付本笔最大Gas。');
   const tx={...t,value:0n,gas:BigInt(t.gas),gasPrice:BigInt(t.gasPrice)};
   await Promise.all(clients.map(c=>c.call({account:ACCOUNT,to:tx.to,data:tx.data,value:0n,gas:tx.gas})));
   const raw=await account.signTransaction(tx);
