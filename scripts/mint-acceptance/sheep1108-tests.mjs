@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {keccak256} from 'viem';
 import * as c from './sheep1108-core.mjs';
-import {executionAllowed,confirmedBlocks} from './sheep1108-run.mjs';
+import {executionAllowed,confirmedBlocks,gasBudgetAllowed,GAS_CEILING_WEI} from './sheep1108-run.mjs';
 import {compact,hydrate,openGitHubStore} from './sheep1108-store.mjs';
 test('exact campaign: 21091 unique recipients, 106 batches, final 91',()=>{
  assert.equal(c.addresses.length,21091);assert.equal(c.plan.length,106);assert.equal(c.plan[105].length,91);
@@ -59,3 +59,13 @@ test('journal rejects duplicate batches and insufficient interval; accepts settl
  assert.throws(()=>c.validate({...j,entries:[j.entries[0],e(1,10,4599)]}));
 });
 
+
+test('resumed campaign gas cap includes all historical fees and worst-case next transaction',()=>{
+ const j={entries:[{settled:true,kind:'approve',feeWei:'2937600000000'},{settled:true,kind:'send',feeWei:'26586474000000000'}]};
+ assert.equal(GAS_CEILING_WEI,46589411600000000n);
+ assert.equal(gasBudgetAllowed(j,{gas:'20000000',gasPrice:'1000000000'}),true);
+ assert.throws(()=>gasBudgetAllowed(j,{gas:'20000001',gasPrice:'1000000000'}));
+ assert.throws(()=>gasBudgetAllowed({entries:[{settled:true}]},{gas:'1',gasPrice:'1'}));
+ assert.throws(()=>gasBudgetAllowed({entries:[{settled:true,feeWei:String(GAS_CEILING_WEI)}]},{gas:'1',gasPrice:'1'}));
+ assert.equal(gasBudgetAllowed({...j,entries:[...j.entries,{settled:false}]},{gas:'1',gasPrice:'1'}),true);
+});
