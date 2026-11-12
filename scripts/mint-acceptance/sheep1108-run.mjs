@@ -11,7 +11,7 @@ export const GAS_CEILING_WEI=46589411600000000n;
 export function gasBudgetAllowed(j,t){
  let spent=0n;
  for(const e of j.entries.filter(e=>e.settled)){
-  requireThat(typeof e.feeWei==='string'&&/^\\d+$/.test(e.feeWei),'已确认交易缺少有效Gas记录，停止。');
+  requireThat(typeof e.feeWei==='string'&&/^[0-9]+$/.test(e.feeWei),'已确认交易缺少有效Gas记录，停止。');
   spent+=BigInt(e.feeWei);
  }
  requireThat(spent+BigInt(t.gas)*BigInt(t.gasPrice)<=GAS_CEILING_WEI,'本次恢复累计Gas上限0.02 BNB不足支付下一笔最大Gas；保留记录并停止。');
