@@ -55,7 +55,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           FLAP_BSC_RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
           SHEEP1108_REPORT_DIR: ${{ runner.temp }}/sheep1108-check
+      # The GitHub ledger is the durable checkpoint; report upload must not stop subsequent batches.
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        continue-on-error: true
         if: always()
         with:
           name: sheep1108-check
@@ -90,7 +92,9 @@ jobs:
           SHEEP1108_EXECUTE: 'true'
           SHEEP1108_CONFIRM: sheep1108:0.1314:200:3600seconds
           SHEEP1108_REPORT_DIR: ${{ runner.temp }}/sheep1108-results
+      # The GitHub ledger is the durable checkpoint; report upload must not stop subsequent batches.
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        continue-on-error: true
         if: always()
         with:
           name: sheep1108-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.slot }}
