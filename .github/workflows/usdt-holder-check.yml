@@ -9,22 +9,13 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect documented service capabilities
+      - name: Inspect snapshot API
         run: |
           python3 <<'PY'
-          import requests,re,concurrent.futures,urllib.parse
-          for site in ['https://www.pandatool.org/zh-CN/tool/snapshot','https://www.gtokentool.com/en/tool/snapshot']:
-            root=urllib.parse.urlsplit(site).scheme+'://'+urllib.parse.urlsplit(site).netloc
-            html=requests.get(site,timeout=20).text
-            scripts=list(dict.fromkeys(re.findall(r'<script[^>]+src="([^"]+)"',html)))
-            def get(p):
-              try:
-                s=requests.get(urllib.parse.urljoin(root,p),timeout=20).text
-                matches=[]
-                for m in re.finditer(r'.{0,120}(?:snapshotToken|tokenHolders|token-holders|holders/list|holderList|snapshot/holders|/api/snapshot|token/holders).{0,180}',s,re.I):
-                  matches.append(m.group()[:300])
-                  if len(matches)>=8: break
-                if matches: print('MATCH',root,p,repr(matches)[:4000])
-              except Exception: pass
-            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool: list(pool.map(get,scripts))
+          import requests,re
+          s=requests.get('https://www.pandatool.org/_next/static/chunks/10c6p9ry-sudu.js',timeout=30).text
+          for pattern in ['exportFailed','pageSize','holders','snapshot','/api/']:
+            print('PATTERN',pattern)
+            for m in list(re.finditer(pattern,s,re.I))[:12]:
+              print(s[max(0,m.start()-400):m.start()+500])
           PY
