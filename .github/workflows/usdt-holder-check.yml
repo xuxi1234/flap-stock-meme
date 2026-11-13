@@ -9,15 +9,22 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect public snapshot services
+      - name: Inspect documented service capabilities
         run: |
           python3 <<'PY'
-          import requests,re
-          for url in ['https://www.pandatool.org/zh-CN/tool/snapshot','https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955#balances','https://www.gtokentool.com/en/tool/snapshot']:
+          import requests,re,concurrent.futures,urllib.parse
+          for site in ['https://www.pandatool.org/zh-CN/tool/snapshot','https://www.gtokentool.com/en/tool/snapshot']:
+            root=urllib.parse.urlsplit(site).scheme+'://'+urllib.parse.urlsplit(site).netloc
+            html=requests.get(site,timeout=20).text
+            scripts=list(dict.fromkeys(re.findall(r'<script[^>]+src="([^"]+)"',html)))
+            def get(p):
               try:
-                  r=requests.get(url,timeout=25,headers={'User-Agent':'Mozilla/5.0'})
-                  print('SITE',url,'STATUS',r.status_code,'LENGTH',len(r.content))
-                  print('JS',re.findall(r'<script[^>]+src="([^"]+)"',r.text)[:20])
-                  print('CSVLINK',re.findall(r'href="([^"]*(?:csv|export)[^"]*)"',r.text,re.I)[:10])
-              except Exception as e: print('FAIL',type(e).__name__)
+                s=requests.get(urllib.parse.urljoin(root,p),timeout=20).text
+                matches=[]
+                for m in re.finditer(r'.{0,120}(?:snapshotToken|tokenHolders|token-holders|holders/list|holderList|snapshot/holders|/api/snapshot|token/holders).{0,180}',s,re.I):
+                  matches.append(m.group()[:300])
+                  if len(matches)>=8: break
+                if matches: print('MATCH',root,p,repr(matches)[:4000])
+              except Exception: pass
+            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool: list(pool.map(get,scripts))
           PY
