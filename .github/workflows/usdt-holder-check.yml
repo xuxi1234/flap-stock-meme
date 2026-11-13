@@ -9,27 +9,15 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check holder endpoint
-        env:
-          RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+      - name: Inspect public snapshot services
         run: |
-          node <<'NODE'
-          (async () => {
-            const rpc = process.env.RPC_URL;
-            if (!rpc) { console.log("RPC_SECRET_MISSING"); process.exit(1); }
-            const key = new URL(rpc).pathname.split('/').filter(Boolean).pop();
-            const url = 'https://api.g.alchemy.com/trading/v1/' + encodeURIComponent(key) + '/tokens/bnb-mainnet/0x55d398326f99059ff775485246999027b3197955/holders?pageSize=100';
-            try {
-              const r = await fetch(url);
-              const body = await r.text();
-              console.log("HTTP_STATUS", r.status);
-              if (r.ok) {
-                const data = JSON.parse(body);
-                console.log("RESPONSE_KEYS", Object.keys(data).join(","));
-                console.log("ROWS", Array.isArray(data.data) ? data.data.length : "unknown");
-                console.log("HAS_NEXT_PAGE", Boolean(data.pageKey));
-                console.log("FIRST_ROW_KEYS", Array.isArray(data.data) && data.data[0] ? Object.keys(data.data[0]).join(",") : "none");
-              } else console.log("ENDPOINT_UNAVAILABLE");
-            } catch (e) { console.log("REQUEST_FAILED", e.name); process.exitCode=1; }
-          })();
-          NODE
+          python3 <<'PY'
+          import requests,re
+          for url in ['https://www.pandatool.org/zh-CN/tool/snapshot','https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955#balances','https://www.gtokentool.com/en/tool/snapshot']:
+              try:
+                  r=requests.get(url,timeout=25,headers={'User-Agent':'Mozilla/5.0'})
+                  print('SITE',url,'STATUS',r.status_code,'LENGTH',len(r.content))
+                  print('JS',re.findall(r'<script[^>]+src="([^"]+)"',r.text)[:20])
+                  print('CSVLINK',re.findall(r'href="([^"]*(?:csv|export)[^"]*)"',r.text,re.I)[:10])
+              except Exception as e: print('FAIL',type(e).__name__)
+          PY
