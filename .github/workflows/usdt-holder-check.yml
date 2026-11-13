@@ -1,0 +1,35 @@
+name: USDT holder API check
+on:
+  push:
+    branches: [usdt-holder-check-20261114]
+    paths: [.github/workflows/usdt-holder-check.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check holder endpoint
+        env:
+          RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
+        run: |
+          node <<'NODE'
+          (async () => {
+            const rpc = process.env.RPC_URL;
+            if (!rpc) { console.log("RPC_SECRET_MISSING"); process.exit(1); }
+            const key = new URL(rpc).pathname.split('/').filter(Boolean).pop();
+            const url = 'https://api.g.alchemy.com/trading/v1/' + encodeURIComponent(key) + '/tokens/bnb-mainnet/0x55d398326f99059ff775485246999027b3197955/holders?pageSize=100';
+            try {
+              const r = await fetch(url);
+              const body = await r.text();
+              console.log("HTTP_STATUS", r.status);
+              if (r.ok) {
+                const data = JSON.parse(body);
+                console.log("RESPONSE_KEYS", Object.keys(data).join(","));
+                console.log("ROWS", Array.isArray(data.data) ? data.data.length : "unknown");
+                console.log("HAS_NEXT_PAGE", Boolean(data.pageKey));
+                console.log("FIRST_ROW_KEYS", Array.isArray(data.data) && data.data[0] ? Object.keys(data.data[0]).join(",") : "none");
+              } else console.log("ENDPOINT_UNAVAILABLE");
+            } catch (e) { console.log("REQUEST_FAILED", e.name); process.exitCode=1; }
+          })();
+          NODE
