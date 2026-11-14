@@ -1,4 +1,4 @@
-name: USDT holder API check
+name: USDT holder RPC probe
 on:
   push:
     branches: [usdt-holder-check-20261114]
@@ -6,16 +6,40 @@ on:
 permissions:
   contents: read
 jobs:
-  check:
+  probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Inspect snapshot API
+      - name: Test BSC historical logs
+        env:
+          RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
         run: |
           python3 <<'PY'
-          import requests,re
-          s=requests.get('https://www.pandatool.org/_next/static/chunks/10c6p9ry-sudu.js',timeout=30).text
-          for pattern in ['exportFailed','pageSize','holders','snapshot','/api/']:
-            print('PATTERN',pattern)
-            for m in list(re.finditer(pattern,s,re.I))[:12]:
-              print(s[max(0,m.start()-400):m.start()+500])
+          import os,requests,time,json
+          url=os.environ.get('RPC_URL')
+          if not url:
+              print('RPC secret missing'); raise SystemExit(1)
+          def call(method,params):
+              try:
+                  t=time.monotonic()
+                  r=requests.post(url,json={'jsonrpc':'2.0','id':1,'method':method,'params':params},timeout=35)
+                  j=r.json()
+                  if 'error' in j:
+                      e=j['error']; print(method,'ERROR code',e.get('code'),'message',str(e.get('message',''))[:250]); return None
+                  print(method,'HTTP',r.status_code,'seconds',round(time.monotonic()-t,2))
+                  return j.get('result')
+              except Exception as e:
+                  print(method,'FAILED',type(e).__name__);return None
+          contract='0x55d398326f99059ff775485246999027b3197955'
+          topic='0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+          chain=call('eth_chainId',[])
+          head=call('eth_blockNumber',[])
+          print('CHAIN',int(chain,16) if chain else None,'HEAD',int(head,16) if head else None)
+          if chain!='0x38' or not head: raise SystemExit(1)
+          n=int(head,16)
+          for label,start,end in [('recent_100',n-130,n-31),('recent_1000',n-1030,n-31),('historical_1000',5000000,5000999),('historical_10000',5000000,5009999)]:
+              logs=call('eth_getLogs',[{'fromBlock':hex(start),'toBlock':hex(end),'address':contract,'topics':[topic]}])
+              print('PROBE',label,'blocks',start,end,'log_count',len(logs) if isinstance(logs,list) else 'unavailable')
+          x=call('eth_getCode',[contract,hex(5000000)])
+          print('HISTORIC_CODE',bool(x and x!='0x'))
           PY
