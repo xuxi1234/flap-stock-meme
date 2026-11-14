@@ -1,4 +1,4 @@
-name: USDT holder RPC probe
+name: USDT recent holder sample
 on:
   push:
     branches: [usdt-holder-check-20261114]
@@ -6,40 +6,94 @@ on:
 permissions:
   contents: read
 jobs:
-  probe:
+  sample:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 60
     steps:
-      - name: Test BSC historical logs
+      - name: Collect recent recipients and verify balances
         env:
           RPC_URL: ${{ secrets.FLAP_BSC_RPC_URL }}
         run: |
           python3 <<'PY'
-          import os,requests,time,json
-          url=os.environ.get('RPC_URL')
-          if not url:
-              print('RPC secret missing'); raise SystemExit(1)
-          def call(method,params):
-              try:
-                  t=time.monotonic()
-                  r=requests.post(url,json={'jsonrpc':'2.0','id':1,'method':method,'params':params},timeout=35)
-                  j=r.json()
-                  if 'error' in j:
-                      e=j['error']; print(method,'ERROR code',e.get('code'),'message',str(e.get('message',''))[:250]); return None
-                  print(method,'HTTP',r.status_code,'seconds',round(time.monotonic()-t,2))
-                  return j.get('result')
-              except Exception as e:
-                  print(method,'FAILED',type(e).__name__);return None
+          import os,time,requests,json,csv,concurrent.futures
+          url=os.environ['RPC_URL']
           contract='0x55d398326f99059ff775485246999027b3197955'
           topic='0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-          chain=call('eth_chainId',[])
-          head=call('eth_blockNumber',[])
-          print('CHAIN',int(chain,16) if chain else None,'HEAD',int(head,16) if head else None)
-          if chain!='0x38' or not head: raise SystemExit(1)
-          n=int(head,16)
-          for label,start,end in [('recent_100',n-130,n-31),('recent_1000',n-1030,n-31),('historical_1000',5000000,5000999),('historical_10000',5000000,5009999)]:
-              logs=call('eth_getLogs',[{'fromBlock':hex(start),'toBlock':hex(end),'address':contract,'topics':[topic]}])
-              print('PROBE',label,'blocks',start,end,'log_count',len(logs) if isinstance(logs,list) else 'unavailable')
-          x=call('eth_getCode',[contract,hex(5000000)])
-          print('HISTORIC_CODE',bool(x and x!='0x'))
+          session=requests.Session()
+          def request(payload):
+              for attempt in range(6):
+                  try:
+                      r=session.post(url,json=payload,timeout=90)
+                      if r.status_code in (429,500,502,503,504): time.sleep(min(15,2**attempt));continue
+                      r.raise_for_status()
+                      return r.json()
+                  except (requests.RequestException,ValueError):
+                      if attempt==5: raise
+                      time.sleep(min(15,2**attempt))
+              raise RuntimeError('RPC request failed')
+          def rpc(method,params):
+              j=request({'jsonrpc':'2.0','id':1,'method':method,'params':params})
+              if 'error' in j: raise RuntimeError(str(j['error'])[:200])
+              return j['result']
+          head=int(rpc('eth_blockNumber',[]),16)-30
+          block=rpc('eth_getBlockByNumber',[hex(head),False])
+          print('SNAPSHOT_BLOCK',head,'TIMESTAMP',int(block['timestamp'],16),flush=True)
+          addresses=set()
+          rows=[]
+          checked=0
+          remaining=0
+          width=500
+          end=head
+          zero='0x'+'0'*40
+          started=time.monotonic()
+          out='usdt_recent_holders.csv'
+          with open(out,'w',newline='') as f:
+              writer=csv.writer(f);writer.writerow(['address','balance_usdt'])
+              for roundno in range(1,101):
+                  start=max(1,end-width+1)
+                  try:
+                      logs=rpc('eth_getLogs',[{'fromBlock':hex(start),'toBlock':hex(end),'address':contract,'topics':[topic]}])
+                  except Exception as e:
+                      if width>10:
+                          width=max(10,width//2)
+                          print('RANGE_REDUCED',width,flush=True);continue
+                      print('LOG_ERROR',type(e).__name__,flush=True);break
+                  candidates=[]
+                  for l in logs:
+                      if len(l.get('topics',[]))<3: continue
+                      addr='0x'+l['topics'][2][-40:].lower()
+                      if addr!=zero and addr not in addresses:
+                          addresses.add(addr);candidates.append(addr)
+                  for i in range(0,len(candidates),100):
+                      group=candidates[i:i+100]
+                      payload=[{'jsonrpc':'2.0','id':j,'method':'eth_call','params':[{'to':contract,'data':'0x70a08231'+a[2:].rjust(64,'0')},hex(head)]} for j,a in enumerate(group)]
+                      try: results=request(payload)
+                      except Exception as e:
+                          print('BALANCE_ERROR',type(e).__name__,flush=True);remaining=len(candidates)-i;break
+                      if not isinstance(results,list):
+                          print('BALANCE_BATCH_UNAVAILABLE',flush=True);remaining=len(candidates)-i;break
+                      for item in results:
+                          if 'result' not in item:
+                              remaining+=1;continue
+                          addr=group[item['id']]
+                          v=int(item['result'],16)
+                          checked+=1
+                          if v>0:
+                              balance=str(v//10**18)+'.'+str(v%10**18).zfill(18).rstrip('0')
+                              writer.writerow([addr,balance.rstrip('.')]);rows.append(addr)
+                              if len(rows)>=100000:break
+                      if len(rows)>=100000: break
+                  f.flush()
+                  print('PROGRESS',roundno,'range',start,end,'unique_seen',len(addresses),'verified',checked,'positive',len(rows),'errors',remaining,flush=True)
+                  if len(rows)>=100000 or remaining or time.monotonic()-started>3000: break
+                  end=start-1
+          print('RESULT count',len(rows),'checked',checked,'unique',len(addresses),'errors',remaining,'block',head,flush=True)
           PY
+      - name: Save CSV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: usdt-recent-holder-sample
+          path: usdt_recent_holders.csv
+          if-no-files-found: warn
+          retention-days: 7
