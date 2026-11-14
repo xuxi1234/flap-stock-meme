@@ -1,4 +1,4 @@
-name: USDT recent holder sample
+name: USDT 1 million holder sample
 on:
   push:
     branches: [usdt-holder-check-20261114]
@@ -8,7 +8,7 @@ permissions:
 jobs:
   sample:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - name: Collect recent recipients and verify balances
         env:
@@ -49,7 +49,7 @@ jobs:
           out='usdt_recent_holders.csv'
           with open(out,'w',newline='') as f:
               writer=csv.writer(f);writer.writerow(['address','balance_usdt'])
-              for roundno in range(1,101):
+              for roundno in range(1,3001):
                   start=max(1,end-width+1)
                   try:
                       logs=rpc('eth_getLogs',[{'fromBlock':hex(start),'toBlock':hex(end),'address':contract,'topics':[topic]}])
@@ -89,11 +89,11 @@ jobs:
                           if v>0:
                               balance=str(v//10**18)+'.'+str(v%10**18).zfill(18).rstrip('0')
                               writer.writerow([addr,balance.rstrip('.')]);rows.append(addr)
-                              if len(rows)>=100000:break
-                      if len(rows)>=100000: break
+                              if len(rows)>=1000000:break
+                      if len(rows)>=1000000: break
                   f.flush()
                   print('PROGRESS',roundno,'range',start,end,'unique_seen',len(addresses),'verified',checked,'positive',len(rows),'errors',remaining,flush=True)
-                  if len(rows)>=100000 or remaining or time.monotonic()-started>3000: break
+                  if len(rows)>=1000000 or remaining or time.monotonic()-started>8400: break
                   end=start-1
           print('RESULT count',len(rows),'checked',checked,'unique',len(addresses),'errors',remaining,'block',head,flush=True)
           PY
@@ -101,7 +101,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: usdt-recent-holder-sample
+          name: usdt-one-million-holders
           path: usdt_recent_holders.csv
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 30
