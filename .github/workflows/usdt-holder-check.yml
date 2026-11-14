@@ -72,6 +72,14 @@ jobs:
                           print('BALANCE_ERROR',type(e).__name__,flush=True);remaining=len(candidates)-i;break
                       if not isinstance(results,list):
                           print('BALANCE_BATCH_UNAVAILABLE',flush=True);remaining=len(candidates)-i;break
+                      for attempt in range(5):
+                          failed=[item for item in results if 'result' not in item]
+                          if not failed: break
+                          time.sleep(1+attempt*2)
+                          retry=request([payload[item['id']] for item in failed])
+                          if not isinstance(retry,list): break
+                          results=[item for item in results if 'result' in item]+retry
+                      time.sleep(0.12)
                       for item in results:
                           if 'result' not in item:
                               remaining+=1;continue
