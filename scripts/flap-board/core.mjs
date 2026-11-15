@@ -18,10 +18,47 @@ export function categories(state, vault, category) {
   return result
 }
 export function marketFields(pairs, address, pool) {
-  const p = pairs?.find(p => p.chainId === 'bsc' && p.baseToken?.address?.toLowerCase() === address && p.pairAddress?.toLowerCase() === pool.toLowerCase())
+  if (!Array.isArray(pairs) || typeof address !== 'string' || typeof pool !== 'string') return {}
+  const p = pairs.find(p => p?.chainId === 'bsc' && typeof p.baseToken?.address === 'string' && p.baseToken.address.toLowerCase() === address.toLowerCase() && typeof p.pairAddress === 'string' && p.pairAddress.toLowerCase() === pool.toLowerCase())
   if (!p) return {}
-  const n = v => v !== undefined && v !== null && Number.isFinite(Number(v)) ? Number(v) : null
-  return {price:n(p.priceUsd),marketCap:n(p.marketCap),liquidity:n(p.liquidity?.usd),volume24h:n(p.volume?.h24),change5m:n(p.priceChange?.m5),change1h:n(p.priceChange?.h1),change4h:null,change24h:n(p.priceChange?.h24),coinImage:p.info?.imageUrl??null}
+  const n = (v, signed=false) => {
+    if (!(typeof v === 'number' || typeof v === 'string' && /^-?(?:[0-9]+(?:\.[0-9]+)?)(?:e[+-]?[0-9]+)?$/i.test(v))) return null
+    const value=Number(v);return Number.isFinite(value) && (signed || value>=0) ? value : null
+  }
+  return {price:n(p.priceUsd),marketCap:n(p.marketCap),liquidity:n(p.liquidity?.usd),volume24h:n(p.volume?.h24),change5m:n(p.priceChange?.m5,true),change1h:n(p.priceChange?.h1,true),change4h:null,change24h:n(p.priceChange?.h24,true),coinImage:typeof p.info?.imageUrl==='string'?p.info.imageUrl:null}
+}
+// Only Portal-verified graduated records enter this fallback. Never select another pool.
+export async function fillPoolFallback(records,{fetcher=fetch,pause=ms=>new Promise(r=>setTimeout(r,ms)),now=Date.now}={}) {
+ const valid=a=>typeof a==='string' && /^0x[0-9a-f]{40}$/i.test(a) && !/^0x0{40}$/i.test(a)
+ const candidates=records.filter(r=>r.listed===true && r.price==null && valid(r.pool) && valid(r.coin?.address))
+ const diagnostics={eligible:candidates.length,requested:0,filled:0,missing:0,failed:0,rateLimited:false,deferred:0}
+ const deadline=now()+15000
+ for(const record of candidates){
+  if(diagnostics.requested>=30 || now()>=deadline)break
+  if(diagnostics.requested)await pause(250)
+  if(now()>=deadline)break
+  diagnostics.requested++
+  try {
+   const response=await fetcher(`https://api.dexscreener.com/latest/dex/pairs/bsc/${record.pool.toLowerCase()}`,{redirect:'error',signal:AbortSignal.timeout(Math.max(1,Math.min(4000,deadline-now()))),headers:{Accept:'application/json'}})
+   if(response.status===429){diagnostics.rateLimited=true;await response.body?.cancel();break}
+   if(!response.ok)throw Error('Pool source unavailable')
+   const reader=response.body?.getReader();if(!reader)throw Error('Missing body')
+   const chunks=[];let size=0
+   try {for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>256000)throw Error('Pool response too large');chunks.push(value)}}
+   finally{await reader.cancel()}
+   const bytes=new Uint8Array(size);let offset=0;for(const part of chunks){bytes.set(part,offset);offset+=part.length}
+   const data=JSON.parse(new TextDecoder().decode(bytes))
+   if(!Array.isArray(data?.pairs) || data.pairs.length>100){diagnostics.missing++;continue}
+   const fields=marketFields(data.pairs,record.coin.address,record.pool)
+   if(fields.price==null){diagnostics.missing++;continue}
+   // Fill unknown values only; do not erase already collected values with nulls.
+   for(const [key,value] of Object.entries(fields))if(record[key]==null && value!=null)record[key]=value
+   if(record.coin.image==null && fields.coinImage!=null)record.coin.image=fields.coinImage
+   diagnostics.filled++
+  } catch {diagnostics.failed++}
+ }
+ diagnostics.deferred=candidates.length-diagnostics.requested
+ return diagnostics
 }
 export async function scanLogs(client, address, event, fromBlock, toBlock, args) {
   if (fromBlock > toBlock) return []
