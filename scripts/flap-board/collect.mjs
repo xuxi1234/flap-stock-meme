@@ -1,7 +1,7 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises'
 import {createPublicClient,http,erc20Abi} from 'viem'
 import {bsc} from 'viem/chains'
-import {categories,factories,marketFields,scanLogs} from './core.mjs'
+import {categories,factories,marketFields,scanLogs,fillPoolFallback} from './core.mjs'
 const abi=JSON.parse(await readFile(new URL('./abi.json',import.meta.url),'utf8'))
 const seeds=JSON.parse(await readFile(new URL('./seeds.json',import.meta.url),'utf8'))
 const portal='0xe2ce6ab80874fa9fa2aae65d277dd6b8e65c9de0',vaultPortal='0x90497450f2a706f1951b5bdda52b4e5d16f34c06'
@@ -120,6 +120,8 @@ async function cycle(state,oldRef){
    for(const t of batch){const m=marketFields(pairs,t.coin.address,t.pool);Object.assign(t,m);t.coin.image=m.coinImage;if(m.price!=null)marketOk++}
   }catch{/* Unknown market fields stay null, never pretend old prices are fresh. */}
  }
+ diagnostics.poolFallback=await fillPoolFallback(records)
+ marketOk=records.filter(r=>r.price!=null).length
  records.sort((a,b)=>(b.volume24h||0)-(a.volume24h||0))
  const snapshot={version:1,chainId:56,updatedAt:Date.now(),block:Number(head),indexedThrough:state.cursor,historyFrom:state.historyCursor,records,marketOk,diagnostics}
  // Bound the checkpoint while preserving all known supported vault categories.
